@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement style="flex-grow: 1; visibility: visible; display: flex; flex-shrink: 0; flex-direction: column; justify-content: flex-start; align-self: stretch; align-items: center; height: auto; flex-wrap: nowrap; width: 100%;">
+        <ui:VisualElement name="signPage" style="flex-grow: 1; display: none; flex-shrink: 1; align-items: stretch; align-self: auto; max-height: none; max-width: none; width: 100%; margin-top: 0; margin-right: 0; margin-bottom: 0; padding-top: 10px; padding-right: 10px; padding-bottom: 10px; padding-left: 10px; justify-content: flex-start;" />
+        <ui:VisualElement name="dataPage" style="flex-grow: 1; display: none; width: 100%; align-items: stretch; justify-content: flex-start; align-self: auto; padding-top: 10px; padding-right: 10px; padding-bottom: 10px; padding-left: 10px;" />
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,0 +1,7 @@
+{
+    "scripts": [
+        "luafab/MiniRoot.thlua",
+        "src/MiniContext.thlua"
+    ],
+    "version": 20250904
+}
