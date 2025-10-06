@@ -193,7 +193,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameManager: {fileID: 0}
   classPath: luafab.MiniRoot
-  nestedPaths:
+  nestedKeys:
   - capsule
 --- !u!212 &7775323781168420944
 SpriteRenderer:

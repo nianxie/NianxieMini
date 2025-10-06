@@ -38,7 +38,8 @@ namespace XLua
         }
         public LuaTable ToLuaScript(LuaBehaviour behav, string targetNodePath)
         {
-            return ToLuaBehaviour(behav, targetNodePath).luaTable;
+            var luaBehav = ToLuaBehaviour(behav, targetNodePath);
+            return luaBehav.luaTable;
         }
     }
 }
