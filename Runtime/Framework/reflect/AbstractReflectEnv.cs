@@ -57,7 +57,6 @@ namespace XLua
         protected readonly LuaFunction luaSetmetatable = null;
         protected readonly Dictionary<string, WarmedReflectClass> fileWarmedReflectDict = new();
         private readonly LuaTable fileClsOpenSet;
-        protected BootTable boot { get; private set; }
         protected LuaFunction contextNew { get; private set; }
 
         // editor模式下用来在inspector上显示lua层定义的属性，runtime模式下会挂在LuaModule上
@@ -84,6 +83,7 @@ namespace XLua
         /// </summary>
         protected void Warmup()
         {
+            contextNew = RequireFunction(envPaths.contextName);
             var okayPairList = new List<(string, LuaTable)>();
             var errPairList = new List<(string, string)>();
             foreach (var luaAssetPath in scriptAssetDict.Keys)
@@ -134,30 +134,6 @@ namespace XLua
         }
         
 
-        /// <summary>
-        /// 启动：加载boot，mini模式下加载miniBoot，shell模式下require boot.boot
-        /// </summary>
-        protected void Bootstrap(byte[] miniBoot) 
-        {
-            if (boot != null)
-            {
-                throw new Exception("ReflectEnv.Bootstrap called than once");
-            }
-
-            if (miniBoot == null)
-            {
-                // miniBoot 为空时为shell的ReflectEnv
-                boot = new BootTable(RequireTable("boot.boot"));
-            }
-            else
-            {
-                // miniBoot 不为空时为mini的ReflectEnv
-                var miniBootTable = LoadString<LuaFunction>(miniBoot, nameof(miniBoot)).Func<LuaTable>();
-                boot = new BootTable(miniBootTable);
-            }
-            contextNew = RequireFunction(envPaths.contextName);
-        }
-
         protected abstract WarmedReflectClass FallbackReflect(string clsPath, string[] nestedPath, string message);
 
         public WarmedReflectClass GetFileWarmedReflect(string clsPath)
@@ -185,7 +161,7 @@ namespace XLua
             return warmedReflect;
         }
 
-        private LuaTable RequireTable(string module)
+        protected LuaTable RequireTable(string module)
         {
             return luaRequire.Func<string, LuaTable>(module);
         }

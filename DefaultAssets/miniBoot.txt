@@ -12,123 +12,139 @@ local function require(path)
     end
 end
 
---boot.LuaException begin ==========(
+--boot.Exception begin ==========(
 do local _ENV = _ENV
-packages['boot.LuaException'] = function (...)
+packages['boot.Exception'] = function (...)
 
-local LuaException = {}
-LuaException.__index = LuaException
+local Exception = {}
+Exception.__index = Exception
 
-function LuaException.new(vReason, vStack)
+function Exception.new(vReason, vStack)
     return setmetatable({
         reason=vReason,
         stack=vStack,
-    }, LuaException)
+    }, Exception)
 end
 
-function LuaException:__tostring()
-    return "LuaException:"..tostring(self.reason).."\n"..tostring(self.stack)
+function Exception:__tostring()
+    return "Exception:"..tostring(self.reason).."\n"..tostring(self.stack)
 end
 
-function LuaException.is(v)
-    return getmetatable(v) == LuaException
+function Exception.is(v)
+    return getmetatable(v) == Exception
 end
 
-return LuaException
+return Exception
 
 end end
---boot.LuaException end ==========)
+--boot.Exception end ==========)
 
---boot.LuaTask begin ==========(
+--boot.Future begin ==========(
 do local _ENV = _ENV
-packages['boot.LuaTask'] = function (...)
+packages['boot.Future'] = function (...)
 
-local LuaException = require "boot.LuaException"
+local Exception = require "boot.Exception"
 
-local LuaTask = {}
-LuaTask.__index = LuaTask
+local Future = {}
+local FutureVtbl = {}
+local FutureMeta = {
+    __index=FutureVtbl
+}
 
+local MainThreadCall = nil  
 
-
+      
 local PENDING = 0
 local REJECTED = 1
 local RESOLVED = 2
 
 local function xerror(excOrReason)
-
-    return LuaException.is(excOrReason) and excOrReason or LuaException.new(excOrReason, debug.traceback(nil, 2))
+         
+    return Exception.is(excOrReason) and excOrReason or Exception.new(excOrReason, debug.traceback(nil, 2))
 end
 
-function LuaTask.new(vShellHelper, vSyncFn)
-
-
-
-
-
+function Future.new(vSyncFn)
+       
+         
+    
+         
+    
 
     local self = setmetatable({
         __type = false  ,
-        _shellHelper = vShellHelper,
         _state = PENDING    ,
         _value = nil  ,
         _exception = nil  ,
-        _syncFn = vSyncFn or false,
-        _selfThread = nil  ,
-
+         
+        _thread = false  ,
+         
         _cbList = false    ,
-
+         
         _coList = false  ,
-    }, LuaTask)
-    local co = coroutine.create(function(...)
-        local syncFn = self._syncFn
-        local ok, ret = false, "unknown exception"
-        if syncFn then
-            ok, ret = xpcall(syncFn, xerror)
-        else
-            ok, ret = coroutine.yield()
-            if not ok then
-                ret = LuaException.is(ret) and ret or LuaException.new(ret, "(pasync stack)")
-            end
-        end
-        if ok then
-            self._state = RESOLVED
-            self._value = ret
-        else
-            self._state = REJECTED
-            self._exception = ret
-        end
-        local coList = self._coList
-        self._coList = false
-        if coList then
-            vShellHelper:setTimeout(0, function()
-                for i=1,#coList do
-                    local co = coList[i]
-                    coroutine.resume(co, ok, ret)
-                ::continue:: end
+    }, FutureMeta)
+    if vSyncFn then
+        local co = coroutine.create(function(syncFn)
+            local ok, ret = xpcall(syncFn, xerror)
+            MainThreadCall(function()
+                Future.complete(self, ok, ret)
             end)
-            return
-        end
-        local cbList = self._cbList
-        self._cbList = false
-        if cbList then
-            vShellHelper:setTimeout(0, function()
-                for i=1,#cbList do
-                    local cb = cbList[i]
-                    cb(ok, ret)
-                ::continue:: end
-            end)
-            return
-        end
+        end)
+        self._thread = co
+        local ok, err = coroutine.resume(co, vSyncFn)
         if not ok then
-            print("ERROR: forget error:", tostring(ret))
+            print("ERROR when task start:", err)
         end
-    end)
-    self._selfThread = co
-    coroutine.resume(co)
+    end
     return self
 end
 
-function LuaTask:pwait()
+function Future.initHelper(vAsyncHelper)
+    MainThreadCall = function(fn)
+        vAsyncHelper:Call(fn)
+    end
+end
+
+function Future.is(v)
+    return getmetatable(v) == Future
+end
+
+function Future.complete(self, ok, ret)
+    if ok then
+        self._state = RESOLVED
+        self._value = ret  
+    else
+        ret = Exception.is(ret) and ret or Exception.new(ret  , "(pasync stack)")
+        self._state = REJECTED
+        self._exception = ret  
+    end
+    local coList = self._coList
+    self._coList = false
+    if coList then
+        for i=1,#coList do
+            local co = coList[i]
+            local ok1, err = coroutine.resume(co, ok, ret)
+            if not ok1 then
+                print("ERROR when task complete:", err)
+            end
+        ::continue:: end
+    end
+    local cbList = self._cbList
+    self._cbList = false
+    if cbList then
+        for i=1,#cbList do
+            local cb = cbList[i]
+            local ok1, err = pcall(cb, ok, ret)
+            if not ok1 then
+                print("ERROR when task complete:", err)
+            end
+        ::continue:: end
+    end
+    if not ok then
+        print("ERROR: forget error:", tostring(ret))
+    end
+end
+
+function FutureVtbl:pwait()  
     local co, ismain = coroutine.running()
     assert(not ismain, "can't wait in main coroutine")
     if self._state == PENDING then
@@ -142,18 +158,18 @@ function LuaTask:pwait()
         if not ok then
             return false, ret
         else
-            return true, ret
+            return true, ret  
         end
     else
         if self._state == REJECTED then
             return false, self._exception
         elseif self._state == RESOLVED then
-            return true, self._value
+            return true, self._value  
         end
     end
 end
 
-function LuaTask:wait()
+function FutureVtbl:wait()
     local ok, ret = self:pwait()
     if ok then
         return ret
@@ -162,7 +178,7 @@ function LuaTask:wait()
     end
 end
 
-function LuaTask:callback(onSuccess, onFail)
+function FutureVtbl:callback(onSuccess, onFail)
     local callback = function(succ, result )
         if succ then
             local ok, ret = xpcall(onSuccess, xerror, result)
@@ -182,7 +198,7 @@ function LuaTask:callback(onSuccess, onFail)
     end
     local state = self._state
     if state ~= PENDING then
-        self._shellHelper:setTimeout(0, function()
+        MainThreadCall(function()
             if state == RESOLVED then
                 callback(true, self._value  )
             elseif state == REJECTED then
@@ -199,32 +215,120 @@ function LuaTask:callback(onSuccess, onFail)
     end
 end
 
-function LuaTask:isPending()
+function FutureVtbl:isPending()
     return self._state == PENDING
 end
 
-function LuaTask:isResolved()
+function FutureVtbl:isResolved()
     return self._state == RESOLVED
 end
 
-function LuaTask.is(v)
-    return getmetatable(v) == LuaTask
+function FutureVtbl:isRejected()
+    return self._state == REJECTED
 end
 
-return LuaTask
+return Future
 
 end end
---boot.LuaTask end ==========)
+--boot.Future end ==========)
+
+--boot.Stream begin ==========(
+do local _ENV = _ENV
+packages['boot.Stream'] = function (...)
+
+local Exception = require "boot.Exception"
+
+local Stream = {}
+local StreamVtbl = {}
+local StreamMeta = {
+    __index=StreamVtbl
+}
+
+local MainThreadCall = nil  
+
+local function xerror(excOrReason)
+         
+    return Exception.is(excOrReason) and excOrReason or Exception.new(excOrReason, debug.traceback(nil, 2))
+end
+
+function Stream.new(vSyncFn)
+       
+         
+    
+         
+    
+
+    local self = setmetatable({
+        __type = false  ,
+        _closed = false  ,
+         
+        _thread = false  ,
+         
+        _coList = false  ,
+    }, StreamMeta)
+    if vSyncFn then
+        local co = coroutine.create(function(syncFn)
+            local ok, ret = xpcall(syncFn, xerror)
+        end)
+        self._thread = co
+        local ok, err = coroutine.resume(co, vSyncFn)
+        if not ok then
+            print("ERROR when stream start:", err)
+        end
+    end
+    return self
+end
+
+function Stream.initHelper(vAsyncHelper)
+    MainThreadCall = function(fn)
+        vAsyncHelper:Call(fn)
+    end
+end
+
+function Stream.is(v)
+    return getmetatable(v) == Stream
+end
+
+function Stream.sink(self, ok, ret)
+end
+
+function StreamVtbl:pnext();  
+    error("stream pnext TODO")
+    return false, nil
+end
+
+function StreamVtbl:next();
+    error("stream next TODO")
+    return nil  
+end
+
+local next = function(stream)
+    return stream:next()
+end
+
+function StreamVtbl:iter()
+    return next, self
+end
+
+return Stream
+
+end end
+--boot.Stream end ==========)
 
 --boot.boot begin ==========(
 do local _ENV = _ENV
 packages['boot.boot'] = function (...)
-local LuaTask = require "boot.LuaTask"
+
+local Future = require "boot.Future"
+local Stream = require "boot.Stream"
+
+;
+	
+
 
 local boot = {}
 
-function boot.Repl(...)
-	local script = ...
+function boot.Repl(script)
 	local func, err = load('return '..script, '(lua repl)')
 	if not func then
 			func, err = load(script, '(lua repl)')
@@ -244,30 +348,22 @@ function boot.Repl(...)
 end
 
 
-function boot.task(shellHelper, syncFn)
-	return LuaTask.new(shellHelper, syncFn)
+function boot.InitHelper(vAsyncHelper)
+	Future.initHelper(vAsyncHelper)
+	Stream.initHelper(vAsyncHelper)
 end
 
-function boot.sleep(shellHelper, ms)
-    local ms = assert(math.tointeger(ms), "milliseconds must be integer")
-	local co, ismain = coroutine.running()
-	assert(not ismain, "don't sleep in main coroutine")
-    if ms > 0 then
-        shellHelper:setTimeout(ms, function()
-            coroutine.resume(co)
-        end)
-        coroutine.yield()
-    end
+   
+boot.NewFuture=Future.new
+
+boot.NewStream=Stream.new
+
+function boot.Sleep(asyncHelper, ms)
+	return asyncHelper:FutureSleep(ms):wait()
 end
 
-function boot.complete(luaTask, succ, result)
-    assert(luaTask:isPending(), "ERROR In task complete: task is finished.")
-    assert(not luaTask._syncFn, "ERROR In task complete: task has its sync fn")
-    local ok, err = coroutine.resume(luaTask._selfThread, succ, result)
-	if not ok then
-		print("ERROR: coroutine resume error:", err)
-	end
-end
+boot.CompleteFuture = Future.complete
+boot.SinkStream = Stream.sink
 
 boot.rapidjsonDecode = require "rapidjson".decode
 
@@ -296,11 +392,11 @@ function ForView.ForNum(vParent)
         keyToInst={}   ,
         kind=FOR_NUM,
         num=false,
-        kvMaker=false
+        kvMaker=false 
     }
-    function self:Setup(vProps
-
-
+    function self:Setup(vProps 
+        
+        
     )
         self.num = vProps.num
         self.kvMaker = vProps.kvMaker
@@ -314,11 +410,11 @@ function ForView.ForRange(vParent)
         keyToInst={}   ,
         kind=FOR_RANGE,
         range=false  ,
-        kvMaker=false
+        kvMaker=false 
     }
-    function self:Setup(vProps
-
-
+    function self:Setup(vProps 
+        
+        
     )
         self.range = vProps.range
         self.kvMaker = vProps.kvMaker
@@ -332,11 +428,11 @@ function ForView.ForIn(vParent)
         keyToInst={}   ,
         kind=FOR_IN,
         iter=false  ,
-        kvMaker=false
+        kvMaker=false  
     }
-    function self:Setup(vProps
-
-
+    function self:Setup(vProps 
+        
+        
     )
         self.iter = vProps.iter
         self.kvMaker = vProps.kvMaker
@@ -347,7 +443,7 @@ end
 function ForView:Refresh()
     local kind = self.kind
     local keyToInst = self.keyToInst
-    local keySet = {}
+    local keySet = {}   
     for k in pairs(keyToInst) do
         keySet[k] = true
     ::continue:: end
@@ -454,7 +550,7 @@ local class = require "reflect.class"
 
 local ViewScript = require "reflect.behav.ViewScript"
 
-
+  
 local PanelScript = class (ViewScript)
 
 function PanelScript.ctor(self)
@@ -487,24 +583,24 @@ local ForView = require "reflect.behav.ForView"
 local ViewScript = class (LuaScript)
 
 function ViewScript.ctor(self)
-    self.gameObject = false ;
-    self.parent = false ;
-    self.this = false ;
-    self.transform = false ;
-    self.context = false ;
-    self.__refreshFn = false ;
-    self.__setuped = false ;
-    self.__page = false
+    self.gameObject = false ; 
+    self.parent = false ; 
+    self.this = false ; 
+    self.transform = false ; 
+    self.context = false ; 
+    self.__refreshFn = false ; 
+    self.__setuped = false ; 
+    self.__page = false  
 end
 
 function ViewScript:_injectModule()
-
+     
     local context = self.context
-    local fields = getmetatable(self).__class.injections
-    for i, field in ipairs(fields) do
-        local fieldClsOpen = field.clsOpen
-        if fieldClsOpen and fieldClsOpen.super == ModuleScript then
-            self[field.key] = self[field.key] or context:getModule(fieldClsOpen)
+    local injections = getmetatable(self).__class.injections
+    for i, injection in ipairs(injections) do
+        local injectionClsOpen = injection.clsOpen
+        if injectionClsOpen and injectionClsOpen.super == ModuleScript then
+            self[injection.key] = self[injection.key] or context:getModule(injectionClsOpen)
         end
     ::continue:: end
 end
@@ -515,7 +611,7 @@ function ViewScript:Setup(vSetupProps )
     self.__setuped = true
     do;
         self:_injectModule()
-
+         
         self.props = vSetupProps
         local state = self:__stateFn(vSetupProps)
         self.state = state
@@ -540,9 +636,9 @@ function ViewScript:Refresh()
 end
 
 function ViewScript:build(vProps, vState)
-
+        
     return function()
-
+          
     end
 end
 
@@ -557,7 +653,7 @@ function ViewScript:setVisible(vVisible)
 end
 
 function ViewScript:Fork(vTrans)
-    return self.this:Fork(vTrans).luaTable
+    return self.this:Fork(vTrans).luaTable  
 end
 
 function ViewScript:getPage()
@@ -569,50 +665,81 @@ function ViewScript:getPage()
     return page
 end
 
-do
-    function ViewScript:ForNum()
-        return ForView.ForNum(self)
-    end
+function ViewScript:ForNum()
+    return ForView.ForNum(self)
+end
 
-    function ViewScript:ForRange()
-        return ForView.ForRange(self)
-    end
+function ViewScript:ForRange()
+    return ForView.ForRange(self)
+end
 
-    function ViewScript:ForIn()
-        return ForView.ForIn(self)
+function ViewScript:ForIn()
+    return ForView.ForIn(self)
+end
+
+local function Watcher(vGetter)
+    local inited = false  
+    local value = nil 
+    local oldValue = nil 
+    return function()  
+        local newValue = vGetter()
+        if not inited then
+            inited = true
+            oldValue = value
+            value = newValue
+            return true, value, oldValue
+        elseif newValue ~= value then
+            oldValue = value
+            value = newValue
+            return true, value, oldValue
+        else
+            return false, value, oldValue
+        end
     end
 end
 
-do
-    local function Watcher(vGetter)
-        local inited = false
-        local value = nil
-        return function()
-            local newValue = vGetter()
-            if not inited then
-                inited = true
-                value = newValue
-                return true, value
-            elseif newValue ~= value then
-                value = newValue
-                return true, value
-            else
-                return false, value
+function ViewScript:watch(vGetter)
+    return Watcher(vGetter)
+end
+
+function ViewScript:watchProps() 
+       
+     
+
+    local watchProps = self.__watchProps
+    if not watchProps then
+        watchProps = {}
+        self.__watchProps = setmetatable(watchProps, {
+            __index=function(t,k)
+                local watcher = Watcher(self.props[k])
+                watchProps[k] = watcher
+                return watcher
             end
-        end
+        })
     end
+    return watchProps
+end
 
-    function ViewScript:watchProps(vName)
-        local getter = self.props[vName]
-        return Watcher(getter)
-    end
+function ViewScript:watchState() 
+       
+     
+         
+    
 
-    function ViewScript:watchState(vName)
-        local getter = function()
-            return self.state[vName]
-        end
-        return Watcher(getter)
+    local watchState = self.__watchState
+    if not watchState then
+        watchState = {}
+        self.__watchState = setmetatable(watchState, {
+            __index=function(t,k)
+                local watcher = Watcher(function()
+                    return self.state[k]
+                end)
+                watchState[k] = watcher
+                return watcher
+            end
+        })
     end
+    return watchState
 end
 
 return ViewScript
@@ -625,9 +752,9 @@ packages['reflect.class'] = function (...)
 
 
 
-if false then
-
-
+if false then 
+	  
+	 
 	local rapidjson = require "rapidjson"
     local arraymeta = getmetatable(rapidjson.array())
     local objectmeta = getmetatable(rapidjson.object())
@@ -653,11 +780,11 @@ local class2meta={}
 local meta2class={}
 
 ;
-
-
-
-
-
+	  
+	  
+	  
+	  
+	  
 
 
 local function recursiveCreate(obj, cls, ...)
@@ -683,40 +810,40 @@ local function class (super, generic)
 	class_open.meta=meta
 	class_open.vtbl=vtbl
 	class_open.ctor=false
-	class_open.injections={} ;
+	class_open.injections={} ; 
 	class_open.new=function (...)
 		local obj={}
 		recursiveCreate(obj, class_open, ...)
 		setmetatable(obj, meta)
 		return obj
-	end ;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	end ; 
+		  
+			     
+				 
+				 
+				  
+				 
+				 
+			
+		
+			    
+				 
+				 
+				  
+				 
+				 
+			
+		
+	
 	class_open.is=function(v)
 		local nClassType = meta2class[getmetatable(v) or 1]
 		local nIsDict = nClassType and nClassType.isDict
 		return nIsDict and nIsDict[class_open] or false
-	end ;
+	end ;       
 	class_open.bindMeta=function(t)
 		return setmetatable(t, class_open.meta)
-	end ;
-	class_open.__hint=function() error("used only for hiint") end ;
+	end ;     
+	class_open.__hint=function() error("used only for hiint") end ;       
 	class_open.isDict = (setmetatable({}, {
 		__index=function(type2is , if_type)
 			local cur_type = class_open
@@ -731,7 +858,7 @@ local function class (super, generic)
 			type2is[if_type] = false
 			return false
 		end
-	}) );
+	}) );  
 	class2meta[class_open]=meta
 	meta2class[meta]=class_open
 
@@ -754,13 +881,13 @@ local function class (super, generic)
 		for k,v in pairs(super_meta.__index) do
 			vtbl[k] = v
 		::continue:: end
-
-
-
-
-
-
-
+		 
+		    
+			            
+				  
+			
+		
+		
 	end
 
 	return class_open
@@ -771,34 +898,107 @@ return class
 end end
 --reflect.class end ==========)
 
+--reflect.injection.LuafabField begin ==========(
+do local _ENV = _ENV
+packages['reflect.injection.LuafabField'] = function (...)
+
+;
+      
+
+
+local LuafabField = {}
+LuafabField.__index=LuafabField
+
+function LuafabField.new (vClsOpen, vClsPath, vLazy)
+       
+         
+    
+          
+    
+
+    return setmetatable({
+        clsOpen = vClsOpen,
+        assetPath = vClsPath:gsub("[.]", "/")..".prefab",
+        lazy = vLazy,
+    }, LuafabField)
+end
+
+function LuafabField.is(v) 
+    return getmetatable(v) == LuafabField
+end
+
+;
+      
+           
+           
+            
+        
+         
+               
+        
+    
+
+      
+           
+           
+            
+        
+         
+               
+        
+         
+               
+        
+    
+
+     
+           
+           
+            
+               
+               
+        
+    
+
+
+return LuafabField
+end end
+--reflect.injection.LuafabField end ==========)
+
 --reflect.injection.ReflectInjection begin ==========(
 do local _ENV = _ENV
 packages['reflect.injection.ReflectInjection'] = function (...)
+
+local LuafabField = require "reflect.injection.LuafabField"
+local TableField = require "reflect.injection.TableField"
 
 local typeof_LuaBehaviour = typeof(CS.Nianxie.Components.LuaBehaviour)
 local typeof_LuafabLoading = typeof(CS.Nianxie.Framework.LuafabLoading)
 
 ;
-
-
-
+      
+      
 
 
 local ReflectInjection = {}
 
-function ReflectInjection.new(vKey, vClsOpen, vCSharpType, vNodePath, vAssetPath)
-
-
-
-
-
+function ReflectInjection.new(vKey, vClsOpen, vCSharpType, vIndexCSharpType, vNodePath, vAssetPath, vNodePathTable , vAssetPathTable )
+       
+         
+    
+         
+    
 
     return {
         key=vKey,
         clsOpen=vClsOpen,
         nodePath=vNodePath,
         assetPath=vAssetPath,
+        nodePathTable=vNodePathTable,
+        assetPathTable=vAssetPathTable,
         lazy=false,
+        table=false,
+        indexType=vIndexCSharpType,
         csharpType=vCSharpType,
         __injectionType=nil,
     }
@@ -827,101 +1027,127 @@ local function recursiveEvalNodePath(vNodePath , vKeyToFieldDefine    , vDepth)
     end
 end
 
-function ReflectInjection.Create(vKeyToTuple, vKey, vRawValueOrTuple)
-    local outMeta = getmetatable(vRawValueOrTuple)
-    local rawValue = outMeta and vRawValueOrTuple or vRawValueOrTuple[1]
+function ReflectInjection.Create(vKeyToTuple, vKey, vFieldOrTuple)
+    local outMeta = getmetatable(vFieldOrTuple)
+    local fieldValue = outMeta and vFieldOrTuple or vFieldOrTuple[1]
     local nodePath=nil
     local assetPath=nil
+    local nodePathTable=nil 
+    local assetPathTable=nil 
     if not outMeta then
-        if type(vRawValueOrTuple) == "table" then
-            do;
-                nodePath = vRawValueOrTuple[2]
-                if nodePath then
-                    nodePath = recursiveEvalNodePath(nodePath, vKeyToTuple, 1)
+        if type(vFieldOrTuple) == "table" then
+            do
+                local tuple2 = vFieldOrTuple[2]
+                local tuple3 = vFieldOrTuple[3]
+                if type(tuple2) == "string" then
+                    tuple2 = recursiveEvalNodePath(tuple2, vKeyToTuple, 1)
+                elseif type(tuple2) == "table" then
+                    for k,v in pairs(tuple2) do
+                        tuple2[k] = recursiveEvalNodePath(v, vKeyToTuple, 1)
+                    ::continue:: end
                 end
-                assetPath = vRawValueOrTuple[3]
+                if type(tuple2) == "table" then
+                    nodePathTable = tuple2
+                else
+                    nodePath = tuple2
+                end
+                if type(tuple3) == "table" then
+                    assetPathTable = tuple3
+                else
+                    assetPath = tuple3
+                end
             end
         else
             error("tuple not allow here")
         end
     end
-    local valueMeta = getmetatable(rawValue)
-    if ReflectInjection.isLuafab(rawValue) then
-        local field = ReflectInjection.new(vKey, rawValue.clsOpen, typeof_LuafabLoading, nil, rawValue.assetPath)
-        field.lazy = rawValue.lazy
-        return field
-    elseif valueMeta and valueMeta.__name == "class" then
-        local field = ReflectInjection.new(vKey, rawValue, typeof_LuaBehaviour, nodePath, assetPath)
-        return field
+    local valueMeta = getmetatable(fieldValue)
+    if LuafabField.is(fieldValue) then
+        local injection = ReflectInjection.new(vKey, fieldValue.clsOpen, typeof_LuafabLoading, nil, nil, fieldValue.assetPath)
+        injection.lazy = fieldValue.lazy
+        return injection
+    elseif TableField.is(fieldValue) then
+        local clsOpen, csharpType = ReflectInjection.checkClsOpenAndCSharpType(fieldValue.value)
+        local key = fieldValue.key
+        local injection = ReflectInjection.new(vKey, clsOpen, csharpType, key and typeof(key), nodePath, assetPath, nodePathTable, assetPathTable)
+        injection.table = true
+        return injection
     else
-        local ok, csuserdata = pcall(typeof, rawValue)
-        if not ok then
-            error("type expected:"..csuserdata)
+        local clsOpen, csharpType = ReflectInjection.checkClsOpenAndCSharpType(fieldValue, valueMeta)
+        if clsOpen then
+            local injection = ReflectInjection.new(vKey, clsOpen, csharpType, nil, nodePath, assetPath)
+            return injection
         else
-            return ReflectInjection.new(vKey, nil, csuserdata, nodePath, assetPath)
+            return ReflectInjection.new(vKey, nil, csharpType, nil, nodePath, assetPath)
+        end
+    end
+end
+
+function ReflectInjection.checkClsOpenAndCSharpType(fieldValue, fieldMeta)
+    local fieldMeta = fieldMeta or getmetatable(fieldValue)
+    if fieldMeta and fieldMeta.__name == "class" then
+        return fieldValue, typeof_LuaBehaviour
+    else
+        local ok, csharpType = pcall(typeof, fieldValue)
+        if not ok then
+            error("type expected:"..csharpType)
+        else
+            return nil, csharpType
         end
     end
 end
 
 
-local LuafabFieldMeta = {}
-
-function ReflectInjection.newLuafab (vClsOpen, vClsPath, vLazy)
-
-
-
-
-
-
-    return setmetatable({
-        clsOpen = vClsOpen,
-        assetPath = vClsPath:gsub("[.]", "/")..".prefab",
-        lazy = vLazy,
-    }, LuafabFieldMeta)
-end
-
-function ReflectInjection.isLuafab(v)
-    return getmetatable(v) == LuafabFieldMeta
-end
-
-;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 return ReflectInjection
 end end
 --reflect.injection.ReflectInjection end ==========)
+
+--reflect.injection.TableField begin ==========(
+do local _ENV = _ENV
+packages['reflect.injection.TableField'] = function (...)
+
+;
+      
+
+
+local TableField = {}
+TableField.__index=TableField
+
+;
+      
+         
+            
+            
+         
+    
+
+
+function TableField.new (vValue, vKey)
+     
+
+    return setmetatable({
+        key=vKey,
+        value=vValue,
+    }, TableField)
+end
+
+function TableField.is(v)
+    return getmetatable(v) == TableField
+end
+
+;
+     
+          
+              
+        
+             
+        
+    
+
+
+return TableField
+end end
+--reflect.injection.TableField end ==========)
 
 --reflect.reflect begin ==========(
 do local _ENV = _ENV
@@ -930,24 +1156,26 @@ packages['reflect.reflect'] = function (...)
 local class = require  "reflect.class"
 
 local ReflectInjection = require "reflect.injection.ReflectInjection"
+local LuafabField = require "reflect.injection.LuafabField"
+local TableField = require "reflect.injection.TableField"
 
 local reflect = {}
 reflect.class = class
 
 ;
-
-
-
-
-
-
-
-
-
-
-
-
-
+      
+            
+            
+            
+            
+            
+    
+       
+             
+                 
+              
+        
+    
 
 
 local MiniScript = require "reflect.behav.MiniScript"
@@ -965,27 +1193,36 @@ end
 function reflect.MiniScript (vKeyToInjectionValue)
     local clsOpen = class   (MiniScript)
     reflect._saveInjections(clsOpen, vKeyToInjectionValue)
-    clsOpen.ctor = false
-
-
-
-
-
-
-
-
-
+    clsOpen.ctor = false  
+           
+         
+           
+        
+         
+            
+          
+            
+        
+    
     return clsOpen
 end
 
 function reflect.lazyLuafab(clsPath)
     local clsOpen = require(clsPath)
-    return ReflectInjection.newLuafab (clsOpen, clsPath, true)
+    return LuafabField.new (clsOpen, clsPath, true)
 end
 
 function reflect.readyLuafab(clsPath)
     local clsOpen = require(clsPath)
-    return ReflectInjection.newLuafab (clsOpen, clsPath, false)
+    return LuafabField.new (clsOpen, clsPath, false)
+end
+
+function reflect.Dict(key, value)
+    return TableField.new (value, key)
+end
+
+function reflect.List(value)
+    return TableField.new (value, nil)
 end
 
 return reflect

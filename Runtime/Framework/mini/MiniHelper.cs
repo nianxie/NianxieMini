@@ -10,7 +10,7 @@ using XLua;
 
 namespace Nianxie.Framework
 {
-    public class MiniHelper : TaskModule
+    public class MiniHelper : AsyncHelper
     {
         private LuaFunction _call;
         public LuaFunction Call => _call;

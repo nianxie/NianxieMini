@@ -24,7 +24,7 @@ namespace XLua
 
             if (UseTask)
             {
-                return "LuaTask("+name+")";
+                return "Future("+name+")";
             }
             else
             {

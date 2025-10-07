@@ -19,12 +19,11 @@ namespace XLua
             var env = new EditorReflectEnv(envPaths);
             try
             {
-                env.Bootstrap(miniBoot);
                 env.Warmup();
             }
             catch (Exception e)
             {
-                Debug.LogError($"EditorReflectEnv create error {e}");
+                Debug.LogError($"EditorReflectEnv warmup error {e}");
             }
             return env;
         }

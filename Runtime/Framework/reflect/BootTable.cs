@@ -7,10 +7,14 @@ namespace Nianxie.Framework
     public class BootTable
     {
         public LuaFunction Repl;
-        // for task 
-        public LuaFunction task;
-        public LuaFunction sleep;
-        public LuaFunction complete;
+        public LuaFunction InitHelper;
+        // for async item
+        public LuaFunction NewFuture;
+        public LuaFunction NewStream;
+        public LuaFunction Sleep;
+        public LuaFunction CompleteFuture;
+        public LuaFunction WaitFuture;
+        public LuaFunction SinkStream;
         // for json
         public LuaFunction rapidjsonDecode;
         public BootTable(LuaTable luaTable)

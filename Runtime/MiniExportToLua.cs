@@ -19,7 +19,7 @@ namespace XLua
             typeof(Nianxie.Utils.NianxieUnityExtension),
             typeof(Nianxie.Framework.LuafabLoading),
             typeof(Nianxie.Framework.MiniHelper),
-            typeof(Nianxie.Framework.TaskModule),
+            typeof(Nianxie.Framework.AsyncHelper),
             typeof(Nianxie.Components.LuaBehaviour),
             typeof(Nianxie.Components.MiniBehaviour),
             

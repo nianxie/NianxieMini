@@ -10,7 +10,7 @@ namespace Nianxie.Framework
     public abstract class AbstractGameManager : MonoBehaviour
     {
         public AssetModule assetModule { get; private set; }
-        public TaskModule baseHelper { get; private set; }
+        public AsyncHelper baseHelper { get; private set; }
 
         public RuntimeReflectEnv reflectEnv { get; private set; }
         // TODO 这里添加一个interface来包裹context的方法。
@@ -20,7 +20,7 @@ namespace Nianxie.Framework
         protected async UniTask InitGameModule()
         {
             assetModule = GetComponent<AssetModule>();
-            baseHelper = GetComponent<TaskModule>();
+            baseHelper = GetComponent<AsyncHelper>();
             var moduleSequence = gameObject.GetComponents<AbstractGameModule>();
             // 1. module Init
             await UniTask.WhenAll(moduleSequence.Select(e => e.Init()));
