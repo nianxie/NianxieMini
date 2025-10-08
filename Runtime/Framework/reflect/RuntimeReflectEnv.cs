@@ -12,49 +12,31 @@ namespace XLua
         public static RuntimeReflectEnv Create(AbstractGameManager gameManager, EnvPaths envPaths, byte[] miniBoot)
         {
             var env = new RuntimeReflectEnv(gameManager, envPaths);
-            env.Warmup();
             env.Bootstrap(miniBoot);
+            env.Warmup();
             return env;
         }
         
         private readonly AssetModule assetModule;
-        private readonly AsyncHelper baseHelper;
-        public BootTable boot { get; private set; }
+        private readonly AsyncHelper asyncHelper;
         
         private RuntimeReflectEnv(AbstractGameManager gameManager, EnvPaths vEnvPaths) : base(vEnvPaths)
         {
             assetModule = gameManager.assetModule;
-            baseHelper = gameManager.baseHelper;
+            asyncHelper = gameManager.baseHelper;
+        }
+
+        protected override void Bootstrap(byte[] miniBoot)
+        {
+            base.Bootstrap(miniBoot);
+            boot.InitHelper.Action(asyncHelper);
         }
 
         public LuaTable CreateContext()
         {
-            return contextNew.Func<AsyncHelper, LuaTable>(baseHelper);
+            return contextNew.Func<AsyncHelper, LuaTable>(asyncHelper);
         }
         
-        /// <summary>
-        /// 启动：加载boot，mini模式下加载miniBoot，shell模式下require boot.boot
-        /// </summary>
-        protected void Bootstrap(byte[] miniBoot) 
-        {
-            if (boot != null)
-            {
-                throw new Exception("ReflectEnv.Bootstrap called than once");
-            }
-            if (miniBoot == null)
-            {
-                // miniBoot 为空时为shell的ReflectEnv
-                boot = new BootTable(RequireTable("boot.boot"));
-            }
-            else
-            {
-                // miniBoot 不为空时为mini的ReflectEnv
-                var miniBootTable = LoadString<LuaFunction>(miniBoot, nameof(miniBoot)).Func<LuaTable>();
-                boot = new BootTable(miniBootTable);
-            }
-            boot.InitHelper.Action(baseHelper);
-        }
-
         protected override WarmedReflectClass FallbackReflect(string clsPath, string[] nestedPath, string message)
         {
             return null;
@@ -80,6 +62,7 @@ namespace XLua
             }).Forget();
         }
 
+        [Obsolete("TODO Use Future")]
         public LuaTable WrapLuaTask<T>(UniTask<T> uniTask)
         {
             WrapLuaTaskOut(uniTask, out var ltask);
@@ -101,14 +84,14 @@ namespace XLua
             boot.Repl.Action(script??"");
         }
 
-        private lua_CSFunction SafeAsyncBegin<TSelf>(TSelf self, Func<IntPtr, int> asyncEnd)
+        private lua_CSFunction SafeAsyncBegin(object self, Func<IntPtr, int> asyncEnd)
         {
             return (IntPtr asyncL) =>
             {
                 try
                 {
-                    var first = translator.GetObject(asyncL, 1, typeof(TSelf));
-                    UnityEngine.Assertions.Assert.IsTrue(first == (object)self, $"self {first} {self} not match when future invoke");
+                    var first = translator.GetObject(asyncL, 1, self.GetType());
+                    UnityEngine.Assertions.Assert.IsTrue(first == self, $"self {first} {self} not match when future invoke");
                     return asyncEnd(asyncL);
                 }
                 catch (Exception e)
@@ -168,8 +151,16 @@ namespace XLua
             }).Forget();
             return 1;
         }
+        
+        public lua_CSFunction AsyncAction(object self, Func<UniTask> action)
+        {
+            return SafeAsyncBegin(self, (asyncL) =>
+            {
+                return SafeAsyncEndVoid(asyncL, action());
+            });
+        }
 
-        public lua_CSFunction AsyncAction<T1, T2>(T1 self, Func<T2, UniTask> action)
+        public lua_CSFunction AsyncAction<T2>(object self, Func<T2, UniTask> action)
         {
             return SafeAsyncBegin(self, (asyncL) =>
             {
@@ -178,7 +169,24 @@ namespace XLua
             });
         }
         
-        public lua_CSFunction AsyncFunc<T1, T2, TResult>(T1 self, Func<T2, UniTask<TResult>> func)
+        public lua_CSFunction AsyncAction<T2, T3>(object self, Func<T2, T3, UniTask> action)
+        {
+            return SafeAsyncBegin(self, (asyncL) =>
+            {
+                translator.Get(asyncL, 2, out T2 arg2);
+                translator.Get(asyncL, 3, out T3 arg3);
+                return SafeAsyncEndVoid(asyncL, action(arg2, arg3));
+            });
+        }
+        
+        public lua_CSFunction AsyncFunc<TResult>(object self, Func<UniTask<TResult>> func)
+        {
+            return SafeAsyncBegin(self, (asyncL) =>
+            {
+                return SafeAsyncEndResult(asyncL, func());
+            });
+        }
+        public lua_CSFunction AsyncFunc<T2, TResult>(object self, Func<T2, UniTask<TResult>> func)
         {
             return SafeAsyncBegin(self, (asyncL) =>
             {
@@ -186,7 +194,7 @@ namespace XLua
                 return SafeAsyncEndResult(asyncL, func(arg2));
             });
         }
-        public lua_CSFunction AsyncFunc<T1, T2, T3, TResult>(T1 self, Func<T2, T3, UniTask<TResult>> func)
+        public lua_CSFunction AsyncFunc<T2, T3, TResult>(object self, Func<T2, T3, UniTask<TResult>> func)
         {
             return SafeAsyncBegin(self, (asyncL) =>
             {
@@ -195,7 +203,7 @@ namespace XLua
                 return SafeAsyncEndResult(asyncL, func(arg2, arg3));
             });
         }
-        public lua_CSFunction AsyncFunc<T1, T2, T3, T4, TResult>(T1 self, Func<T2, T3, T4, UniTask<TResult>> func)
+        public lua_CSFunction AsyncFunc<T2, T3, T4, TResult>(object self, Func<T2, T3, T4, UniTask<TResult>> func)
         {
             return SafeAsyncBegin(self, (asyncL) =>
             {
@@ -206,5 +214,6 @@ namespace XLua
             });
         }
         public LuaFunction bootSleep => boot.Sleep;
+        public LuaFunction bootNewFuture => boot.NewFuture;
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Nianxie.Components;
 using Nianxie.Framework;
+using Nianxie.Utils;
 using UnityEngine;
 
 namespace Nianxie.Craft
@@ -14,12 +15,12 @@ namespace Nianxie.Craft
 
         public async UniTask Main(MiniGameManager miniManager)
         {
-            var craftLuafabLoading = miniManager.assetModule.AttachLuafabLoading(miniManager.bridge.GetEnvPaths().miniCraftLuafabPath, false);
+            var craftLuafabLoading = miniManager.assetModule.AttachLuafabLoading(miniManager.bridge.envPaths.miniCraftLuafabPath, false);
             await craftLuafabLoading.WaitTask;
             craftSlot = (SlotBehaviour)craftLuafabLoading.RawFork(transform);
         }
 
-        public (byte[], byte[]) PackJsonPng()
+        public (LargeBytes, byte[]) PackJsonPng()
         {
             var packContext = new PngPackContext();
             packContext.PackRoot(craftSlot);
@@ -27,13 +28,13 @@ namespace Nianxie.Craft
         }
 
         private Texture2D editorTex;
-        public void UnpackJsonPng(byte[] jsonBytes, byte[] pngData)
+        public void UnpackJsonPng(LargeBytes jsonBytes, byte[] pngData)
         {
             if (editorTex != null)
             {
                 DestroyImmediate(editorTex);
             }
-            var json = CraftJson.Load(jsonBytes);
+            var json = CraftJson.FromLargeBytes(jsonBytes);
             editorTex = new Texture2D(2,2);
             editorTex.LoadImage(pngData);
             var context = new CraftUnpackContext(json, editorTex);

@@ -19,6 +19,7 @@ namespace XLua
             var env = new EditorReflectEnv(envPaths);
             try
             {
+                env.Bootstrap(miniBoot);
                 env.Warmup();
             }
             catch (Exception e)

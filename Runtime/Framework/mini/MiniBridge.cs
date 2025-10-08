@@ -2,40 +2,41 @@
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using Cysharp.Threading.Tasks;
+using Nianxie.Craft;
 using UnityEngine;
+using XLua;
 
 namespace Nianxie.Framework
 {
-    public class MiniBridgeSession
+    public struct MiniArgs
     {
-        public Scene scene { get; }
-        private System.Action<MiniBridgeSession> ending { get; }
+        public bool craft;
+        public LuaFunction playEnding;
+        public CraftJson craftJson;
+        public Texture2D atlasTex;
 
-        public MiniBridgeSession(Scene scene, System.Action<MiniBridgeSession> ending)
+        public void PlayEnding(MiniGameManager miniManager)
         {
-            this.scene = scene;
-            this.ending = ending;
-        }
-
-        public void PlayEnding()
-        {
-            ending(this);
+            playEnding.Action(miniManager);
         }
     }
 
     public abstract class MiniBridge:MonoBehaviour, IAssetLoader
     {
-        public abstract EnvPaths GetEnvPaths();
+        public EnvPaths envPaths { get; protected set; }
+        public RuntimeReflectEnv shellEnv { get; protected set; }
 
         public virtual byte[] GetMiniBoot()
         {
             throw new System.NotImplementedException();
         }
 
+        public abstract UniTask UnloadMini(MiniGameManager miniManager);
+        public abstract int GenId();
+
         #region // 以下是AssetLoader的相关函数
         public async UniTask<Dictionary<string, TextAsset>> LoadScriptAssetsAsync()
         {
-            var envPaths = GetEnvPaths();
             var configTextAsset = await LoadAssetAsync<TextAsset>(envPaths.miniProjectConfig);
             var config = MiniProjectConfig.FromJson(configTextAsset.bytes);
             var retScriptDict = new Dictionary<string, TextAsset>();

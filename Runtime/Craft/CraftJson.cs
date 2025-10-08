@@ -6,6 +6,7 @@ using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
+using Nianxie.Utils;
 using UnityEngine;
 
 namespace Nianxie.Craft
@@ -109,16 +110,15 @@ namespace Nianxie.Craft
             }
         }
 
-        public static byte[] Dump(CraftJson obj)
+        public LargeBytes ToLargeBytes()
         {
-            var jsonStr = JsonConvert.SerializeObject(obj, settings);
-            return Encoding.UTF8.GetBytes(jsonStr);
+            var jsonStr = JsonConvert.SerializeObject(this, settings);
+            return LargeBytes.FromUtf8String(jsonStr);
         }
         
-        public static CraftJson Load(byte[] jsonBytes)
+        public static CraftJson FromLargeBytes(LargeBytes jsonBytes)
         {
-            var jsonStr = Encoding.UTF8.GetString(jsonBytes);
-            return JsonConvert.DeserializeObject<CraftJson>(jsonStr, settings);
+            return JsonConvert.DeserializeObject<CraftJson>(jsonBytes.ToUtf8String(), settings);
         }
         #endregion
     }

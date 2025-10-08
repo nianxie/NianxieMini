@@ -15,7 +15,7 @@ namespace Nianxie.Framework {
         }
 
         [HintReturn("Fn($self, Integer)")]
-        public LuaFunction Sleep => gameManager.reflectEnv.boot.Sleep;
+        public LuaFunction Sleep => gameManager.reflectEnv.bootSleep;
         
         [HintReturn("$function.nocheck@<_, T>(module:$self, fn:Fn():Ret(T)):Ret(Future(T)) end")]
         public lua_CSFunction Future => (IntPtr stackL) =>
@@ -25,7 +25,7 @@ namespace Nianxie.Framework {
             {
                 return Lua.luaL_error(stackL, "Future(fn) : second arg expect function ");
             }
-            env.boot.NewFuture.push(stackL);
+            env.bootNewFuture.push(stackL);
             Lua.lua_pushvalue(stackL, 2);
             var err = Lua.lua_pcall(stackL, 1, 1, 0);
             if (err != 0)

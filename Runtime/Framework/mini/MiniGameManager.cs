@@ -3,75 +3,104 @@ using Nianxie.Craft;
 using UnityEngine;
 using UnityEngine.Assertions;
 using XLua;
+using XLua.LuaDLL;
 
 namespace Nianxie.Framework
 {
     public class MiniGameManager : AbstractGameManager
     {
+        private bool stopped = false;
         public MiniBridge bridge { get; private set; }
         public SlotBehaviour craftSlot { get; private set; }
+        public MiniArgs args { get; private set; }
 
-        public MiniBridgeSession bridgeSession { get; private set; }
-
-        private async UniTask PreInit(MiniBridge _bridge, MiniBridgeSession _session)
+        public async UniTask PreInit(MiniBridge _bridge)
         {
             Assert.IsNull(bridge, "MiniGame is running");
             bridge = _bridge;
-            bridgeSession = _session;
             GetComponent<AssetModule>().PreInit(bridge);
             await InitGameModule();
         }
 
-        public async UniTask PlayGameMain(MiniBridge _bridge, MiniBridgeSession _session)
+        [BlackList]
+        public async UniTask PlayMain(MiniArgs _args)
         {
-            await PreInit(_bridge, _session);
+            Assert.IsNotNull(bridge, "MiniGame is not PreInit");
+            args = _args;
+            if (args.craft)
+            {
+                craftSlot = await CreateCraftSlot();
+            }
             await PrepareContextAndRoot();
             rootLuafabLoading.Fork(transform);
         }
-        
-        public async UniTask PlayCraftMain(MiniBridge _bridge, MiniBridgeSession _session, CraftJson craftJson, Texture2D altasTex)
+
+        [BlackList]
+        public async UniTask EditMain()
         {
-            await PreInit(_bridge, _session);
-            var craftLuafabLoading = assetModule.AttachLuafabLoading(bridge.GetEnvPaths().miniCraftLuafabPath, false);
+            Assert.IsNotNull(bridge, "MiniGame is not PreInit");
+            await GetComponent<EditCraftModule>().Main(this);
+        }
+        
+        [HintReturn("Fn():Ret(Future(Nil))")]
+        public lua_CSFunction FuturePlayMain => bridge.shellEnv.AsyncAction<MiniArgs>(this, PlayMain);
+        [HintReturn("Fn():Ret(Future(Nil))")]
+        public lua_CSFunction FutureEditMain => bridge.shellEnv.AsyncAction(this, EditMain);
+
+
+        private async UniTask<SlotBehaviour> CreateCraftSlot()
+        {
+            var craftLuafabLoading = assetModule.AttachLuafabLoading(bridge.envPaths.miniCraftLuafabPath, false);
             await craftLuafabLoading.WaitTask;
-            craftSlot = (SlotBehaviour)craftLuafabLoading.RawFork(transform);
-            foreach (var childRenderer in craftSlot.gameObject.GetComponentsInChildren<Renderer>())
+            var slotRoot = (SlotBehaviour)craftLuafabLoading.RawFork(transform);
+            foreach (var childRenderer in slotRoot.gameObject.GetComponentsInChildren<Renderer>())
             {
                 childRenderer.enabled = false;
             }
-            foreach (var childCollider2D in craftSlot.gameObject.GetComponentsInChildren<Collider2D>())
+            foreach (var childCollider2D in slotRoot.gameObject.GetComponentsInChildren<Collider2D>())
             {
                 childCollider2D.enabled = false;
             }
-            foreach (var childCollider in craftSlot.gameObject.GetComponentsInChildren<Collider>())
+            foreach (var childCollider in slotRoot.gameObject.GetComponentsInChildren<Collider>())
             {
                 childCollider.enabled = false;
             }
 
+            var craftJson = args.craftJson;
+            var altasTex = args.atlasTex;
             if (craftJson != null)
             {
                 var unpackContext = new CraftUnpackContext(craftJson, altasTex);
-                unpackContext.UnpackRoot(craftSlot);
+                unpackContext.UnpackRoot(slotRoot);
             }
-            await PrepareContextAndRoot();
-            rootLuafabLoading.Fork(transform);
-        }
-
-        public async UniTask EditCraftMain(MiniBridge _bridge, MiniBridgeSession _session)
-        {
-            await PreInit(_bridge, _session);
-            await GetComponent<EditCraftModule>().Main(this);
+            return slotRoot;
         }
 
         protected override RuntimeReflectEnv CreateReflectEnv()
         {
-            return RuntimeReflectEnv.Create(this, bridge.GetEnvPaths(), bridge.GetMiniBoot());
+            return RuntimeReflectEnv.Create(this, bridge.envPaths, bridge.GetMiniBoot());
         }
 
-        public override void OnInjectGameHelper(LuaTable script, string key, System.Type helperType)
+        public void Stop()
         {
-            // mini game do nothing when module inject
-            Debug.LogError("GameHelper inject not supported in mini mode");
+            if (stopped) return;
+            stopped = true;
+            UniTask.Create(async () =>
+            {
+                try
+                {
+                    await bridge.UnloadMini(this);
+                }
+                finally
+                {
+                    reflectEnv.Dispose();
+                }
+            }).Forget();
+        }
+
+        public void OnDestroy()
+        {
+            Stop();
         }
     }
 }

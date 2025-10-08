@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Newtonsoft.Json;
+using Nianxie.Utils;
 using UnityEngine;
 
 namespace Nianxie.Craft
 {
     public class PngPackContext:AbstractPackContext
     {
-        public (byte[], byte[]) DumpJsonPng()
+        public (LargeBytes, byte[]) DumpJsonPng()
         {
             var altasSize = craftJson.atlasSize;
             RenderTexture tempRT = new RenderTexture(altasSize.x, altasSize.y, 0, RenderTextureFormat.ARGB32);
@@ -44,7 +45,7 @@ namespace Nianxie.Craft
 
             var pngData = resultTexture.EncodeToPNG();
             UnityEngine.Object.Destroy(resultTexture);
-            var jsonBytes = CraftJson.Dump(craftJson);
+            var jsonBytes = craftJson.ToLargeBytes();
             return (jsonBytes, pngData);
         }
     }

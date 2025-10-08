@@ -2,6 +2,7 @@
 using UnityEditor;
 using System.IO;
 using Nianxie.Craft;
+using Nianxie.Utils;
 using XLua;
 
 namespace Nianxie.Editor
@@ -31,7 +32,7 @@ namespace Nianxie.Editor
                 var (jsonBytes, pngData) = editCraftModule.PackJsonPng();
                 var selectPath = EditorUtility.SaveFilePanel("Save Craft", Path.Combine(Application.dataPath, ".."), "craft", "json,png");
                 var (jsonPath, pngPath) = ToJsonPngPath(selectPath);
-                File.WriteAllBytes(jsonPath, jsonBytes);
+                File.WriteAllBytes(jsonPath, jsonBytes.data);
                 File.WriteAllBytes(pngPath, pngData);
                 EditorUtility.RevealInFinder(Path.GetDirectoryName(jsonPath));
             }
@@ -40,7 +41,7 @@ namespace Nianxie.Editor
             {
                 var selectPath = EditorUtility.OpenFilePanel("Load Craft", Path.Combine(Application.dataPath, ".."), "json,png");
                 var (jsonPath, pngPath) = ToJsonPngPath(selectPath);
-                var jsonBytes = File.ReadAllBytes(jsonPath);
+                var jsonBytes = new LargeBytes(File.ReadAllBytes(jsonPath));
                 var pngData = File.ReadAllBytes(pngPath);
                 editCraftModule.UnpackJsonPng(jsonBytes, pngData);
             }

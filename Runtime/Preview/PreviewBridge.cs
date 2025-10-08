@@ -5,13 +5,13 @@ using Nianxie.Framework;
 using Nianxie.Utils;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using XLua;
 
 namespace Nianxie.Preview
 {
     public class PreviewBridge: MiniBridge
     {
         public MiniGameManager miniManager;
-        private EnvPaths envPaths;
         private Scene scene;
         private AssetBundle assetBundle;
 
@@ -24,30 +24,30 @@ namespace Nianxie.Preview
                 {
                     assetBundle = await AssetBundle.LoadFromFileAsync(bundlePath);
                 }
+                var configTextAsset = await LoadAssetAsync<TextAsset>(envPaths.miniProjectConfig);
+                var config = MiniProjectConfig.FromJson(configTextAsset.bytes);
 
                 (scene, miniManager) = await previewManager.LoadScene();
                 SceneManager.SetActiveScene(scene);
-                var session = new MiniBridgeSession(scene, (_) =>
-                {
-                    ExecuteEnding();
-                });
+                await miniManager.PreInit(this);
                 if (previewManager.editCraft)
                 {
-                    await miniManager.EditCraftMain(this, session);
+                    await miniManager.EditMain();
                 }
                 else
                 {
-                    var configTextAsset = await LoadAssetAsync<TextAsset>(envPaths.miniProjectConfig);
-                    var config = MiniProjectConfig.FromJson(configTextAsset.bytes);
+                    var args = new MiniArgs
+                    {
+                        playEnding=null,
+                        craft=config.craft,
+                    };
                     if (config.craft)
                     {
                         var (craftJson, atlasTex) = OpenPanel();
-                        await miniManager.PlayCraftMain(this, session, craftJson, atlasTex);
+                        args.craftJson = craftJson;
+                        args.atlasTex = atlasTex;
                     }
-                    else
-                    {
-                        await miniManager.PlayGameMain(this, session);
-                    }
+                    await miniManager.PlayMain(args);
                 }
             }).Forget();
         }
@@ -61,10 +61,16 @@ namespace Nianxie.Preview
             }
             SceneManager.UnloadSceneAsync(scene);
         }
-
-        public override EnvPaths GetEnvPaths()
+        
+        public override async UniTask UnloadMini(MiniGameManager miniManager)
         {
-            return envPaths;
+            Debug.Log("UnloadMini TODO");
+        }
+
+        private int incrId = 123456;
+        public override int GenId()
+        {
+            return incrId++;
         }
 
         private void ExecuteEnding()
@@ -80,7 +86,7 @@ namespace Nianxie.Preview
             {
                 var jsonPath = $"{Path.GetDirectoryName(selectPath)}/{Path.GetFileNameWithoutExtension(selectPath)}.json";
                 var pngPath = $"{Path.GetDirectoryName(selectPath)}/{Path.GetFileNameWithoutExtension(selectPath)}.png";
-                var craftJson = CraftJson.Load(File.ReadAllBytes(jsonPath));
+                var craftJson = CraftJson.FromLargeBytes(new LargeBytes(File.ReadAllBytes(jsonPath)));
                 var atlasTex = new Texture2D(1, 1);
                 atlasTex.LoadImage(File.ReadAllBytes(pngPath));
                 return (craftJson, atlasTex);

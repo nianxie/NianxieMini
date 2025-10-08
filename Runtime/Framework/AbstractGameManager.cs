@@ -26,7 +26,6 @@ namespace Nianxie.Framework
             await UniTask.WhenAll(moduleSequence.Select(e => e.Init()));
             // 2. init some variable
             reflectEnv = CreateReflectEnv();
-            await UniTask.WhenAll(moduleSequence.Select(e => e.LateInit()));
         }
 
         protected async UniTask PrepareContextAndRoot()
@@ -49,7 +48,10 @@ namespace Nianxie.Framework
 
         protected abstract RuntimeReflectEnv CreateReflectEnv();
 
-        public abstract void OnInjectGameHelper(LuaTable script, string key, System.Type helperType);
+        public virtual void OnInjectGameHelper(LuaTable script, string key, System.Type helperType)
+        {
+            Debug.LogError("OnInjectGameHelper not implement");
+        }
 
         // Update 时执行tick
         void Update()

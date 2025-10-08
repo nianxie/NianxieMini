@@ -17,10 +17,6 @@ namespace Nianxie.Framework
         public virtual async UniTask Init()
         {
         }
-        
-        public virtual async UniTask LateInit()
-        {
-        }
 
         public virtual async UniTask Destroy()
         {

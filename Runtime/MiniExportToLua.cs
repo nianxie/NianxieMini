@@ -17,11 +17,16 @@ namespace XLua
             typeof(System.Web.HttpUtility),
             // framework items
             typeof(Nianxie.Utils.NianxieUnityExtension),
+            typeof(Nianxie.Utils.LargeBytes),
             typeof(Nianxie.Framework.LuafabLoading),
             typeof(Nianxie.Framework.MiniHelper),
             typeof(Nianxie.Framework.AsyncHelper),
+            typeof(Nianxie.Framework.MiniGameManager),
+            typeof(Nianxie.Framework.MiniArgs),
             typeof(Nianxie.Components.LuaBehaviour),
             typeof(Nianxie.Components.MiniBehaviour),
+            typeof(Nianxie.Craft.SlotBehaviour),
+            typeof(Nianxie.Craft.CraftJson),
             
             // unity items
             typeof(UnityEngine.LayerMask),
