@@ -93,7 +93,8 @@ namespace Nianxie.Framework
                 }
                 finally
                 {
-                    reflectEnv.Dispose();
+                    // TODO how to dispose luaEnv
+                    //reflectEnv.Dispose();
                 }
             }).Forget();
         }
