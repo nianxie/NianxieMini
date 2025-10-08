@@ -64,7 +64,7 @@ namespace Nianxie.Preview
         
         public override async UniTask UnloadMini(MiniGameManager miniManager)
         {
-            Debug.Log("UnloadMini TODO");
+            Destroy(this);
         }
 
         private int incrId = 123456;
