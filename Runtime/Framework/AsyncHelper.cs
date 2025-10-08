@@ -14,7 +14,7 @@ namespace Nianxie.Framework {
             fn.Action();
         }
 
-        [HintReturn("Fn($self, Integer)")]
+        [HintReturn(new []{typeof(int)})]
         public LuaFunction Sleep => gameManager.reflectEnv.bootSleep;
         
         [HintReturn("$function.nocheck@<_, T>(module:$self, fn:Fn():Ret(T)):Ret(Future(T)) end")]

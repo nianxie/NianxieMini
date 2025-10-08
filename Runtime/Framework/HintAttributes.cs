@@ -1,47 +1,85 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
+using UnityEngine;
 
 namespace XLua
 {
     public class HintReturnAttribute: Attribute
     {
-        public Type RetType { get; }
-        public string RetLuaHint { get; }
-        public bool UseTask { get; }
+        enum HintKind
+        {
+            Normal=0,
+            RetFuture=1,
+            AsyncFuture=2,
+        }
+
+        private Type[] parTypes { get; }
+        private Type retType { get; }
+        private string retLuaHint { get; }
+        private HintKind hintKind { get; }
 
         public string DumpHint(Func<Type, string> DumpTypeName)
         {
-            var name = "";
-            if (RetType != null)
+            if(hintKind == HintKind.AsyncFuture)
             {
-                name = DumpTypeName(RetType);
+                StringBuilder sb = new();
+                var strArr = new []{"Fn($self"}.Concat(parTypes.Select(DumpTypeName));
+                sb.Append(string.Join(",", strArr));
+                sb.Append("):Ret(Future(");
+                if (retType == null)
+                {
+                    sb.Append("Nil");
+                }
+                else
+                {
+                    sb.Append(DumpTypeName(retType));
+                }
+                sb.Append("))");
+                return sb.ToString();
             }
             else
             {
-                name = RetLuaHint;
-            }
+                var name = "";
+                if (retType != null)
+                {
+                    name = DumpTypeName(retType);
+                }
+                else
+                {
+                    name = retLuaHint;
+                }
 
-            if (UseTask)
-            {
-                return "Future("+name+")";
+                if (hintKind == HintKind.RetFuture)
+                {
+                    return "Future("+name+")";
+                }
+                if (hintKind == HintKind.Normal)
+                {
+                    return name;
+                }
             }
-            else
-            {
-                return name;
-            }
+            return "Truth --[[ error fallback]]";
         }
 
-        public HintReturnAttribute(string retLuaHint, bool useTask = false)
+        public HintReturnAttribute(string retLuaHint, bool useTask=false)
         {
-            RetLuaHint = retLuaHint;
-            UseTask = useTask;
+            this.retLuaHint = retLuaHint;
+            hintKind = useTask?HintKind.RetFuture:HintKind.Normal;
         }
 
         public HintReturnAttribute(Type retType, bool useTask=false)
         {
-            RetType = retType;
-            UseTask = useTask;
+            this.retType = retType;
+            hintKind = useTask?HintKind.RetFuture:HintKind.Normal;
+        }
+        public HintReturnAttribute(Type[] parTypes, Type retType=null)
+        {
+            this.parTypes = parTypes;
+            this.retType = retType;
+            hintKind = HintKind.AsyncFuture;
         }
     }
 }
