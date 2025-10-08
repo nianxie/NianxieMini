@@ -8,7 +8,6 @@ namespace Nianxie.Utils
         public static string StoragePath => Application.persistentDataPath + "/storage.db";
         public const string ShellResPath = "Assets/ShellRes";
         public const string MiniSceneName = "MiniScene";
-        public const string CraftSceneName = "CraftScene";
         
         public const string MiniPrefixPath = "Assets/MiniProjects";
         private const string NianxieMiniPath = "Assets/NianxieMini";

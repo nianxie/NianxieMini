@@ -52,7 +52,7 @@ namespace Nianxie.Preview
         public async UniTask<(Scene, MiniGameManager)> LoadScene()
         {
             LoadSceneParameters param = new LoadSceneParameters(LoadSceneMode.Additive, LocalPhysicsMode.None);
-            await SceneManager.LoadSceneAsync(editCraft?NianxieConst.CraftSceneName:NianxieConst.MiniSceneName, param);
+            await SceneManager.LoadSceneAsync(NianxieConst.MiniSceneName, param);
             var scene = SceneManager.GetSceneAt(SceneManager.sceneCount - 1);
             var objList = scene.GetRootGameObjects();
             var miniManager = objList[0].GetComponent<MiniGameManager>();

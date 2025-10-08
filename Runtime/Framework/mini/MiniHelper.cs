@@ -20,7 +20,15 @@ namespace Nianxie.Framework
 
         public LuaTable GetCraftSlot()
         {
-            return miniManager.craftSlot.luaTable;
+            var craftSlot = miniManager.craftModule.craftSlot;
+            if (craftSlot != null)
+            {
+                return craftSlot.luaTable;
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 }

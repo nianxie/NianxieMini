@@ -14,7 +14,7 @@ namespace Nianxie.Framework {
             fn.Action();
         }
 
-        [HintReturn(new []{typeof(int)})]
+        [HintReturn("Fn($self, Integer)")]
         public LuaFunction Sleep => gameManager.reflectEnv.bootSleep;
         
         [HintReturn("$function.nocheck@<_, T>(module:$self, fn:Fn():Ret(T)):Ret(Future(T)) end")]
@@ -36,7 +36,7 @@ namespace Nianxie.Framework {
             return 1;
         };
         
-        [HintReturn("Fn($self, Integer):Ret(Future(Nil))")]
+        [HintReturn(new []{typeof(int)})]
         public lua_CSFunction FutureSleep => reflectEnv.AsyncAction(this, async (int ms) =>
         {
             await UniTask.Delay(ms);
