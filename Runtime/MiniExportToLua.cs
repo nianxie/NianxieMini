@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using Nianxie.Craft;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace XLua
 {
@@ -57,6 +58,8 @@ namespace XLua
             typeof(UnityEngine.Renderer),
             typeof(UnityEngine.RectTransformUtility),
             typeof(UnityEngine.AudioSource),
+            typeof(UnityEngine.InputSystem.InputActionAsset),
+            typeof(UnityEngine.InputSystem.InputAction),
             
             // event trigger
             typeof(UnityEngine.EventSystems.EventTriggerType),
@@ -104,6 +107,7 @@ namespace XLua
         [CSharpCallLua] static List<Type> csharp_call_lua_cfg = new List<Type>()
         {
             typeof(Action<float>),
+            typeof(Action<InputAction.CallbackContext>),
             typeof(Action<UnityEngine.Video.VideoPlayer>),
             typeof(UnityEngine.Events.UnityAction<int>),
             typeof(UnityEngine.Events.UnityAction<string,int>),

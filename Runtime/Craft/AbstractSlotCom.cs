@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace Nianxie.Craft
 {
@@ -114,7 +115,7 @@ namespace Nianxie.Craft
     
     [ExecuteAlways]
     [RequireComponent(typeof(BoxCollider2D))]
-    public abstract class AbstractSlotCom : MonoBehaviour
+    public abstract class AbstractSlotCom : MonoBehaviour, IPointerDownHandler, IPointerClickHandler, IPointerUpHandler, IInitializePotentialDragHandler, IBeginDragHandler, IEndDragHandler, IDragHandler
     {
         [NonSerialized] BoxCollider2D m_collider2D;
         public BoxCollider2D touchCollider2D
@@ -130,6 +131,31 @@ namespace Nianxie.Craft
         }
         public abstract AbstractSlotJson PackToJson(AbstractPackContext packContext);
         public abstract void UnpackFromJson(CraftUnpackContext unpackContext, AbstractSlotJson slotJson);
+        public void OnPointerDown(PointerEventData eventData)
+        {
+        }
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+        }
+
+        public void OnPointerUp(PointerEventData eventData)
+        {
+        }
+        public void OnInitializePotentialDrag(PointerEventData eventData)
+        {
+        }
+
+        public void OnBeginDrag(PointerEventData eventData)
+        {
+        }
+
+        public void OnEndDrag(PointerEventData eventData)
+        {
+        }
+        public void OnDrag(PointerEventData eventData)
+        {
+        }
 #if UNITY_EDITOR
         public virtual void OnInspectorChange()
         {

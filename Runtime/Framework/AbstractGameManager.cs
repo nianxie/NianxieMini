@@ -1,8 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
-using Nianxie.Components;
 using XLua;
 
 namespace Nianxie.Framework
@@ -24,7 +21,7 @@ namespace Nianxie.Framework
             var moduleSequence = gameObject.GetComponents<AbstractGameModule>();
             // 1. module Init
             await UniTask.WhenAll(moduleSequence.Select(e => e.Init()));
-            // 2. init some variable
+            // 2. init lua env
             reflectEnv = CreateReflectEnv();
         }
 

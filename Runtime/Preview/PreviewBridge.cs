@@ -4,6 +4,7 @@ using Nianxie.Craft;
 using Nianxie.Framework;
 using Nianxie.Utils;
 using UnityEngine;
+using UnityEngine.InputSystem.EnhancedTouch;
 using UnityEngine.SceneManagement;
 using XLua;
 
@@ -17,6 +18,8 @@ namespace Nianxie.Preview
 
         public void Main(PreviewManager previewManager, string miniId, string bundlePath)
         {
+            // enable touch simulation
+            TouchSimulation.Enable();
             envPaths = EnvPaths.MiniEnvPaths(miniId);
             UniTask.Create(async () =>
             {

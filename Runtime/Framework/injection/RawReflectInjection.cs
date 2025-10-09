@@ -43,8 +43,8 @@ namespace XLua
             }
             else
             {
-                Debug.LogError($"invalid injection type: {csharpType}");
-                throw new Exception("invalid injection type");
+                Debug.LogError($"invalid node injection type: {csharpType}, only Component or GameObject can be inject as node, maybe inject it as asset?");
+                throw new Exception("invalid node injection type");
             }
         }
 
