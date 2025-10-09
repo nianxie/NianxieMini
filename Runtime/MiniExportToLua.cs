@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Nianxie.Craft;
 using UnityEngine;
 
 namespace XLua
@@ -11,9 +12,6 @@ namespace XLua
     {
         [LuaCallCSharp] static List<Type> cfg = new List<Type>()
         {
-            typeof(System.Int64),
-            typeof(System.Double),
-            typeof(System.String),
             typeof(System.Web.HttpUtility),
             // framework items
             typeof(Nianxie.Utils.NianxieUnityExtension),

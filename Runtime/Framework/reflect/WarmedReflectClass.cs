@@ -30,7 +30,7 @@ namespace XLua
         //public readonly WarmedReflectClass ancestor;
         public readonly Dictionary<string, ScriptInjection> nestedInjectionDict = new();
         public IEnumerable<ScriptInjection> eachNestedInjection => nestedInjectionDict.Values;
-        public AbstractNodeInjection[] nodeInjections { get; private set; }
+        public AbstractNodeInjection[] nodeInjections { get; protected set; }
 
         // 不使用构造函数，使用WarmedReflectClass.Create
         protected WarmedReflectClass(AbstractReflectEnv env, string path, string[] keys)
@@ -108,6 +108,8 @@ namespace XLua
         {
             injections = new AbstractReflectInjection[] {};
             subVtbls = new PartVtbl[] { };
+            miniVtbl = new MiniVtbl();
+            nodeInjections = new AbstractNodeInjection[]{};
             this.message = message;
         }
     }

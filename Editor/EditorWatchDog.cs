@@ -112,7 +112,7 @@ namespace Nianxie.Editor
                     else
                     {
                         // 显示lua object的属性
-                        var nodeInjections = envPaths.reflectEnv.GetWarmedReflect(luaBehav.classPath, luaBehav.nestedKeys) .nodeInjections;
+                        var nodeInjections = envPaths.reflectEnv.GetWarmedReflect(luaBehav.classPath, luaBehav.nestedKeys).nodeInjections;
                         foreach(var firstInjection in nodeInjections) {
                             foreach (var nodePath in firstInjection.EachNodePath())
                             {
