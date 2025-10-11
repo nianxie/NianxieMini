@@ -15,17 +15,20 @@ namespace XLua
         {
             typeof(System.Web.HttpUtility),
             // framework items
+            typeof(Nianxie.Utils.PlatformUtility),
             typeof(Nianxie.Utils.NianxieUnityExtension),
             typeof(Nianxie.Utils.LargeBytes),
             typeof(Nianxie.Framework.LuafabLoading),
             typeof(Nianxie.Framework.MiniHelper),
             typeof(Nianxie.Framework.AsyncHelper),
-            typeof(Nianxie.Framework.MiniGameManager),
-            typeof(Nianxie.Framework.MiniArgs),
             typeof(Nianxie.Components.LuaBehaviour),
             typeof(Nianxie.Components.MiniBehaviour),
             typeof(Nianxie.Craft.SlotBehaviour),
             typeof(Nianxie.Craft.CraftJson),
+            // mini
+            typeof(Nianxie.Framework.MiniGameManager),
+            typeof(Nianxie.Framework.MiniArgs),
+            typeof(Nianxie.Craft.CraftModule),
             
             // unity items
             typeof(UnityEngine.LayerMask),
@@ -58,8 +61,10 @@ namespace XLua
             typeof(UnityEngine.Renderer),
             typeof(UnityEngine.RectTransformUtility),
             typeof(UnityEngine.AudioSource),
+            typeof(UnityEngine.Mathf),
             typeof(UnityEngine.InputSystem.InputActionAsset),
             typeof(UnityEngine.InputSystem.InputAction),
+            typeof(UnityEngine.InputSystem.InputAction.CallbackContext),
             
             // event trigger
             typeof(UnityEngine.EventSystems.EventTriggerType),

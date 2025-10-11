@@ -5,6 +5,7 @@ using Nianxie.Components;
 using Nianxie.Framework;
 using Nianxie.Utils;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Nianxie.Craft
 {
@@ -12,7 +13,7 @@ namespace Nianxie.Craft
     {
         public Camera editCamera;
         public SlotBehaviour craftSlot { get; private set; }
-        public MiniGameManager miniManager => (MiniGameManager) gameManager;
+        private MiniGameManager miniManager => (MiniGameManager) gameManager;
 
         public async UniTask PlayMain()
         {

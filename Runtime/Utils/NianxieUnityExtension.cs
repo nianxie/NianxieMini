@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace Nianxie.Utils
 {
@@ -48,6 +50,15 @@ namespace Nianxie.Utils
         {
             return new Vector2(vec3.x, vec3.y);
         }
+        public static bool IsScreenPointOverUI(this Vector2 vec2)
+        {
+            PointerEventData eventDataCurrentPosition = new PointerEventData(EventSystem.current);
+            eventDataCurrentPosition.position = new Vector2(vec2.x, vec2.y);
+            List<RaycastResult> results = new List<RaycastResult>();
+            EventSystem.current.RaycastAll(eventDataCurrentPosition, results);
+            return results.Count > 0;
+        }
+
         public static Component Fork(this Component com, Transform parent) {
 	        return Object.Instantiate(com, parent, false).GetComponent(com.GetType());
         }

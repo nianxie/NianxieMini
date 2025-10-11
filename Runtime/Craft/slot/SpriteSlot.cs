@@ -156,7 +156,7 @@ namespace Nianxie.Craft
 
         protected override void DestroyTarget(Sprite postSprite)
         {
-            if (PlatformHelper.UNITY_EDITOR)
+            if (PlatformUtility.UNITY_EDITOR)
             {
                 DestroyImmediate(postSprite);
             }

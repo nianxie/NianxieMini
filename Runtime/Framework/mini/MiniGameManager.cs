@@ -37,12 +37,12 @@ namespace Nianxie.Framework
         public async UniTask EditMain()
         {
             Assert.IsNotNull(bridge, "MiniGame is not PreInit");
-            await GetComponent<CraftModule>().EditMain();
+            await craftModule.EditMain();
         }
         
         [HintReturn(new []{typeof(MiniArgs)})]
         public lua_CSFunction FuturePlayMain => bridge.shellEnv.AsyncAction<MiniArgs>(this, PlayMain);
-        [HintReturn(new System.Type[]{})]
+        [HintReturn(new System.Type[]{}, typeof(CraftModule))]
         public lua_CSFunction FutureEditMain => bridge.shellEnv.AsyncAction(this, EditMain);
 
 
