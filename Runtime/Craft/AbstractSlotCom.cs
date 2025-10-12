@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using XLua;
 
 namespace Nianxie.Craft
 {
@@ -18,7 +19,7 @@ namespace Nianxie.Craft
                 this.source = source;
                 this.target = target;
             }
-            // 只赋值PostValue的情况，表示postValue是从外部传来的参数，不会在这里处理
+            // 只赋值target的情况，表示target是从外部传来的参数，不会在这里处理
             public UserValue(TTargetValue target)
             {
                 this.source = default;
@@ -115,8 +116,9 @@ namespace Nianxie.Craft
     
     [ExecuteAlways]
     [RequireComponent(typeof(BoxCollider2D))]
-    public abstract class AbstractSlotCom : MonoBehaviour, IPointerDownHandler, IPointerClickHandler, IPointerUpHandler, IInitializePotentialDragHandler, IBeginDragHandler, IEndDragHandler, IDragHandler
+    public abstract class AbstractSlotCom : MonoBehaviour, IPointerDownHandler, IPointerClickHandler, IPointerUpHandler
     {
+        [NonSerialized] public CraftModule craftModule;
         [NonSerialized] BoxCollider2D m_collider2D;
         public BoxCollider2D touchCollider2D
         {
@@ -133,28 +135,17 @@ namespace Nianxie.Craft
         public abstract void UnpackFromJson(CraftUnpackContext unpackContext, AbstractSlotJson slotJson);
         public void OnPointerDown(PointerEventData eventData)
         {
+            craftModule.DispatchSlotPointer(this, nameof(OnPointerDown), eventData);
         }
 
         public void OnPointerClick(PointerEventData eventData)
         {
+            craftModule.DispatchSlotPointer(this, nameof(OnPointerClick), eventData);
         }
 
         public void OnPointerUp(PointerEventData eventData)
         {
-        }
-        public void OnInitializePotentialDrag(PointerEventData eventData)
-        {
-        }
-
-        public void OnBeginDrag(PointerEventData eventData)
-        {
-        }
-
-        public void OnEndDrag(PointerEventData eventData)
-        {
-        }
-        public void OnDrag(PointerEventData eventData)
-        {
+            craftModule.DispatchSlotPointer(this, nameof(OnPointerUp), eventData);
         }
 #if UNITY_EDITOR
         public virtual void OnInspectorChange()

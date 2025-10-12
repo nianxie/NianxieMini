@@ -12,7 +12,7 @@ namespace Nianxie.Framework
         private bool stopped = false;
         public CraftModule craftModule { get; private set; }
         public MiniBridge bridge { get; private set; }
-        public MiniArgs args { get; private set; }
+        public MiniPlayArgs playArgs { get; private set; }
 
         public async UniTask PreInit(MiniBridge _bridge)
         {
@@ -24,26 +24,26 @@ namespace Nianxie.Framework
         }
 
         [BlackList]
-        public async UniTask PlayMain(MiniArgs _args)
+        public async UniTask PlayMain(MiniPlayArgs args)
         {
             Assert.IsNotNull(bridge, "MiniGame is not PreInit");
-            args = _args;
-            await craftModule.PlayMain();
+            playArgs = args;
+            await craftModule.PlayMain(playArgs);
             await PrepareContextAndRoot();
             rootLuafabLoading.Fork(transform);
         }
 
         [BlackList]
-        public async UniTask EditMain()
+        public async UniTask EditMain(MiniEditArgs args)
         {
             Assert.IsNotNull(bridge, "MiniGame is not PreInit");
-            await craftModule.EditMain();
+            await craftModule.EditMain(args);
         }
         
-        [HintReturn(new []{typeof(MiniArgs)})]
-        public lua_CSFunction FuturePlayMain => bridge.shellEnv.AsyncAction<MiniArgs>(this, PlayMain);
+        [HintReturn(new []{typeof(MiniPlayArgs)})]
+        public lua_CSFunction FuturePlayMain => bridge.shellEnv.AsyncAction<MiniPlayArgs>(this, PlayMain);
         [HintReturn(new System.Type[]{}, typeof(CraftModule))]
-        public lua_CSFunction FutureEditMain => bridge.shellEnv.AsyncAction(this, EditMain);
+        public lua_CSFunction FutureEditMain => bridge.shellEnv.AsyncAction<MiniEditArgs>(this, EditMain);
 
 
         protected override RuntimeReflectEnv CreateReflectEnv()

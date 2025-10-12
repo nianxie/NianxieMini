@@ -35,11 +35,14 @@ namespace Nianxie.Preview
                 await miniManager.PreInit(this);
                 if (previewManager.editCraft)
                 {
-                    await miniManager.EditMain();
+                    var args = new MiniEditArgs
+                    {
+                    };
+                    await miniManager.EditMain(args);
                 }
                 else
                 {
-                    var args = new MiniArgs
+                    var args = new MiniPlayArgs
                     {
                         playEnding=null,
                         craft=config.craft,

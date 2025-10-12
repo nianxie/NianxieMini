@@ -15,7 +15,7 @@ namespace Nianxie.Framework
         private MiniGameManager miniManager;
         public void PlayEnding()
         {
-            miniManager.args.PlayEnding(miniManager);
+            miniManager.playArgs.PlayEnding(miniManager);
         }
 
         public LuaTable GetCraftSlot()

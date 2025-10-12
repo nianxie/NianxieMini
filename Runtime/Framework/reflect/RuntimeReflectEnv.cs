@@ -7,7 +7,7 @@ using XLua.LuaDLL;
 
 namespace XLua
 {
-    public class RuntimeReflectEnv:AbstractReflectEnv
+    public class RuntimeReflectEnv : AbstractReflectEnv
     {
         public static RuntimeReflectEnv Create(AbstractGameManager gameManager, EnvPaths envPaths, byte[] miniBoot)
         {
@@ -16,10 +16,10 @@ namespace XLua
             env.Warmup();
             return env;
         }
-        
+
         private readonly AssetModule assetModule;
         private readonly AsyncHelper asyncHelper;
-        
+
         private RuntimeReflectEnv(AbstractGameManager gameManager, EnvPaths vEnvPaths) : base(vEnvPaths)
         {
             assetModule = gameManager.assetModule;
@@ -36,7 +36,7 @@ namespace XLua
         {
             return contextNew.Func<AsyncHelper, LuaTable>(asyncHelper);
         }
-        
+
         protected override WarmedReflectClass FallbackReflect(string clsPath, string[] nestedPath, string message)
         {
             return null;
@@ -81,7 +81,16 @@ namespace XLua
 
         public void Repl(string script)
         {
-            boot.Repl.Action(script??"");
+            boot.Repl.Action(script ?? "");
+        }
+
+        public lua_CSFunction AsyncNotImplement(object self, string name)
+        {
+            return (asyncL)=>
+            {
+                var err = $"{name} for {self.GetType().Name} not implement";
+                return Lua.luaL_error(asyncL, err);
+            };
         }
 
         private lua_CSFunction SafeAsyncBegin(object self, Func<IntPtr, int> asyncEnd)
@@ -126,7 +135,7 @@ namespace XLua
             }).Forget();
             return 1;
         }
-        
+
         private int SafeAsyncEndVoid(IntPtr asyncL, UniTask voidFn)
         {
             boot.NewFuture.push(asyncL);

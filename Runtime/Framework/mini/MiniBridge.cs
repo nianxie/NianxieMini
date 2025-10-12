@@ -8,7 +8,7 @@ using XLua;
 
 namespace Nianxie.Framework
 {
-    public struct MiniArgs
+    public struct MiniPlayArgs
     {
         public bool craft;
         public LuaFunction playEnding;
@@ -19,6 +19,12 @@ namespace Nianxie.Framework
         {
             playEnding.Action(miniManager);
         }
+    }
+    public struct MiniEditArgs
+    {
+        public LuaFunction dispatchDrag;
+        public LuaFunction dispatchPointer;
+        public LuaFunction dispatchRootDrag;
     }
 
     public abstract class MiniBridge:MonoBehaviour, IAssetLoader
