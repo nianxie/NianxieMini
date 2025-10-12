@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using XLua;
 
 namespace Nianxie.Craft
@@ -28,6 +29,7 @@ namespace Nianxie.Craft
 
             public void OnDestroy(Action<TTargetValue> destroyPost)
             {
+                Texture2DArray tex;
                 destroyPost(target);
             }
         }
@@ -63,11 +65,17 @@ namespace Nianxie.Craft
             OnChangeValue();
         }
 
-        public void AssignSource(TSourceValue source)
+        public override void WriteSource(object obj)
         {
+            var source = (TSourceValue) obj;
             userValue?.OnDestroy(DestroyTarget);
             userValue = new UserValue(source, ValueProcess(source));
             OnChangeValue();
+        }
+        
+        public override object ReadTarget()
+        {
+            return target;
         }
 
         protected abstract TSlotJson PackFromSource(AbstractPackContext packContext, TSourceValue source);
@@ -102,6 +110,7 @@ namespace Nianxie.Craft
             OnChangeValue();
         }
 #if UNITY_EDITOR
+        [BlackList]
         public override void OnInspectorChange()
         {
             if (defaultTarget != null)
@@ -133,6 +142,10 @@ namespace Nianxie.Craft
         }
         public abstract AbstractSlotJson PackToJson(AbstractPackContext packContext);
         public abstract void UnpackFromJson(CraftUnpackContext unpackContext, AbstractSlotJson slotJson);
+
+        public abstract void WriteSource(object source);
+        public abstract object ReadTarget();
+
         public void OnPointerDown(PointerEventData eventData)
         {
             craftModule.DispatchSlotPointer(this, nameof(OnPointerDown), eventData);
@@ -148,6 +161,7 @@ namespace Nianxie.Craft
             craftModule.DispatchSlotPointer(this, nameof(OnPointerUp), eventData);
         }
 #if UNITY_EDITOR
+        [BlackList]
         public virtual void OnInspectorChange()
         {
         }

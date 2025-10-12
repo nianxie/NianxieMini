@@ -49,7 +49,7 @@ namespace Nianxie.Editor
                                     }
                                 }
                                 slotBehav.editorTexDict[injection.key] = tex;
-                                spriteSlot.AssignSource(tex);
+                                spriteSlot.WriteSource(tex);
                             };
                         }
                     }

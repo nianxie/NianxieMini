@@ -6,6 +6,7 @@ using Nianxie.Components;
 using Nianxie.Utils;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using XLua;
 
 namespace Nianxie.Craft
 {
@@ -166,6 +167,7 @@ namespace Nianxie.Craft
             }
         }
 #if UNITY_EDITOR
+        [BlackList]
         public override void OnInspectorChange()
         {
             m_Size = new Vector2Int(Math.Max(1, m_Size.x), Math.Max(1, m_Size.y));
