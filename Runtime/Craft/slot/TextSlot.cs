@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Nianxie.Craft
 {
     [RequireComponent(typeof(TextMeshPro))]
-    public class TextSlot : AbstractSlotCom<TextJson, string, string>
+    public class TextSlot : AbstractAssetSlot<TextJson, string, string>
     {
         public SpriteRenderer background;
         [NonSerialized] TextMeshPro m_TextMeshPro;
@@ -22,7 +22,7 @@ namespace Nianxie.Craft
             }
         }
 
-        protected override TextJson PackFromSource(AbstractPackContext packContext, string source)
+        protected override TextJson PackFromRawData(AbstractPackContext packContext, string source)
         {
             return new TextJson()
             {
@@ -30,7 +30,7 @@ namespace Nianxie.Craft
             };
         }
 
-        protected override string UnpackToTarget(CraftUnpackContext unpackContext, TextJson slotJson)
+        protected override string UnpackToFinalData(CraftUnpackContext unpackContext, TextJson slotJson)
         {
             return slotJson.text;
         }
@@ -58,17 +58,17 @@ namespace Nianxie.Craft
             SyncBackgroundSize();
         }
 
-        protected override void OnChangeValue()
+        protected override void OnDataModify()
         {
-            drawText.text = target;
+            drawText.text = finalData;
         }
 
-        protected override string ValueProcess(string source)
+        protected override string DataProcess(string source)
         {
             return source;
         }
 
-        protected override void DestroyTarget(string unpackOutput)
+        protected override void DestroyFinalData(string unpackOutput)
         {
             // do nothing
         }

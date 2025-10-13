@@ -75,9 +75,9 @@ namespace Nianxie.Craft
             editArgs.dispatchDrag?.Action(posSlot, name, evt);
         }
         
-        public void DispatchSlotPointer(AbstractSlotCom slotCom, string name, PointerEventData evt)
+        public void DispatchSlotPointer(AbstractAssetSlot assetSlot, string name, PointerEventData evt)
         {
-            editArgs.dispatchPointer?.Action(slotCom, name, evt);
+            editArgs.dispatchPointer?.Action(assetSlot, name, evt);
         }
 
         public void OnInitializePotentialDrag(PointerEventData eventData)

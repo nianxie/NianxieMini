@@ -11,7 +11,7 @@ using XLua;
 namespace Nianxie.Craft
 {
     [RequireComponent(typeof(SpriteRenderer))]
-    public class SpriteSlot : AbstractSlotCom<SpriteJson, Texture2D, Sprite>
+    public class SpriteSlot : AbstractAssetSlot<SpriteJson, Texture2D, Sprite>
     {
         [SerializeField]
         private Vector2 m_Pivot;
@@ -23,7 +23,7 @@ namespace Nianxie.Craft
         private int m_Resolution = 512;
 
         [NonSerialized] SpriteRenderer m_Renderer;
-        public SpriteRenderer drawRenderer
+        private SpriteRenderer drawRenderer
         {
             get
             {
@@ -110,17 +110,17 @@ namespace Nianxie.Craft
             }
         }
 
-        protected override SpriteJson PackFromSource(AbstractPackContext packContext, Texture2D source)
+        protected override SpriteJson PackFromRawData(AbstractPackContext packContext, Texture2D tex)
         {
-            var cropRect = CalcPackAndCrop(source, out var packSize);
-            var spriteIndex = packContext.AddSprite(source, cropRect, packSize);
+            var cropRect = CalcPackAndCrop(tex, out var packSize);
+            var spriteIndex = packContext.AddSprite(tex, cropRect, packSize);
             return new SpriteJson()
             {
                 sprite = spriteIndex,
             };
         }
 
-        protected override Sprite UnpackToTarget(CraftUnpackContext unpackContext, SpriteJson spriteJson)
+        protected override Sprite UnpackToFinalData(CraftUnpackContext unpackContext, SpriteJson spriteJson)
         {
             var spriteRect = unpackContext.GetAtlasRect(spriteJson.sprite);
             var pixelsPerUnit = 100.0f;
@@ -135,41 +135,46 @@ namespace Nianxie.Craft
             return unpackContext.GenSprite(spriteJson.sprite, m_Pivot, pixelsPerUnit);
         }
 
-        protected override void OnChangeValue()
+        protected override void OnDataModify()
         {
-            drawRenderer.sprite = target;
+            drawRenderer.sprite = finalData;
         }
 
-        protected override Sprite ValueProcess(Texture2D source)
+        protected override Sprite DataProcess(Texture2D tex)
         {
-            var cropRect = CalcPackAndCrop(source, out _);
+            var cropRect = CalcPackAndCrop(tex, out _);
             var pixelsPerUnit = 100.0f;
             if (m_FitViewAxis == FitViewAxis.Horizontal)
             {
-                pixelsPerUnit = 100.0f * source.width / m_Size.x;
+                pixelsPerUnit = 100.0f * tex.width / m_Size.x;
             }
             else
             {
-                pixelsPerUnit = 100.0f * source.height / m_Size.y;
+                pixelsPerUnit = 100.0f * tex.height / m_Size.y;
             }
-            return Sprite.Create(source, cropRect.ToUnityRect(), m_Pivot, pixelsPerUnit);
+            return Sprite.Create(tex, cropRect.ToUnityRect(), m_Pivot, pixelsPerUnit);
         }
 
-        protected override void DestroyTarget(Sprite postSprite)
+        protected override void DestroyFinalData(Sprite finalSprite)
         {
             if (PlatformUtility.UNITY_EDITOR)
             {
-                DestroyImmediate(postSprite);
+                DestroyImmediate(finalSprite);
             }
             else
             {
-                Destroy(postSprite);
+                Destroy(finalSprite);
             }
         }
 #if UNITY_EDITOR
         [BlackList]
-        public override void OnInspectorChange()
+        public override void OnInspectorUpdate(bool change)
         {
+            if (!change)
+            {
+                return;
+            }
+
             m_Size = new Vector2Int(Math.Max(1, m_Size.x), Math.Max(1, m_Size.y));
             m_Resolution = Math.Clamp(m_Resolution, 1, 1024);
             var boxSize = new Vector2(m_Size.x / 100.0f, m_Size.y / 100.0f);
@@ -178,7 +183,7 @@ namespace Nianxie.Craft
                 boxSize.x * (0.5f - m_Pivot.x),
                 boxSize.y * (0.5f - m_Pivot.y)
                 );
-            base.OnInspectorChange();
+            base.OnInspectorUpdate(change);
         }
 #endif
     }

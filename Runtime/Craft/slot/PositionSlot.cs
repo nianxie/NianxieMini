@@ -1,52 +1,66 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 using XLua;
 
 namespace Nianxie.Craft
 {
-    public class PositionSlot:AbstractSlotCom<PositionJson, Vector3, Vector3>, IInitializePotentialDragHandler, IBeginDragHandler, IEndDragHandler, IDragHandler
+    public class PositionSlot:AbstractSlotCom, IInitializePotentialDragHandler, IBeginDragHandler, IEndDragHandler, IDragHandler
     {
-        protected override PositionJson PackFromSource(AbstractPackContext packContext, Vector3 source)
+        [SerializeField]
+        private Vector2 m_DefaultPosition;
+        
+        [BlackList]
+        public override AbstractSlotJson PackToJson(AbstractPackContext packContext)
         {
-            return new PositionJson
+            var pos = transform.localPosition;
+            return new PositionJson()
             {
-                x = source.x,
-                y = source.y,
-                z = source.z,
+                x=pos.x,
+                y=pos.y,
             };
         }
 
-        protected override Vector3 UnpackToTarget(CraftUnpackContext unpackContext, PositionJson slotJson)
+        public Vector2 ReadPosition()
         {
-            throw new System.NotImplementedException();
+            return transform.localPosition;
         }
 
-        protected override void OnChangeValue()
+        public override object ReadData()
         {
-            throw new System.NotImplementedException();
+            return ReadPosition();
         }
 
-        protected override Vector3 ValueProcess(Vector3 source)
+        [BlackList]
+        public override void UnpackFromJson(CraftUnpackContext unpackContext, AbstractSlotJson slotJson)
         {
-            return source;
+            var posJson = (PositionJson)slotJson;
+            transform.localPosition = new Vector3(posJson.x, posJson.y, -0.01f);
         }
-        public void OnInitializePotentialDrag(PointerEventData eventData)
+        void IInitializePotentialDragHandler.OnInitializePotentialDrag(PointerEventData eventData)
         {
-            craftModule.DispatchSlotDrag(this, nameof(OnInitializePotentialDrag), eventData);
-        }
-
-        public void OnBeginDrag(PointerEventData eventData)
-        {
-            craftModule.DispatchSlotDrag(this, nameof(OnBeginDrag), eventData);
+            craftModule.DispatchSlotDrag(this, nameof(IInitializePotentialDragHandler.OnInitializePotentialDrag), eventData);
         }
 
-        public void OnEndDrag(PointerEventData eventData)
+        void IBeginDragHandler.OnBeginDrag(PointerEventData eventData)
         {
-            craftModule.DispatchSlotDrag(this, nameof(OnEndDrag), eventData);
+            craftModule.DispatchSlotDrag(this, nameof(IBeginDragHandler.OnBeginDrag), eventData);
         }
-        public void OnDrag(PointerEventData eventData)
+
+        void IEndDragHandler.OnEndDrag(PointerEventData eventData)
         {
-            craftModule.DispatchSlotDrag(this, nameof(OnDrag), eventData);
+            craftModule.DispatchSlotDrag(this, nameof(IEndDragHandler.OnEndDrag), eventData);
         }
+        void IDragHandler.OnDrag(PointerEventData eventData)
+        {
+            craftModule.DispatchSlotDrag(this, nameof(IDragHandler.OnDrag), eventData);
+        }
+#if UNITY_EDITOR
+        [BlackList]
+        public override void OnInspectorUpdate(bool change)
+        {
+            m_DefaultPosition = transform.localPosition;
+        }
+#endif
     }
 }

@@ -24,6 +24,7 @@ namespace XLua
             typeof(Nianxie.Components.LuaBehaviour),
             typeof(Nianxie.Components.MiniBehaviour),
             typeof(Nianxie.Craft.SlotBehaviour),
+            typeof(Nianxie.Craft.AbstractAssetSlot),
             typeof(Nianxie.Craft.AbstractSlotCom),
             typeof(Nianxie.Craft.PositionSlot),
             typeof(Nianxie.Craft.SpriteSlot),

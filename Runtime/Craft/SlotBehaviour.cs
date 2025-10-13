@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Nianxie.Components;
+using XLua;
 
 namespace Nianxie.Craft
 {
@@ -79,6 +80,7 @@ namespace Nianxie.Craft
             }
         }
 #if UNITY_EDITOR
+	    [BlackList]
 	    public Dictionary<string, Texture2D> editorTexDict = new();
 #endif
     }
