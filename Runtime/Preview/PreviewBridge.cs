@@ -16,10 +16,10 @@ namespace Nianxie.Preview
         private Scene scene;
         private AssetBundle assetBundle;
 
-        public void Main(PreviewManager previewManager, string miniId, string bundlePath)
+        public void Main(PreviewManager previewManager, LuaTable selfWrap, string miniId, string bundlePath)
         {
             // enable touch simulation
-            TouchSimulation.Enable();
+            // TouchSimulation.Enable();
             envPaths = EnvPaths.MiniEnvPaths(miniId);
             UniTask.Create(async () =>
             {
@@ -37,6 +37,7 @@ namespace Nianxie.Preview
                 {
                     var args = new MiniEditArgs
                     {
+                        onSelect=selfWrap.Get<LuaFunction>(nameof(OnSelect)),
                     };
                     await miniManager.EditMain(args);
                 }
@@ -100,6 +101,20 @@ namespace Nianxie.Preview
             return (null, null);
 #else
             throw new System.NotImplementedException();
+#endif
+        }
+        public void OnSelect(AbstractAssetSlot slot)
+        {
+#if UNITY_EDITOR
+            if (slot != null)
+            {
+                Debug.Log($"try select {slot.gameObject.name}");
+                UnityEditor.Selection.activeGameObject = slot.gameObject;
+            }
+            else
+            {
+                UnityEditor.Selection.activeGameObject = null;
+            }
 #endif
         }
 #if UNITY_EDITOR

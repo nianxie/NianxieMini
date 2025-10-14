@@ -147,19 +147,23 @@ namespace Nianxie.Craft
         }
 
         public abstract void WriteRawData(object rawData);
+
         void IPointerDownHandler.OnPointerDown(PointerEventData eventData)
         {
-            craftModule.DispatchSlotPointer(this, nameof(IPointerDownHandler.OnPointerDown), eventData);
+            //craftModule.DispatchSlotPointer(this, nameof(IPointerDownHandler.OnPointerDown), eventData);
         }
 
         void IPointerClickHandler.OnPointerClick(PointerEventData eventData)
         {
-            craftModule.DispatchSlotPointer(this, nameof(IPointerClickHandler.OnPointerClick), eventData);
+            if (!TryGetComponent<PositionSlot>(out var posSlot) || !posSlot.dragging)
+            {
+                editRoot.OnSelect(this);
+            }
         }
 
         void IPointerUpHandler.OnPointerUp(PointerEventData eventData)
         {
-            craftModule.DispatchSlotPointer(this, nameof(IPointerUpHandler.OnPointerUp), eventData);
+            //craftModule.DispatchSlotPointer(this, nameof(IPointerUpHandler.OnPointerUp), eventData);
         }
     }
     

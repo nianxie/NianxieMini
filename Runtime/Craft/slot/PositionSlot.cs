@@ -5,11 +5,14 @@ using XLua;
 
 namespace Nianxie.Craft
 {
+    [DisallowMultipleComponent]
     public class PositionSlot:AbstractSlotCom, IInitializePotentialDragHandler, IBeginDragHandler, IEndDragHandler, IDragHandler
     {
         [SerializeField]
         private Vector2 m_DefaultPosition;
-        
+
+        public bool dragging { get; private set; }
+
         [BlackList]
         public override AbstractSlotJson PackToJson(AbstractPackContext packContext)
         {
@@ -39,21 +42,41 @@ namespace Nianxie.Craft
         }
         void IInitializePotentialDragHandler.OnInitializePotentialDrag(PointerEventData eventData)
         {
-            craftModule.DispatchSlotDrag(this, nameof(IInitializePotentialDragHandler.OnInitializePotentialDrag), eventData);
+            if (editRoot.selectPosSlot == this)
+            {
+                eventData.useDragThreshold = false;
+            }
         }
 
         void IBeginDragHandler.OnBeginDrag(PointerEventData eventData)
         {
-            craftModule.DispatchSlotDrag(this, nameof(IBeginDragHandler.OnBeginDrag), eventData);
+            dragging = true;
+            if (editRoot.selectPosSlot != this)
+            {
+                ExecuteEvents.ExecuteHierarchy(transform.parent.gameObject, eventData, ExecuteEvents.beginDragHandler);
+            }
         }
 
         void IEndDragHandler.OnEndDrag(PointerEventData eventData)
         {
-            craftModule.DispatchSlotDrag(this, nameof(IEndDragHandler.OnEndDrag), eventData);
+            dragging = false;
+            if (editRoot.selectPosSlot != this)
+            {
+                ExecuteEvents.ExecuteHierarchy(transform.parent.gameObject, eventData, ExecuteEvents.endDragHandler);
+            }
+            Debug.Log("position slot end drag");
         }
         void IDragHandler.OnDrag(PointerEventData eventData)
         {
-            craftModule.DispatchSlotDrag(this, nameof(IDragHandler.OnDrag), eventData);
+            if (editRoot.selectPosSlot != this)
+            {
+                ExecuteEvents.ExecuteHierarchy(transform.parent.gameObject, eventData, ExecuteEvents.dragHandler);
+            }
+            else
+            {
+                var delta = eventData.delta;
+                transform.position += editRoot.camera.ScreenToWorldPoint(delta) - editRoot.camera.ScreenToWorldPoint(Vector3.zero);
+            }
         }
 #if UNITY_EDITOR
         [BlackList]

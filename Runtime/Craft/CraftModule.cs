@@ -11,24 +11,24 @@ using XLua;
 
 namespace Nianxie.Craft
 {
-    public class CraftModule : AbstractGameModule, IInitializePotentialDragHandler, IBeginDragHandler, IEndDragHandler, IDragHandler
+    public class CraftModule : AbstractGameModule
     {
-        public Camera editCamera;
+        public EditRoot editRoot;
         public SlotBehaviour craftSlot { get; private set; }
         private MiniGameManager miniManager => (MiniGameManager) gameManager;
-        private MiniEditArgs editArgs;
-        private MiniPlayArgs playArgs;
+        public MiniEditArgs editArgs { get; private set; }
+        public MiniPlayArgs playArgs { get; private set; }
 
         public async UniTask PlayMain(MiniPlayArgs args)
         {
             playArgs = args;
-            editCamera.gameObject.SetActive(false);
+            editRoot.camera.gameObject.SetActive(false);
             if (miniManager.playArgs.craft)
             {
                 var craftLuafabLoading =
                     miniManager.assetModule.AttachLuafabLoading(miniManager.bridge.envPaths.miniCraftLuafabPath, false);
                 await craftLuafabLoading.WaitTask;
-                var slotRoot = (SlotBehaviour) craftLuafabLoading.RawFork(transform);
+                var slotRoot = (SlotBehaviour) craftLuafabLoading.RawFork(editRoot.area.transform);
                 foreach (var childRenderer in slotRoot.gameObject.GetComponentsInChildren<Renderer>())
                 {
                     childRenderer.enabled = false;
@@ -51,7 +51,6 @@ namespace Nianxie.Craft
                     var unpackContext = new CraftUnpackContext(craftJson, altasTex);
                     unpackContext.UnpackRoot(slotRoot);
                 }
-
                 craftSlot = slotRoot;
             }
         }
@@ -59,45 +58,12 @@ namespace Nianxie.Craft
         public async UniTask EditMain(MiniEditArgs args)
         {
             editArgs = args;
-            editCamera.gameObject.SetActive(true);
+            editRoot.camera.gameObject.SetActive(true);
             var craftLuafabLoading =
                 miniManager.assetModule.AttachLuafabLoading(miniManager.bridge.envPaths.miniCraftLuafabPath, false);
             await craftLuafabLoading.WaitTask;
-            craftSlot = (SlotBehaviour) craftLuafabLoading.RawFork(transform);
-            foreach (var com in craftSlot.GetComponentsInChildren<AbstractSlotCom>(true))
-            {
-                com.craftModule = this;
-            }
-        }
-
-        public void DispatchSlotDrag(PositionSlot posSlot, string name, PointerEventData evt)
-        {
-            editArgs.dispatchDrag?.Action(posSlot, name, evt);
-        }
-        
-        public void DispatchSlotPointer(AbstractAssetSlot assetSlot, string name, PointerEventData evt)
-        {
-            editArgs.dispatchPointer?.Action(assetSlot, name, evt);
-        }
-
-        public void OnInitializePotentialDrag(PointerEventData eventData)
-        {
-            editArgs.dispatchRootDrag?.Action(nameof(OnInitializePotentialDrag), eventData);
-        }
-
-        public void OnBeginDrag(PointerEventData eventData)
-        {
-            editArgs.dispatchRootDrag?.Action(nameof(OnBeginDrag), eventData);
-        }
-
-        public void OnEndDrag(PointerEventData eventData)
-        {
-            editArgs.dispatchRootDrag?.Action(nameof(OnEndDrag), eventData);
-        }
-
-        public void OnDrag(PointerEventData eventData)
-        {
-            editArgs.dispatchRootDrag?.Action(nameof(OnDrag), eventData);
+            craftSlot = (SlotBehaviour) craftLuafabLoading.RawFork(editRoot.area.transform);
+            editRoot.Init(this, craftSlot);
         }
         
         public (LargeBytes, byte[]) PackJsonPng()

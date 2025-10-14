@@ -22,9 +22,7 @@ namespace Nianxie.Framework
     }
     public struct MiniEditArgs
     {
-        public LuaFunction dispatchDrag;
-        public LuaFunction dispatchPointer;
-        public LuaFunction dispatchRootDrag;
+        public LuaFunction onSelect;
     }
 
     public abstract class MiniBridge:MonoBehaviour, IAssetLoader

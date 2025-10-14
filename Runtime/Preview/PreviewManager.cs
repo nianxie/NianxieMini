@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,6 +8,7 @@ using Nianxie.Utils;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using XLua;
 
 namespace Nianxie.Preview
 {
@@ -23,6 +25,8 @@ namespace Nianxie.Preview
         {
             return Directory.EnumerateDirectories(NianxieConst.MiniPrefixPath).Select((e) => new DirectoryInfo(e).Name).ToList();
         }
+        private LuaEnv luaEnv;
+        private LuaFunction bridgeWrapFn;
         void Awake()
         {
             var projectList = ListProject();
@@ -36,14 +40,26 @@ namespace Nianxie.Preview
                 var project = projectList[i];
                 newRect.GetComponent<PreviewMiniButtons>().Main(this, project);
             }
+            luaEnv = new LuaEnv();
+            bridgeWrapFn = luaEnv.LoadString<LuaFunction>(@"
+local bridge = ...
+return setmetatable({
+}, {
+    __index=function(t,k)
+        return function(...)
+            return bridge[k](bridge, ...)
+        end
+    end
+})
+");
         }
 
         public void LoadProject(string miniId, string bundlePath)
         {
             menuRect.gameObject.SetActive(false);
             backBtn.gameObject.SetActive(true);
-            previewBridge = gameObject.AddComponent<PreviewBridge>();
-            previewBridge.Main(this, miniId, bundlePath);
+            previewBridge=gameObject.AddComponent<PreviewBridge>();
+            previewBridge.Main(this, bridgeWrapFn.Func<PreviewBridge,LuaTable>(previewBridge), miniId, bundlePath);
         }
 
         public async UniTask<(Scene, MiniGameManager)> LoadScene()
