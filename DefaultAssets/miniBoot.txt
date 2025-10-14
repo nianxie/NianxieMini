@@ -72,6 +72,7 @@ function Future.new(vSyncFn)
 
     local self = setmetatable({
         __type = false  ,
+        _stack = debug.traceback(nil, 2),
         _state = PENDING    ,
         _value = nil  ,
         _exception = nil  ,
@@ -113,7 +114,7 @@ function Future.complete(self, ok, ret)
         self._state = RESOLVED
         self._value = ret  
     else
-        ret = Exception.is(ret) and ret or Exception.new(ret  , "(pasync stack)")
+        ret = Exception.is(ret) and ret or Exception.new(ret  , self._stack)
         self._state = REJECTED
         self._exception = ret  
     end
@@ -596,7 +597,7 @@ end
 function ViewScript:_injectModule()
      
     local context = self.context
-    local injections = getmetatable(self).__class.injections
+    local injections = getmetatable(self).__injections
     for i, injection in ipairs(injections) do
         local injectionClsOpen = injection.clsOpen
         if injectionClsOpen and injectionClsOpen.super == ModuleScript then
@@ -750,34 +751,17 @@ end end
 do local _ENV = _ENV
 packages['reflect.class'] = function (...)
 
+local ClassCore = require  "reflect.injection.ClassCore"
 
+return ClassCore.class
+end end
+--reflect.class end ==========)
 
-if false then 
-	  
-	 
-	local rapidjson = require "rapidjson"
-    local arraymeta = getmetatable(rapidjson.array())
-    local objectmeta = getmetatable(rapidjson.object())
-    local unsafearray = rapidjson.array
-    rapidjson.array = function(t)
-        if getmetatable(t) == objectmeta then
-            return setmetatable(t, arraymeta)
-        else
-            return unsafearray(t)
-        end
-    end
-    local unsafeobject = rapidjson.object
-    rapidjson.object = function(t)
-        if getmetatable(t) == arraymeta then
-            return setmetatable(t, objectmeta)
-        else
-            return unsafeobject(t)
-        end
-    end
-end
+--reflect.injection.ClassCore begin ==========(
+do local _ENV = _ENV
+packages['reflect.injection.ClassCore'] = function (...)
 
-local class2meta={}
-local meta2class={}
+local meta2isCache={}
 
 ;
 	  
@@ -798,55 +782,47 @@ local function recursiveCreate(obj, cls, ...)
 	end
 end
 
-local function class (super, generic)
-	local class_open={}
+local classMeta = {
+    __index=function(self,k)
+        return self.meta.__index[k]
+    end,
+    __newindex=function(self,k,v)
+        if type(v) == "function" then
+            self.meta.__index[k]=v
+        else
+            rawset(self,k,v)
+        end
+    end,
+    __name="class",
+}
+
+local function class (super)
+	local classOpen={}
 	local vtbl={}
 	local meta={
 		__index=vtbl,
-		__class=class_open,
+		__class=classOpen,
+		__behavType=false,
+		__injections={}  ,
 	}
 	;
-	class_open.super=super or false
-	class_open.meta=meta
-	class_open.vtbl=vtbl
-	class_open.ctor=false
-	class_open.injections={} ; 
-	class_open.new=function (...)
+	classOpen.super=super or false
+	classOpen.meta=meta
+	classOpen.ctor=false
+	classOpen.new=function (...)  
 		local obj={}
-		recursiveCreate(obj, class_open, ...)
+		recursiveCreate(obj, classOpen, ...)
 		setmetatable(obj, meta)
 		return obj
-	end ; 
-		  
-			     
-				 
-				 
-				  
-				 
-				 
-			
-		
-			    
-				 
-				 
-				  
-				 
-				 
-			
-		
-	
-	class_open.is=function(v)
-		local nClassType = meta2class[getmetatable(v) or 1]
-		local nIsDict = nClassType and nClassType.isDict
-		return nIsDict and nIsDict[class_open] or false
-	end ;       
-	class_open.bindMeta=function(t)
-		return setmetatable(t, class_open.meta)
-	end ;     
-	class_open.__hint=function() error("used only for hiint") end ;       
-	class_open.isDict = (setmetatable({}, {
+	end
+	classOpen.is=function(v)
+		local isCache = meta2isCache[getmetatable(v) or 1]
+		return isCache and isCache[classOpen] or false
+	end
+	classOpen.__hint=nil  
+	local isCache = (setmetatable({}, {
 		__index=function(type2is , if_type)
-			local cur_type = class_open
+			local cur_type = classOpen
 			while cur_type do
 				if cur_type == if_type then
 					type2is[if_type] = true
@@ -859,25 +835,12 @@ local function class (super, generic)
 			return false
 		end
 	}) );  
-	class2meta[class_open]=meta
-	meta2class[meta]=class_open
+	meta2isCache[meta]=isCache
 
-	setmetatable(class_open,{
-		__index=function(t,k)
-			return vtbl[k]
-		end,
-		__newindex=function(t,k,v)
-			if type(v) == "function" then
-				vtbl[k]=v
-			else
-				rawset(class_open,k,v)
-			end
-		end,
-		__name="class",
-	})
+	setmetatable(classOpen,classMeta)
 
 	if super then
-		local super_meta = class2meta[super]
+		local super_meta = super.meta
 		for k,v in pairs(super_meta.__index) do
 			vtbl[k] = v
 		::continue:: end
@@ -890,13 +853,16 @@ local function class (super, generic)
 		
 	end
 
-	return class_open
+	return classOpen
 end
 
-return class
+return {
+    class=class,
+	meta=classMeta,
+}
 
 end end
---reflect.class end ==========)
+--reflect.injection.ClassCore end ==========)
 
 --reflect.injection.LuafabField begin ==========(
 do local _ENV = _ENV
@@ -975,8 +941,9 @@ local TableField = require "reflect.injection.TableField"
 local typeof_LuaBehaviour = typeof(CS.Nianxie.Components.LuaBehaviour)
 local typeof_LuafabLoading = typeof(CS.Nianxie.Framework.LuafabLoading)
 
+local ClassCore = require "reflect.injection.ClassCore"
+
 ;
-      
       
 
 
@@ -1085,7 +1052,7 @@ end
 
 function ReflectInjection.checkClsOpenAndCSharpType(fieldValue, fieldMeta)
     local fieldMeta = fieldMeta or getmetatable(fieldValue)
-    if fieldMeta and fieldMeta.__name == "class" then
+    if ClassCore.meta == fieldMeta then
         return fieldValue, typeof_LuaBehaviour
     else
         local ok, csharpType = pcall(typeof, fieldValue)
@@ -1153,6 +1120,30 @@ end end
 do local _ENV = _ENV
 packages['reflect.reflect'] = function (...)
 
+if false then 
+	  
+	 
+	local rapidjson = require "rapidjson"
+    local arraymeta = getmetatable(rapidjson.array())
+    local objectmeta = getmetatable(rapidjson.object())
+    local unsafearray = rapidjson.array
+    rapidjson.array = function(t)
+        if getmetatable(t) == objectmeta then
+            return setmetatable(t, arraymeta)
+        else
+            return unsafearray(t)
+        end
+    end
+    local unsafeobject = rapidjson.object
+    rapidjson.object = function(t)
+        if getmetatable(t) == arraymeta then
+            return setmetatable(t, objectmeta)
+        else
+            return unsafeobject(t)
+        end
+    end
+end
+
 local class = require  "reflect.class"
 
 local ReflectInjection = require "reflect.injection.ReflectInjection"
@@ -1172,8 +1163,12 @@ reflect.class = class
     
        
              
-                 
-              
+                
+                  
+            
+                     
+                  
+            
         
     
 
@@ -1182,7 +1177,7 @@ local MiniScript = require "reflect.behav.MiniScript"
 
 
 function reflect._saveInjections(vClsOpen, vKeyToInjectionValue)
-    local nInjectionList = vClsOpen.injections
+    local nInjectionList = vClsOpen.meta.__injections
     for nKey, nInjectionValue in pairs(vKeyToInjectionValue) do
         local nInjection = ReflectInjection.Create(vKeyToInjectionValue, nKey, nInjectionValue)
         nInjectionList[#nInjectionList + 1] = nInjection
@@ -1225,6 +1220,10 @@ function reflect.List(value)
     return TableField.new (value, nil)
 end
 
+function reflect.Any()
+    return nil
+end
+
 return reflect
 
 end end
@@ -1234,5 +1233,8 @@ package.preload["reflect.reflect"] = packages["reflect.reflect"]
 package.preload["reflect.class"] = packages["reflect.class"]
 package.preload["reflect"] = function()
     return require "reflect.reflect"
+end
+package.preload["class"] = function()
+    return require "reflect.class"
 end
 return packages["boot.boot"]()

@@ -76,7 +76,7 @@ namespace XLua
 
         public void BindMeta(LuaTable self, WarmedReflectClass warmedReflect)
         {
-            luaSetmetatable.Action(self, warmedReflect.meta);
+            luaSetmetatable.Action(self, warmedReflect.clsMeta);
         }
 
         public void Repl(string script)

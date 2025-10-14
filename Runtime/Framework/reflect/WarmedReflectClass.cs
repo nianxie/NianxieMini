@@ -9,9 +9,12 @@ namespace XLua
 {
     public class RawReflectClass
     {
-        public RawReflectInjection[] injections;
-        public Dictionary<string, LuaFunction> vtbl;
         public LuaTable meta;
+    }
+    public class RawReflectMeta
+    {
+        public RawReflectInjection[] __injections;
+        public Dictionary<string, LuaFunction> __index;
     }
 
     public class WarmedReflectClass
@@ -23,9 +26,8 @@ namespace XLua
         public AbstractReflectInjection[] injections { get; protected set; }
         public PartVtbl[] subVtbls { get; protected set; }
         public MiniVtbl miniVtbl { get; protected set; }
-        public LuaTable meta => rawReflect.meta;
+        public LuaTable clsMeta { get; protected set; }
         public LuaTable clsOpen { get; protected set; }
-        private RawReflectClass rawReflect;
 
         //public readonly WarmedReflectClass ancestor;
         public readonly Dictionary<string, ScriptInjection> nestedInjectionDict = new();
@@ -79,15 +81,16 @@ namespace XLua
         }
         public static WarmedReflectClass Create(AbstractReflectEnv env, LuaTable clsOpen, string classPath, string[] nestedKeys)
         {
-            var rawReflect = clsOpen.Cast<RawReflectClass>();
+            var rawReflectClass = clsOpen.Cast<RawReflectClass>();
+            var rawReflectMeta = rawReflectClass.meta.Cast<RawReflectMeta>();
             var reflectClass = new WarmedReflectClass(env, classPath, nestedKeys)
             {
                 clsOpen = clsOpen,
-                rawReflect = rawReflect,
-                subVtbls = PartVtbl.CreateSubArrayFromVtbl(rawReflect.vtbl),
-                miniVtbl = PartVtbl.CreateMiniVtbl(rawReflect.vtbl),
+                clsMeta = rawReflectClass.meta,
+                subVtbls = PartVtbl.CreateSubArrayFromVtbl(rawReflectMeta.__index),
+                miniVtbl = PartVtbl.CreateMiniVtbl(rawReflectMeta.__index),
             };
-            var injections = rawReflect.injections.Select(r=>r.Create(reflectClass, nestedKeys)).ToArray();
+            var injections = rawReflectMeta.__injections.Select(r=>r.Create(reflectClass, nestedKeys)).ToArray();
             reflectClass.injections = injections;
             reflectClass.nodeInjections = injections.OfType<AbstractNodeInjection>().ToArray();
             foreach (var injection in reflectClass.injections)
