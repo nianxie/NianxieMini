@@ -374,126 +374,6 @@ return boot
 end end
 --boot.boot end ==========)
 
---reflect.behav.ForView begin ==========(
-do local _ENV = _ENV
-packages['reflect.behav.ForView'] = function (...)
-
-local class = require  "reflect.class"
-
-local ForView = {}
-ForView.__index = ForView
-
-local FOR_NUM = 1
-local FOR_RANGE = 2
-local FOR_IN = 3
-
-function ForView.ForNum(vParent)
-    local self = {
-        parent=vParent,
-        keyToInst={}   ,
-        kind=FOR_NUM,
-        num=false,
-        kvMaker=false 
-    }
-    function self:Setup(vProps 
-        
-        
-    )
-        self.num = vProps.num
-        self.kvMaker = vProps.kvMaker
-    end
-    return setmetatable(self, ForView)
-end
-
-function ForView.ForRange(vParent)
-    local self = {
-        parent=vParent,
-        keyToInst={}   ,
-        kind=FOR_RANGE,
-        range=false  ,
-        kvMaker=false 
-    }
-    function self:Setup(vProps 
-        
-        
-    )
-        self.range = vProps.range
-        self.kvMaker = vProps.kvMaker
-    end
-    return setmetatable(self, ForView)
-end
-
-function ForView.ForIn(vParent)
-    local self = {
-        parent=vParent,
-        keyToInst={}   ,
-        kind=FOR_IN,
-        iter=false  ,
-        kvMaker=false  
-    }
-    function self:Setup(vProps 
-        
-        
-    )
-        self.iter = vProps.iter
-        self.kvMaker = vProps.kvMaker
-    end
-    return setmetatable(self, ForView)
-end
-
-function ForView:Refresh()
-    local kind = self.kind
-    local keyToInst = self.keyToInst
-    local keySet = {}   
-    for k in pairs(keyToInst) do
-        keySet[k] = true
-    ::continue:: end
-    local kvMaker = self.kvMaker
-    if kind == FOR_IN then
-        for k,v in self.iter() do
-            local key, maker = kvMaker(k,v)
-            local obj = keyToInst[key]
-            if not obj then
-                obj = maker()
-                keyToInst[key] = obj
-            else
-                keySet[key] = nil
-            end
-            obj:Refresh()
-        ::continue:: end
-    else
-        local start, finish, step = 1,1,1
-        if kind == FOR_NUM then
-            finish = self.num()
-        elseif kind == FOR_RANGE then
-            start, finish, step = self.range()
-            step = step or 1
-        else
-            error("unexpected branch when ForView:Refresh()")
-        end
-        for i=start, finish, step do
-            local key, maker = kvMaker(i)
-            local obj = keyToInst[key]
-            if not obj then
-                obj = maker()
-                keyToInst[key] = obj
-            else
-                keySet[key] = nil
-            end
-            obj:Refresh()
-        ::continue:: end
-    end
-    for key in pairs(keySet) do
-        local obj = keyToInst[key]
-        keyToInst[key] = nil
-        UnityEngine.Object.Destroy(obj.gameObject)
-    ::continue:: end
-end
-
-return ForView
-end end
---reflect.behav.ForView end ==========)
-
 --reflect.behav.LuaScript begin ==========(
 do local _ENV = _ENV
 packages['reflect.behav.LuaScript'] = function (...)
@@ -504,7 +384,7 @@ local class = require  "reflect.class"
 local LuaScript = class (false)
 
 function LuaScript:ctor()
-    error("this function is replaced in reflect")
+    error("constructor function is implemented by LuaBehaviour in csharp")
 end
 
 return LuaScript
@@ -520,232 +400,26 @@ local class = require  "reflect.class"
 local LuaScript = require "reflect.behav.LuaScript"
 
 local MiniScript = class (LuaScript)
+MiniScript.meta.__behavType = typeof(CS.Nianxie.Components.MiniBehaviour)
 
 return MiniScript
 end end
 --reflect.behav.MiniScript end ==========)
 
---reflect.behav.ModuleScript begin ==========(
+--reflect.behav.SlotScript begin ==========(
 do local _ENV = _ENV
-packages['reflect.behav.ModuleScript'] = function (...)
+packages['reflect.behav.SlotScript'] = function (...)
 
 
 local class = require  "reflect.class"
 local LuaScript = require "reflect.behav.LuaScript"
 
-local ModuleScript = class (LuaScript)
+local SlotScript = class (LuaScript)
+SlotScript.meta.__behavType = typeof(CS.Nianxie.Craft.SlotBehaviour)
 
-function ModuleScript:ModuleInit(vShellContext)
-end
-
-return ModuleScript
+return SlotScript
 end end
---reflect.behav.ModuleScript end ==========)
-
---reflect.behav.PanelScript begin ==========(
-do local _ENV = _ENV
-packages['reflect.behav.PanelScript'] = function (...)
-
-
-local class = require "reflect.class"
-
-local ViewScript = require "reflect.behav.ViewScript"
-
-  
-local PanelScript = class (ViewScript)
-
-function PanelScript.ctor(self)
-    self.__page = self
-end
-
-function PanelScript:setActive(vActive)
-    self:setVisible(vActive)
-end
-
-function PanelScript:getPage()
-    return self
-end
-
-return PanelScript
-end end
---reflect.behav.PanelScript end ==========)
-
---reflect.behav.ViewScript begin ==========(
-do local _ENV = _ENV
-packages['reflect.behav.ViewScript'] = function (...)
-
-
-local reflect = require  "reflect.reflect"
-local class = reflect.class
-local LuaScript = require "reflect.behav.LuaScript"
-local ModuleScript = require "reflect.behav.ModuleScript"
-local ForView = require "reflect.behav.ForView"
-
-local ViewScript = class (LuaScript)
-
-function ViewScript.ctor(self)
-    self.gameObject = false ; 
-    self.parent = false ; 
-    self.this = false ; 
-    self.transform = false ; 
-    self.context = false ; 
-    self.__refreshFn = false ; 
-    self.__setuped = false ; 
-    self.__page = false  
-end
-
-function ViewScript:_injectModule()
-     
-    local context = self.context
-    local injections = getmetatable(self).__injections
-    for i, injection in ipairs(injections) do
-        local injectionClsOpen = injection.clsOpen
-        if injectionClsOpen and injectionClsOpen.super == ModuleScript then
-            self[injection.key] = self[injection.key] or context:getModule(injectionClsOpen)
-        end
-    ::continue:: end
-end
-
-local emptyFn = function() end
-function ViewScript:Setup(vSetupProps )
-    assert(not self.__setuped, "setup called more than once")
-    self.__setuped = true
-    do;
-        self:_injectModule()
-         
-        self.props = vSetupProps
-        local state = self:__stateFn(vSetupProps)
-        self.state = state
-        self.__refreshFn = self:build(vSetupProps, state) or emptyFn
-        self:Refresh()
-    end
-    return self
-end
-
-function ViewScript:Refresh()
-    assert(self.__setuped, "call Setup before Refresh")
-    if self.gameObject:IsDestroyed() then
-        print("WARNING gameobject is destroyed when Refresh", self.gameObject)
-        return
-    end
-    local ok, err = xpcall(self.__refreshFn, function(err)
-        return tostring(err) .."\n".. tostring(debug.traceback())
-    end)
-    if not ok then
-        print("ERROR: Refresh error:", self.gameObject, err)
-    end
-end
-
-function ViewScript:build(vProps, vState)
-        
-    return function()
-          
-    end
-end
-
-function ViewScript:setVisible(vVisible)
-    if vVisible then
-        if not self.gameObject.activeSelf then
-            self.gameObject:SetActive(true)
-        end
-    else
-        self.gameObject:SetActive(false)
-    end
-end
-
-function ViewScript:Fork(vTrans)
-    return self.this:Fork(vTrans).luaTable  
-end
-
-function ViewScript:getPage()
-    local page = self.__page
-    if not page then
-        page = (self.parent  ):getPage()
-        self.__page = page
-    end
-    return page
-end
-
-function ViewScript:ForNum()
-    return ForView.ForNum(self)
-end
-
-function ViewScript:ForRange()
-    return ForView.ForRange(self)
-end
-
-function ViewScript:ForIn()
-    return ForView.ForIn(self)
-end
-
-local function Watcher(vGetter)
-    local inited = false  
-    local value = nil 
-    local oldValue = nil 
-    return function()  
-        local newValue = vGetter()
-        if not inited then
-            inited = true
-            oldValue = value
-            value = newValue
-            return true, value, oldValue
-        elseif newValue ~= value then
-            oldValue = value
-            value = newValue
-            return true, value, oldValue
-        else
-            return false, value, oldValue
-        end
-    end
-end
-
-function ViewScript:watch(vGetter)
-    return Watcher(vGetter)
-end
-
-function ViewScript:watchProps() 
-       
-     
-
-    local watchProps = self.__watchProps
-    if not watchProps then
-        watchProps = {}
-        self.__watchProps = setmetatable(watchProps, {
-            __index=function(t,k)
-                local watcher = Watcher(self.props[k])
-                watchProps[k] = watcher
-                return watcher
-            end
-        })
-    end
-    return watchProps
-end
-
-function ViewScript:watchState() 
-       
-     
-         
-    
-
-    local watchState = self.__watchState
-    if not watchState then
-        watchState = {}
-        self.__watchState = setmetatable(watchState, {
-            __index=function(t,k)
-                local watcher = Watcher(function()
-                    return self.state[k]
-                end)
-                watchState[k] = watcher
-                return watcher
-            end
-        })
-    end
-    return watchState
-end
-
-return ViewScript
-end end
---reflect.behav.ViewScript end ==========)
+--reflect.behav.SlotScript end ==========)
 
 --reflect.class begin ==========(
 do local _ENV = _ENV
@@ -802,7 +476,7 @@ local function class (super)
 	local meta={
 		__index=vtbl,
 		__class=classOpen,
-		__behavType=false,
+		__behavType=super and super.meta.__behavType or false,
 		__injections={}  ,
 	}
 	;
@@ -1053,7 +727,12 @@ end
 function ReflectInjection.checkClsOpenAndCSharpType(fieldValue, fieldMeta)
     local fieldMeta = fieldMeta or getmetatable(fieldValue)
     if ClassCore.meta == fieldMeta then
-        return fieldValue, typeof_LuaBehaviour
+        local behavType = fieldValue.meta.__behavType
+        if not behavType then
+            error("lua class not match a behav type, maybe use MiniScript")
+        else
+            return fieldValue, behavType
+        end
     else
         local ok, csharpType = pcall(typeof, fieldValue)
         if not ok then
@@ -1174,6 +853,7 @@ reflect.class = class
 
 
 local MiniScript = require "reflect.behav.MiniScript"
+local SlotScript = require "reflect.behav.SlotScript"
 
 
 function reflect._saveInjections(vClsOpen, vKeyToInjectionValue)
@@ -1188,15 +868,32 @@ end
 function reflect.MiniScript (vKeyToInjectionValue)
     local clsOpen = class   (MiniScript)
     reflect._saveInjections(clsOpen, vKeyToInjectionValue)
-    clsOpen.ctor = false  
-           
-         
-           
-        
-         
-            
+    ;
           
+               
+             
+               
             
+             
+                
+              
+                
+            
+        
+    
+    return clsOpen
+end
+
+function reflect.SlotScript (vKeyToInjectionValue)
+    local clsOpen = class   (SlotScript)
+    reflect._saveInjections(clsOpen, vKeyToInjectionValue)
+    ;
+          
+               
+             
+               
+            
+             
         
     
     return clsOpen

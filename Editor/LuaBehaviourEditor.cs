@@ -277,6 +277,11 @@ namespace Nianxie.Editor
                 EditorGUILayout.HelpBox($"error class: {errReflect.message}", MessageType.Error);
                 return;
             }
+            if (reflectInfo.behavType != m_behav.GetType())
+            {
+                EditorGUILayout.HelpBox($"error behavType: script match {reflectInfo.behavType} but got {m_behav.GetType()}", MessageType.Error);
+                return;
+            }
             
             DrawInjections(reflectEnv, reflectInfo);
         }

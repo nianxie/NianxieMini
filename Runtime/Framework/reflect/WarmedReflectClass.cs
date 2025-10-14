@@ -13,6 +13,7 @@ namespace XLua
     }
     public class RawReflectMeta
     {
+        public Type __behavType;
         public RawReflectInjection[] __injections;
         public Dictionary<string, LuaFunction> __index;
     }
@@ -28,6 +29,7 @@ namespace XLua
         public MiniVtbl miniVtbl { get; protected set; }
         public LuaTable clsMeta { get; protected set; }
         public LuaTable clsOpen { get; protected set; }
+        public Type behavType { get; protected set; }
 
         //public readonly WarmedReflectClass ancestor;
         public readonly Dictionary<string, ScriptInjection> nestedInjectionDict = new();
@@ -87,6 +89,7 @@ namespace XLua
             {
                 clsOpen = clsOpen,
                 clsMeta = rawReflectClass.meta,
+                behavType = rawReflectMeta.__behavType,
                 subVtbls = PartVtbl.CreateSubArrayFromVtbl(rawReflectMeta.__index),
                 miniVtbl = PartVtbl.CreateMiniVtbl(rawReflectMeta.__index),
             };
