@@ -1,0 +1,60 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <ui:Template name="AccountMiniPipeline" src="project://database/Assets/NianxieMini/Editor/Window/Account/AccountMiniPipelineStep.uxml?fileID=9197481963319205126&amp;guid=e30d4d51bd47bb54a91bfbae771078d4&amp;type=3#AccountMiniPipelineStep" />
+    <ui:Template name="AccountMiniPipelineStep" src="project://database/Assets/NianxieMini/Editor/Window/Account/AccountMiniPipelineStep.uxml?fileID=9197481963319205126&amp;guid=e30d4d51bd47bb54a91bfbae771078d4&amp;type=3#AccountMiniPipelineStep" />
+    <ui:VisualElement style="flex-grow: 0; visibility: visible; display: flex; flex-shrink: 1; flex-direction: column; justify-content: space-between; align-self: stretch; align-items: stretch; height: auto; flex-wrap: nowrap; width: 100%; white-space: normal; -unity-text-align: middle-left; font-size: 16px;">
+        <ui:VisualElement style="flex-grow: 0; flex-direction: row; justify-content: space-between; flex-shrink: 1; height: 30px;">
+            <ui:VisualElement style="flex-grow: 1; flex-direction: row; justify-content: flex-start;">
+                <ui:Button parse-escape-sequences="true" display-tooltip-when-elided="true" name="selectBtn" style="flex-direction: row; justify-content: space-between; flex-grow: 0; flex-shrink: 1;">
+                    <ui:RadioButton name="radio" style="flex-direction: row-reverse;" />
+                    <ui:Label tabindex="-1" text="xxxxxxx" parse-escape-sequences="true" display-tooltip-when-elided="true" name="name" enable-rich-text="true" style="margin-right: 20px; margin-left: 20px;" />
+                    <ui:Label tabindex="-1" text="xxxxxxx" parse-escape-sequences="true" display-tooltip-when-elided="true" name="miniId" enable-rich-text="true" />
+                </ui:Button>
+                <ui:DropdownField name="folderDropdown" style="width: 120px;" />
+                <ui:Button text="绑定本地" parse-escape-sequences="true" display-tooltip-when-elided="true" name="linkBtn" />
+                <uie:ObjectField name="folderObject" style="width: 120px;" />
+                <ui:Button text="取消绑定" parse-escape-sequences="true" display-tooltip-when-elided="true" name="unlinkBtn" style="display: flex;" />
+                <ui:Button text="复制ID" parse-escape-sequences="true" display-tooltip-when-elided="true" name="copyBtn" style="display: flex;" />
+            </ui:VisualElement>
+            <ui:Button text="删除" parse-escape-sequences="true" display-tooltip-when-elided="true" name="deleteBtn" style="display: flex;" />
+        </ui:VisualElement>
+        <ui:VisualElement name="pipeline" style="flex-grow: 0; margin-left: 0; margin-right: 0; padding-right: 100px; padding-left: 20px;">
+            <ui:Instance template="AccountMiniPipeline" name="linkProject">
+                <AttributeOverrides element-name="pingBtn" text="Ping" />
+                <AttributeOverrides element-name="info" text="1. 关联本地项目" />
+                <AttributeOverrides element-name="runBtn" text="绑定" />
+                <AttributeOverrides element-name="fixBtn" text="绑定" />
+                <AttributeOverrides element-name="btn1" text="关联" />
+                <AttributeOverrides element-name="btn2" text="取消关联" />
+            </ui:Instance>
+            <ui:Instance template="AccountMiniPipeline" name="buildBundle">
+                <AttributeOverrides element-name="info" text="2. 打包Bundle" />
+                <AttributeOverrides element-name="btn" text="去打包" />
+                <AttributeOverrides element-name="runBtn" text="去打包" />
+                <AttributeOverrides element-name="btn1" text="去打包" />
+            </ui:Instance>
+            <ui:Instance template="AccountMiniPipeline" name="uploadBundle">
+                <AttributeOverrides element-name="info" text="3. 上传Bundle" />
+                <AttributeOverrides element-name="btn" text="上传" />
+                <AttributeOverrides element-name="runBtn" text="上传" />
+                <AttributeOverrides element-name="pingBtn" text="Url" />
+                <AttributeOverrides element-name="btn1" text="上传" />
+                <AttributeOverrides element-name="btn2" text="Url" />
+            </ui:Instance>
+            <ui:Instance template="AccountMiniPipelineStep" name="distribute">
+                <AttributeOverrides element-name="info" text="4. 在叙事中使用" />
+            </ui:Instance>
+            <ui:Foldout text="————————————————" value="false">
+                <ui:Instance template="AccountMiniPipeline" name="buildPackage">
+                    <AttributeOverrides element-name="info" text="5. 导出Package（可选项）" />
+                    <AttributeOverrides element-name="btn" text="去导出" />
+                    <AttributeOverrides element-name="runBtn" text="去导出" />
+                </ui:Instance>
+                <ui:Instance template="AccountMiniPipeline" name="uploadPackage">
+                    <AttributeOverrides element-name="info" text="6. 上传Package（可选项）" />
+                    <AttributeOverrides element-name="btn" text="上传" />
+                    <AttributeOverrides element-name="runBtn" text="上传" />
+                </ui:Instance>
+            </ui:Foldout>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
