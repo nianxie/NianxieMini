@@ -13,9 +13,9 @@ namespace Nianxie.Framework
         private const string MiniContext = nameof(MiniContext);
         public static readonly EnvPaths ShellEnvPaths = new EnvPaths();
 
-        public static EnvPaths MiniEnvPaths(string miniId)
+        public static EnvPaths MiniEnvPaths(string folder)
         {
-            return new EnvPaths(miniId);
+            return new EnvPaths(folder);
         }
 
         public static readonly string[] NESTED_KEYS_EMPTY = {};
@@ -49,6 +49,7 @@ namespace Nianxie.Framework
             rootLuafabPath = $"{luafabPathPrefix}/{vRootLuafabPath}.prefab";
         }
 
+        // shell envPaths constructor
         protected EnvPaths():this($"{NianxieConst.ShellResPath}", ShellContext, ShellRoot)
         {
             // shell env path
@@ -56,11 +57,12 @@ namespace Nianxie.Framework
             miniProjectConfig = null;
         }
 
-        protected EnvPaths(string miniId):this($"{NianxieConst.MiniPrefixPath}/{miniId}", MiniContext, MiniRoot)
+        // mini envPaths constructor
+        protected EnvPaths(string folder):this($"{NianxieConst.MiniPrefixPath}/{folder}", MiniContext, MiniRoot)
         {
             // mini env path
             miniCraftLuafabPath = $"{luafabPathPrefix}/MiniCraft.prefab";
-            miniProjectConfig = $"{pathPrefix}/config.txt";
+            miniProjectConfig = $"{pathPrefix}/{NianxieConst.ConfigTxt}";
         }
         
         /// <summary>

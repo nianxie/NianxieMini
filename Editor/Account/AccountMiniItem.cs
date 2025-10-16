@@ -89,7 +89,7 @@ namespace Nianxie.Editor
             {
                 view.runBtn.clicked += () =>
                 {
-                    var srcPath = NianxieConst.TemplateSimple;
+                    var srcPath = NianxieConst.TemplateSimpleGame;
                     var dstPath = envPaths.pathPrefix;
                     if (!Directory.Exists(NianxieConst.MiniPrefixPath))
                     {

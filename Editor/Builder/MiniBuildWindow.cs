@@ -25,7 +25,7 @@ namespace Nianxie.Editor
             wnd.minSize = new Vector2(400, 400);
         }
 
-        private string miniId = "";
+        private string folder = "";
         
         private void refresh(VisualElement root)
         {
@@ -48,43 +48,42 @@ namespace Nianxie.Editor
             var pathList = Directory.Exists(NianxieConst.MiniPrefixPath)
                 ?Directory.EnumerateDirectories(NianxieConst.MiniPrefixPath).Select((e) => new DirectoryInfo(e).Name).ToList()
                 :new List<string>();
-            var miniProjectDropDown = root.Query<DropdownField>(nameof(miniId)).First();
+            var miniProjectDropDown = root.Query<DropdownField>(nameof(folder)).First();
             miniProjectDropDown.choices = pathList;
             if (pathList.Count > 0)
             {
                 miniProjectDropDown.SetValueWithoutNotify(pathList[0]);
-                miniId = miniProjectDropDown.value;
+                folder = miniProjectDropDown.value;
             }
             else
             {
-                miniId = "";
+                folder = "";
             }
 
             miniProjectDropDown.RegisterValueChangedCallback((e) =>
             {
-                miniId = miniProjectDropDown.value;
+                folder= miniProjectDropDown.value;
             });
             root.Query("Panel").First().Query<Button>(nameof(ExecuteBuild)).First().clicked+=()=>
             {
-                ExecuteBuild(miniId, MiniEditorEnvPaths.BuildTargets);
+                ExecuteBuild(folder);
             };
             root.Query("Panel").First().Query<Button>(nameof(ExecutePack)).First().clicked+=()=>
             {
-                ExecutePack(miniId);
+                ExecutePack(folder);
             };
             refresh(root);
         }
 
-        public static void ExecuteBuild(string miniId, BuildTarget[] targets)
+        public static void ExecuteBuild(string folder)
         {
-            var envPaths = MiniEditorEnvPaths.Get(miniId);
-            var processor = new NormalBuildRunner(envPaths, targets);
-            processor.Build();
+            var envPaths = MiniEditorEnvPaths.Get(folder);
+            envPaths.Build();
         }
         
-        public static void ExecutePack(string miniId)
+        public static void ExecutePack(string folder)
         {
-            var envPaths = MiniEditorEnvPaths.Get(miniId);
+            var envPaths = MiniEditorEnvPaths.Get(folder);
             var notScriptGuids = CollectNotScript.Collect(envPaths.reflectEnv).Values.Select(a=>a.guid).ToArray();
             var scriptGuids = envPaths.collectScriptDict.Values.Select(a => a.guid);
             var guids = notScriptGuids.Concat(scriptGuids).ToArray();

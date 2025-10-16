@@ -23,7 +23,7 @@ namespace Nianxie.Editor
                         envPaths.SetObsolete();
                         if(envPaths is MiniEditorEnvPaths miniEditorEnvPaths)
                         {
-                            miniRefreshDict[miniEditorEnvPaths.miniId] = miniEditorEnvPaths;
+                            miniRefreshDict[miniEditorEnvPaths.folder] = miniEditorEnvPaths;
                         }
                     }
                     else if(envPaths is MiniEditorEnvPaths miniEditorEnvPaths)
@@ -31,7 +31,7 @@ namespace Nianxie.Editor
                         // 如果是新建文件夹，或者是path，则也需要更新envPaths中的config
                         if (envPaths.miniProjectConfig == path || envPaths.pathPrefix == path)
                         {
-                            miniRefreshDict[miniEditorEnvPaths.miniId] = miniEditorEnvPaths;
+                            miniRefreshDict[miniEditorEnvPaths.folder] = miniEditorEnvPaths;
                         }
                     }
                 }

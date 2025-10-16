@@ -54,12 +54,12 @@ return setmetatable({
 ");
         }
 
-        public void LoadProject(string miniId, string bundlePath)
+        public void LoadProject(string folder, string bundlePath)
         {
             menuRect.gameObject.SetActive(false);
             backBtn.gameObject.SetActive(true);
             previewBridge=gameObject.AddComponent<PreviewBridge>();
-            previewBridge.Main(this, bridgeWrapFn.Func<PreviewBridge,LuaTable>(previewBridge), miniId, bundlePath);
+            previewBridge.Main(this, bridgeWrapFn.Func<PreviewBridge,LuaTable>(previewBridge), folder, bundlePath);
         }
 
         public async UniTask<(Scene, MiniGameManager)> LoadScene()

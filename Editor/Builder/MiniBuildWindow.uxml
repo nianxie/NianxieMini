@@ -1,7 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <ui:VisualElement style="flex-grow: 1;">
         <ui:VisualElement name="Panel" style="flex-grow: 1;">
-            <ui:DropdownField label="miniId:" name="miniId" />
+            <ui:DropdownField label="project:" name="folder" />
             <ui:Button text="export package" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ExecutePack" />
             <ui:Button text="build minibundle" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ExecuteBuild" />
         </ui:VisualElement>

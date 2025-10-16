@@ -18,7 +18,6 @@ namespace Nianxie.Editor
     public class MiniProjectManifest: MiniProjectConfig
     {
         public BundleInfo[] bundles;
-        public string kind;
         public new static MiniProjectManifest FromJson(byte[] jsonBytes)
         {
             var jsonStr = Encoding.UTF8.GetString(jsonBytes);

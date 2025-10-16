@@ -36,7 +36,6 @@ namespace Nianxie.Framework
         }
 
         public abstract UniTask UnloadMini(MiniGameManager miniManager);
-        public abstract int GenId();
 
         #region // 以下是AssetLoader的相关函数
         public async UniTask<Dictionary<string, TextAsset>> LoadScriptAssetsAsync()

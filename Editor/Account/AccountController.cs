@@ -24,6 +24,7 @@ namespace Nianxie.Editor
         public RemoteMiniState(DB_Mini dbMini)
         {
             this.dbMini = dbMini;
+            throw new Exception("Get envPaths TODO");
             envPaths = MiniEditorEnvPaths.Get(dbMini.miniId);
         }
     }
@@ -111,7 +112,7 @@ namespace Nianxie.Editor
             };
             var maxFileSize = files.Select(e => new FileInfo(e).Length).Max();
 
-            var beginResp = await Post<MiniBeginUploadResponse>($"{URL_BEGIN_UPLOAD}/{envPaths.miniId}", JsonUtility.ToJson(new MiniBeginUploadRequest()
+            var beginResp = await Post<MiniBeginUploadResponse>($"{URL_BEGIN_UPLOAD}", JsonUtility.ToJson(new MiniBeginUploadRequest()
             {
                 miniId=envPaths.miniId,
                 fileSize=(int)maxFileSize,

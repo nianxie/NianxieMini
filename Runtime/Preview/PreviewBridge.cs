@@ -16,11 +16,11 @@ namespace Nianxie.Preview
         private Scene scene;
         private AssetBundle assetBundle;
 
-        public void Main(PreviewManager previewManager, LuaTable selfWrap, string miniId, string bundlePath)
+        public void Main(PreviewManager previewManager, LuaTable selfWrap, string folder, string bundlePath)
         {
             // enable touch simulation
             // TouchSimulation.Enable();
-            envPaths = EnvPaths.MiniEnvPaths(miniId);
+            envPaths = EnvPaths.MiniEnvPaths(folder);
             UniTask.Create(async () =>
             {
                 if (!string.IsNullOrEmpty(bundlePath))
@@ -72,12 +72,6 @@ namespace Nianxie.Preview
         public override async UniTask UnloadMini(MiniGameManager miniManager)
         {
             Destroy(this);
-        }
-
-        private int incrId = 123456;
-        public override int GenId()
-        {
-            return incrId++;
         }
 
         private void ExecuteEnding()

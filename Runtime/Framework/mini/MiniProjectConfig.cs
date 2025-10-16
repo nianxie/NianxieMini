@@ -11,10 +11,9 @@ namespace Nianxie.Framework
     {
         public static MiniProjectConfig ErrorInstance = new MiniProjectConfig
         {
-            name = "ERROR",
+            name = "(ERROR)",
         };
         public string[] scripts = {};
-        public string miniId = "";
         public string name = "";
         public int version = NianxieConst.MINI_VERSION;
         public bool craft = false;
@@ -29,10 +28,19 @@ namespace Nianxie.Framework
             return Encoding.UTF8.GetBytes(jsonStr);
         }
 
-        public bool CheckScriptsMatch(string[] sortedScripts)
+        public bool CheckMatch(string[] sortedScripts)
         {
-            return scripts != null && scripts.Length == sortedScripts.Length &&
-                Enumerable.Range(0, sortedScripts.Length).All(i => scripts[i] == sortedScripts[i]);
+            if (scripts == null)
+            {
+                return false;
+            }
+
+            if (scripts.Length != sortedScripts.Length)
+            {
+                return false;
+            }
+
+            return scripts.SequenceEqual(sortedScripts);
         }
 
         public bool IsError()

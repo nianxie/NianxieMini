@@ -1,0 +1,10 @@
+{
+    "scripts": [
+        "luafab/MiniRoot.thlua",
+        "src/MiniContext.thlua"
+    ],
+    "miniId": "",
+    "name": "simpleCraft",
+    "version": 20250904,
+    "craft": true
+}
