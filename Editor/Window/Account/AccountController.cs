@@ -15,18 +15,6 @@ using UnityEngine.Networking;
 
 namespace Nianxie.Editor
 {
-    public class RemoteMiniState
-    {
-        public readonly DB_Mini dbMini;
-        public readonly MiniEditorEnvPaths envPaths;
-        public string miniId => dbMini.miniId;
-
-        public RemoteMiniState(DB_Mini dbMini)
-        {
-            this.dbMini = dbMini;
-        }
-    }
-
     public static class AccountController
     {
         private const string MIME_BIN = "application/octet-stream";
@@ -43,7 +31,7 @@ namespace Nianxie.Editor
 
         private static string token = "";
         public static bool signinRunning = false;
-        public static readonly List<RemoteMiniState> miniStateDatas = new();
+        public static readonly List<DB_Mini> dbMiniDatas = new();
         public static bool signed => !string.IsNullOrEmpty(token);
         
         static AccountController()
@@ -94,11 +82,11 @@ namespace Nianxie.Editor
         public static async UniTask RefreshList()
         {
             var pagination = await GetPagination(1, 10);
-            miniStateDatas.Clear();
+            dbMiniDatas.Clear();
             for (int i = 0; i < pagination.itemList.Length; i++)
             {
                 var item = pagination.itemList[i];
-                miniStateDatas.Add(new RemoteMiniState(item));
+                dbMiniDatas.Add(item);
             }
         }
 

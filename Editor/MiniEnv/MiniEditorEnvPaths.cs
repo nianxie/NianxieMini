@@ -27,18 +27,6 @@ namespace Nianxie.Editor
             }
             return envPaths;
         }
-        public static MiniEditorEnvPaths MapPrefix(string prefix)
-        {
-            if (prefix.StartsWith(NianxieConst.MiniPrefixPath))
-            {
-                var folder = prefix.Substring(NianxieConst.MiniPrefixPath.Length + 1);
-                if (!folder.Contains("/"))
-                {
-                    return Get(folder);
-                }
-            }
-            return null;
-        }
         protected override EditorReflectEnv CreateReflectEnv()
         {
             Debug.Log($"mini refresh editor reflect env : {pathPrefix}");

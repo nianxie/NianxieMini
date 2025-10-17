@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Cysharp.Threading.Tasks;
+using log4net.Appender;
 using Nianxie.Framework;
 using Nianxie.Utils;
 using UnityEditor;
@@ -23,8 +24,6 @@ namespace Nianxie.Editor
             public Label miniId;
             public Button selectBtn;
             public Button copyBtn;
-            public DropdownField folderDropdown;
-            public Button linkBtn;
             public ObjectField folderObject;
             public Button unlinkBtn;
             public Button deleteBtn;
@@ -41,52 +40,100 @@ namespace Nianxie.Editor
         {
             public Label okay;
             public Label info;
+            public ToolbarPopupSearchField folderField;
             public Button runBtn;
             public Button pingBtn;
         }
 
-        private RemoteMiniState miniState;
         private int index;
         private bool selected;
         private string folder;
         private OutViewHierachy view;
-        
-        public abstract class AbstractPipelineStep
+
+        public class PipelineStepContext
         {
-            protected enum TernaryShow
+            private Action miniRefresh;
+            public DB_Mini dbMini;
+            public MiniEditorEnvPaths envPaths;
+            public string miniId => dbMini.miniId;
+
+            public PipelineStepContext(Action miniRefresh)
             {
-                ENABLE = 0,
-                DISABLE = 1,
-                HIDDEN = 2,
+                this.miniRefresh = miniRefresh;
             }
 
-            public StepViewHierachy view { get; }
-            private Func<RemoteMiniState> stateGetter;
-            protected RemoteMiniState miniState => stateGetter();
-
-            protected MiniEditorEnvPaths envPaths
+            private void ReplaceFolderMeta(string folderPath, string oldGuid, string newGuid)
             {
-                get
+                var folderMeta = $"{folderPath}.meta";
+                if (oldGuid.Length==32 && Directory.Exists(folderPath))
                 {
-                    var assetPath = AssetDatabase.GUIDToAssetPath(miniState.miniId);
-                    if (string.IsNullOrEmpty(assetPath))
-                    {
-                        return null;
-                    }
-                    return MiniEditorEnvPaths.MapPrefix(assetPath);
+                    var newMeta = File.ReadAllText(folderMeta).Replace($"guid: {oldGuid}", $"guid: {newGuid}");
+                    File.WriteAllText(folderMeta, newMeta);
+                    AssetDatabase.Refresh();
+                }
+                else
+                {
+                    Debug.LogError($"{folderPath} is not a valid project");
                 }
             }
 
+            public void LinkFolder(string folder)
+            {
+                var folderPath = $"{NianxieConst.MiniPrefixPath}/{folder}";
+                var conflictPath = AssetDatabase.GUIDToAssetPath(miniId);
+                if (!string.IsNullOrEmpty(conflictPath) && conflictPath != folderPath)
+                {
+                    File.Delete($"{conflictPath}.meta");
+                }
+                var oldGuid = AssetDatabase.AssetPathToGUID(folderPath);
+                if (oldGuid != miniId)
+                {
+                    ReplaceFolderMeta(folderPath, oldGuid, miniId);
+                }
+                miniRefresh();
+            }
+            public void UnlinkFolder()
+            {
+                var folderPath = AssetDatabase.GUIDToAssetPath(miniId);
+                var folder = Path.GetFileName(folderPath);
+                if (folderPath == $"{NianxieConst.MiniPrefixPath}/{folder}")
+                {
+                    ReplaceFolderMeta(folderPath, miniId, Guid.NewGuid().ToString("N"));
+                }
+                miniRefresh();
+            }
+
+            public bool TryLoadLinkedFolder(out string linkedFolder, out UnityEngine.Object folderObject)
+            {
+                var folderPath = AssetDatabase.GUIDToAssetPath(miniId);
+                var folder = Path.GetFileName(folderPath??"");
+                if (folderPath == $"{NianxieConst.MiniPrefixPath}/{folder}")
+                {
+                    linkedFolder = folder;
+                    folderObject = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(folderPath);
+                    return true;
+                }
+                else
+                {
+                    linkedFolder = null;
+                    folderObject = null;
+                    return false;
+                }
+            }
+        }
+
+        public abstract class AbstractPipelineStep
+        {
+            public StepViewHierachy view { get; }
+            protected PipelineStepContext context;
+
+            protected MiniEditorEnvPaths envPaths => context.envPaths;
+
             protected abstract bool isOkay();
             
-            protected virtual TernaryShow objectFieldShow()
+            protected virtual bool folderFieldDisplay()
             {
-                return TernaryShow.HIDDEN;
-            }
-            
-            protected virtual void dropdownFieldShow(DropdownField dropdownField)
-            {
-                dropdownField.SetDisplay(false);
+                return false;
             }
 
             protected virtual bool runBtnEnable()
@@ -99,10 +146,10 @@ namespace Nianxie.Editor
                 return isOkay();
             }
 
-            protected AbstractPipelineStep(VisualElement stepElement, Func<RemoteMiniState> stateGetter)
+            protected AbstractPipelineStep(VisualElement stepElement, PipelineStepContext stepContext)
             {
                 view = EasyHierarchy.CreateByQuery<StepViewHierachy>(stepElement);
-                this.stateGetter = stateGetter;
+                context = stepContext;
             }
 
             public virtual void Refresh()
@@ -115,6 +162,15 @@ namespace Nianxie.Editor
                 view.okay.style.color = fontColor;
                 view.info.style.color = fontColor;
 
+                if (folderFieldDisplay())
+                {
+                    view.folderField.SetDisplay(true);
+                }
+                else
+                {
+                    view.folderField.SetDisplay(false);
+                }
+
                 view.runBtn.SetEnabled(runBtnEnable());
                 view.pingBtn.SetEnabled(pingBtnEnable());
             }
@@ -122,30 +178,82 @@ namespace Nianxie.Editor
 
         public class LinkProjectStep : AbstractPipelineStep
         {
-            public string folderSelect = "";
-            public LinkProjectStep(OutViewHierachy pipelineView, Func<RemoteMiniState> stateGetter):
-                base(pipelineView.linkProject, stateGetter)
+            private SortedSet<string> folderSet = new ();
+
+            private void updateFolderSet()
             {
-                view.runBtn.clicked += () =>
+                folderSet.Clear();
+                foreach(var folder in BuildMiniWindow.ListProjectFolders())
+                {
+                    folderSet.Add(folder);
+                }
+            }
+
+            public LinkProjectStep(OutViewHierachy pipelineView, PipelineStepContext stepContext):
+                base(pipelineView.linkProject, stepContext)
+            {
+                updateFolderSet();
+                var folderText = view.folderField.Q<TextField>();
+                var firstClickAfterFocusIn = true;
+                folderText.RegisterCallback((FocusInEvent e) =>
+                {
+                    firstClickAfterFocusIn = true;
+                });
+                folderText.RegisterCallback((ClickEvent e) =>
+                {
+                    if (firstClickAfterFocusIn)
+                    {
+                        firstClickAfterFocusIn = false;
+                        view.folderField.ShowMenu();
+                    }
+                });
+                folderText.RegisterValueChangedCallback((e) =>
                 {
                     Refresh();
-                };
-                view.pingBtn.clicked += () =>
+                });
+                foreach (var folder in folderSet)
                 {
-                    //Refresh();
-                    //var dir = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(envPaths.pathPrefix);
-                    //EditorGUIUtility.PingObject(dir);
+                    view.folderField.menu.AppendAction(folder, (e) =>
+                    {
+                        view.folderField.SetValueWithoutNotify(folder);
+                        Refresh();
+                    }, (e) =>
+                    {
+                        return e.name == view.folderField.value
+                            ? DropdownMenuAction.Status.Checked
+                            : DropdownMenuAction.Status.Normal;
+                    });
+                }
+                view.runBtn.clicked+=()=>
+                {
+                    stepContext.LinkFolder(view.folderField.value);
+                };
+                view.pingBtn.clicked+=()=>
+                {
+                    Debug.Log(321);
                 };
             }
             protected override bool isOkay()
             {
                 return envPaths != null && Directory.Exists(envPaths.pathPrefix);
             }
+            protected override bool folderFieldDisplay()
+            {
+                return envPaths == null;
+            }
+            protected override bool runBtnEnable()
+            {
+                return envPaths == null && folderSet.Contains(view.folderField.value);
+            }
+            protected override bool pingBtnEnable()
+            {
+                return envPaths == null && !folderSet.Contains(view.folderField.value);
+            }
         }
         public class BuildBundleStep: AbstractPipelineStep
         {
-            public BuildBundleStep(OutViewHierachy pipelineView, Func<RemoteMiniState> stateGetter):
-                base(pipelineView.buildBundle, stateGetter)
+            public BuildBundleStep(OutViewHierachy pipelineView, PipelineStepContext stepContext):
+                base(pipelineView.buildBundle, stepContext)
             {
                 view.runBtn.clicked += () =>
                 {
@@ -163,8 +271,8 @@ namespace Nianxie.Editor
         }
         public class UploadBundleStep: AbstractPipelineStep
         {
-            public UploadBundleStep(OutViewHierachy pipelineView, Func<RemoteMiniState> stateGetter):
-                base(pipelineView.uploadBundle, stateGetter)
+            public UploadBundleStep(OutViewHierachy pipelineView, PipelineStepContext stepContext):
+                base(pipelineView.uploadBundle, stepContext)
             {
                 view.runBtn.clicked += () =>
                 {
@@ -184,12 +292,12 @@ namespace Nianxie.Editor
                 };
                 view.pingBtn.clicked += () =>
                 {
-                    Debug.Log($"资源地址：{miniState.dbMini.manifestUrl} {miniState.dbMini.iosUrl} {miniState.dbMini.androidUrl}");
+                    Debug.Log($"资源地址：{context.dbMini.manifestUrl} {context.dbMini.iosUrl} {context.dbMini.androidUrl}");
                 };
             }
             protected override bool isOkay()
             {
-                var readyStatus = miniState.dbMini.readyStatus;
+                var readyStatus = context.dbMini.readyStatus;
                 return readyStatus==DB_Mini.STATUS_UPLOADED || readyStatus==DB_Mini.STATUS_VIDEO_USED;
             }
 
@@ -207,8 +315,8 @@ namespace Nianxie.Editor
         }
         public class BuildPackageStep: AbstractPipelineStep
         {
-            public BuildPackageStep(OutViewHierachy pipelineView, Func<RemoteMiniState> stateGetter):
-                base(pipelineView.buildPackage, stateGetter)
+            public BuildPackageStep(OutViewHierachy pipelineView, PipelineStepContext stepContext):
+                base(pipelineView.buildPackage, stepContext)
             {
             }
             protected override bool isOkay()
@@ -218,8 +326,8 @@ namespace Nianxie.Editor
         }
         public class UploadPackageStep: AbstractPipelineStep
         {
-            public UploadPackageStep(OutViewHierachy pipelineView, Func<RemoteMiniState> stateGetter):
-                base(pipelineView.uploadPackage, stateGetter)
+            public UploadPackageStep(OutViewHierachy pipelineView, PipelineStepContext stepContext):
+                base(pipelineView.uploadPackage, stepContext)
             {
             }
             protected override bool isOkay()
@@ -229,13 +337,13 @@ namespace Nianxie.Editor
         }
         public class DistributeStep: AbstractPipelineStep
         {
-            public DistributeStep(OutViewHierachy pipelineView, Func<RemoteMiniState> stateGetter):
-                base(pipelineView.distribute, stateGetter)
+            public DistributeStep(OutViewHierachy pipelineView, PipelineStepContext stepContext):
+                base(pipelineView.distribute, stepContext)
             {
             }
             protected override bool isOkay()
             {
-                return miniState.dbMini.readyStatus==DB_Mini.STATUS_VIDEO_USED;
+                return context.dbMini.readyStatus==DB_Mini.STATUS_VIDEO_USED;
             }
             public override void Refresh()
             {
@@ -245,60 +353,34 @@ namespace Nianxie.Editor
             }
         }
 
-        public AbstractPipelineStep[] steps;
+        private AbstractPipelineStep[] steps;
+        private PipelineStepContext stepContext;
 
         public void Setup(Action<int> onClick, Action pageRefresh)
         {
             view = EasyHierarchy.CreateByQuery<OutViewHierachy>(self);
-            Func<RemoteMiniState> stateGetter = () => miniState;
+            stepContext = new(LocalRefresh);
             steps = new AbstractPipelineStep[STEP_NUM]
             {
-                new LinkProjectStep(view, stateGetter),
-                new BuildBundleStep(view, stateGetter),
-                new UploadBundleStep(view, stateGetter),
-                new BuildPackageStep(view, stateGetter),
-                new UploadPackageStep(view, stateGetter),
-                new DistributeStep(view, stateGetter),
+                new LinkProjectStep(view, stepContext),
+                new BuildBundleStep(view, stepContext),
+                new UploadBundleStep(view, stepContext),
+                new BuildPackageStep(view, stepContext),
+                new UploadPackageStep(view, stepContext),
+                new DistributeStep(view, stepContext),
             };
-
-            void replaceFolderMeta(string folderPath, string newGuid)
-            {
-                var folderMeta = $"{folderPath}.meta";
-                var oldGuid = AssetDatabase.AssetPathToGUID(folderPath);
-                if (oldGuid.Length==32 && Directory.Exists(folderPath))
-                {
-                    var newMeta = File.ReadAllText(folderMeta).Replace($"guid: {oldGuid}", $"guid: {newGuid}");
-                    File.WriteAllText(folderMeta, newMeta);
-                    AssetDatabase.Refresh();
-                    LocalRefresh();
-                }
-                else
-                {
-                    Debug.LogError($"{folderPath} is not a valid project");
-                }
-            }
-            view.linkBtn.clicked += () =>
-            {
-                var conflictPath = AssetDatabase.GUIDToAssetPath(miniState.miniId);
-                if (!string.IsNullOrEmpty(conflictPath))
-                {
-                    File.Delete($"{conflictPath}.meta");
-                }
-                var folderPath = $"{NianxieConst.MiniPrefixPath}/{view.folderDropdown.value}";
-                replaceFolderMeta(folderPath, miniState.miniId);
-            };
+            view.folderObject.SetEnabled(false);
             view.unlinkBtn.clicked += () =>
             {
-                var folderPath = $"{NianxieConst.MiniPrefixPath}/{folder}";
-                replaceFolderMeta(folderPath, Guid.NewGuid().ToString("N"));
+                stepContext.UnlinkFolder();
             };
             view.deleteBtn.clicked += () =>
             {
                 UniTask.Create(async () =>
                 {
-                    if (EditorUtility.DisplayDialog("删除游戏？", $"确认删除{miniState.dbMini.name}吗?", "确认", "取消"))
+                    if (EditorUtility.DisplayDialog("删除游戏？", $"确认删除{stepContext.dbMini.name}吗?", "确认", "取消"))
                     {
-                        await AccountController.DeleteMini(miniState.miniId);
+                        await AccountController.DeleteMini(stepContext.miniId);
                         pageRefresh();
                     }
                 }).Forget();
@@ -309,8 +391,8 @@ namespace Nianxie.Editor
             };
             view.copyBtn.clicked += () =>
             {
-                GUIUtility.systemCopyBuffer = miniState.miniId;
-                Debug.Log($"{miniState.dbMini.name}的ID：{miniState.dbMini.miniId}已复制");
+                GUIUtility.systemCopyBuffer = stepContext.miniId;
+                Debug.Log($"{stepContext.dbMini.name}的ID：{stepContext.dbMini.miniId}已复制");
             };
             view.radio.RegisterValueChangedCallback((e) =>
             {
@@ -323,29 +405,22 @@ namespace Nianxie.Editor
 
         private void LocalRefresh()
         {
-            view.name.text = miniState.dbMini.name;
+            view.name.text = stepContext.dbMini.name;
             view.radio.SetValueWithoutNotify(selected);
             view.deleteBtn.SetDisplay(selected);
-            view.miniId.text = miniState.dbMini.miniId;
+            view.copyBtn.SetDisplay(selected);
+            view.miniId.text = stepContext.dbMini.miniId;
 
-            var folderPath = AssetDatabase.GUIDToAssetPath(miniState.miniId);
-            folder = Path.GetFileName(folderPath);
-            view.folderDropdown.choices = BuildMiniWindow.ListProjectFolders();
-            if (string.IsNullOrEmpty(folderPath) || folderPath != $"{NianxieConst.MiniPrefixPath}/{folder}")
+            if(!stepContext.TryLoadLinkedFolder(out var linkedFolder, out var linkedFolderObject))
             {
-                view.folderDropdown.value = "(未绑定)";
-                view.folderDropdown.SetDisplay(true);
-                view.folderObject.SetDisplay(false);
-                view.linkBtn.SetDisplay(true);
+                stepContext.envPaths = null;
+                view.folderObject.value = null;
                 view.unlinkBtn.SetDisplay(false);
             }
             else
             {
-                view.folderObject.value = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(folderPath);
-                view.folderObject.SetEnabled(false);
-                view.folderDropdown.SetDisplay(false);
-                view.folderObject.SetDisplay(true);
-                view.linkBtn.SetDisplay(false);
+                stepContext.envPaths = MiniEditorEnvPaths.Get(linkedFolder);
+                view.folderObject.value = linkedFolderObject;
                 view.unlinkBtn.SetDisplay(true);
             }
             
@@ -360,9 +435,9 @@ namespace Nianxie.Editor
             }
         }
 
-        public void Refresh(bool selected, int index, RemoteMiniState miniState)
+        public void Refresh(bool selected, int index, DB_Mini dbMini)
         {
-            this.miniState = miniState;
+            stepContext.dbMini = dbMini;
             this.index = index;
             this.selected = selected;
             LocalRefresh();

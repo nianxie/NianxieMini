@@ -3,11 +3,12 @@
         <ui:VisualElement name="step" style="flex-grow: 1; flex-direction: row; justify-content: space-between; font-size: 16px; margin-top: 2px; margin-bottom: 2px;">
             <ui:VisualElement name="left" style="flex-grow: 0; flex-direction: row; align-self: center; align-items: center; -unity-text-align: middle-left;">
                 <ui:Label tabindex="-1" text="?" parse-escape-sequences="true" display-tooltip-when-elided="true" name="okay" style="align-self: auto; -unity-text-align: middle-center; justify-content: center;" />
-                <ui:Label tabindex="-1" text="1. 创建项目" parse-escape-sequences="true" display-tooltip-when-elided="true" name="info" />
+                <ui:Label tabindex="-1" text="1. 执行步骤1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="info" />
             </ui:VisualElement>
             <ui:VisualElement style="flex-grow: 1; flex-direction: row; justify-content: flex-end;">
-                <ui:Button text="执行" parse-escape-sequences="true" display-tooltip-when-elided="true" name="runBtn" style="width: 80px;" />
-                <ui:Button text="查看" parse-escape-sequences="true" display-tooltip-when-elided="true" name="pingBtn" style="width: 80px;" />
+                <uie:ToolbarPopupSearchField name="folderField" style="width: 120px; justify-content: center; font-size: 16px;" />
+                <ui:Button text="执行" parse-escape-sequences="true" display-tooltip-when-elided="true" name="runBtn" style="width: 80px; font-size: 16px;" />
+                <ui:Button text="查看" parse-escape-sequences="true" display-tooltip-when-elided="true" name="pingBtn" style="width: 80px; font-size: 16px;" />
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:Label tabindex="-1" text="Label" parse-escape-sequences="true" display-tooltip-when-elided="true" style="display: none;" />

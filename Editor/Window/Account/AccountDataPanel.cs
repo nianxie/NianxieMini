@@ -129,7 +129,7 @@ namespace Nianxie.Editor
             middleView.createBtns.SetDisplay(creating == CreatingKind.NONE);
             middleView.createForm.SetDisplay(creating != CreatingKind.NONE);
             middleView.craft.value = creating == CreatingKind.CRAFT;
-            for (int i = 0; i < AccountController.miniStateDatas.Count; i++)
+            for (int i = 0; i < AccountController.dbMiniDatas.Count; i++)
             {
                 AccountMiniItem curItemView;
                 if (i >= items.Count)
@@ -155,10 +155,10 @@ namespace Nianxie.Editor
                 {
                     curItemView = items[i];
                 }
-                curItemView.Refresh(i==selectIndex, i, AccountController.miniStateDatas[i]);
+                curItemView.Refresh(i==selectIndex, i, AccountController.dbMiniDatas[i]);
             }
 
-            for (int i = items.Count-1; i >= AccountController.miniStateDatas.Count; i--)
+            for (int i = items.Count-1; i >= AccountController.dbMiniDatas.Count; i--)
             {
                 items[i].RemoveSelf();
                 items.RemoveAt(i);

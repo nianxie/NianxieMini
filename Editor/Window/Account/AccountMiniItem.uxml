@@ -9,19 +9,17 @@
                     <ui:Label tabindex="-1" text="xxxxxxx" parse-escape-sequences="true" display-tooltip-when-elided="true" name="name" enable-rich-text="true" style="margin-right: 20px; margin-left: 20px;" />
                     <ui:Label tabindex="-1" text="xxxxxxx" parse-escape-sequences="true" display-tooltip-when-elided="true" name="miniId" enable-rich-text="true" />
                 </ui:Button>
-                <ui:DropdownField name="folderDropdown" style="width: 120px;" />
-                <ui:Button text="绑定本地" parse-escape-sequences="true" display-tooltip-when-elided="true" name="linkBtn" />
                 <uie:ObjectField name="folderObject" style="width: 120px;" />
-                <ui:Button text="取消绑定" parse-escape-sequences="true" display-tooltip-when-elided="true" name="unlinkBtn" style="display: flex;" />
-                <ui:Button text="复制ID" parse-escape-sequences="true" display-tooltip-when-elided="true" name="copyBtn" style="display: flex;" />
+                <ui:Button text="解除关联" parse-escape-sequences="true" display-tooltip-when-elided="true" name="unlinkBtn" style="display: flex;" />
             </ui:VisualElement>
+            <ui:Button text="复制ID" parse-escape-sequences="true" display-tooltip-when-elided="true" name="copyBtn" style="display: flex;" />
             <ui:Button text="删除" parse-escape-sequences="true" display-tooltip-when-elided="true" name="deleteBtn" style="display: flex;" />
         </ui:VisualElement>
         <ui:VisualElement name="pipeline" style="flex-grow: 0; margin-left: 0; margin-right: 0; padding-right: 100px; padding-left: 20px;">
             <ui:Instance template="AccountMiniPipeline" name="linkProject">
-                <AttributeOverrides element-name="pingBtn" text="Ping" />
-                <AttributeOverrides element-name="info" text="1. 关联本地项目" />
-                <AttributeOverrides element-name="runBtn" text="绑定" />
+                <AttributeOverrides element-name="pingBtn" text="创建" />
+                <AttributeOverrides element-name="info" text="1. 关联或创建本地项目" />
+                <AttributeOverrides element-name="runBtn" text="关联" />
                 <AttributeOverrides element-name="fixBtn" text="绑定" />
                 <AttributeOverrides element-name="btn1" text="关联" />
                 <AttributeOverrides element-name="btn2" text="取消关联" />
