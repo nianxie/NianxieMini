@@ -90,6 +90,33 @@ namespace Nianxie.Editor
             ShowExportPackageWindow(guids);
         }
 
+        public static void CopyTemplateAsProject(string name, string folder, bool craftable)
+        {
+            var srcPath = craftable?NianxieConst.TemplateSimpleCraft:NianxieConst.TemplateSimpleGame;
+            var dstPath = $"{NianxieConst.MiniPrefixPath}/{folder}";
+            if (!Directory.Exists(NianxieConst.MiniPrefixPath))
+            {
+                Directory.CreateDirectory(NianxieConst.MiniPrefixPath);
+            }
+
+            if (AssetDatabase.CopyAsset(srcPath, dstPath))
+            {
+                var miniEnvPaths = MiniEditorEnvPaths.Get(folder);
+                if (miniEnvPaths!=null)
+                {
+                    miniEnvPaths.FlushProjectName(name);
+                }
+                else
+                {
+                    Debug.LogError("flush name fail when create project");
+                }
+            }
+            else
+            {
+                Debug.LogError($"project create error: copy maybe fail {srcPath} -> {dstPath}");
+            }
+        }
+
         private static void ShowExportPackageWindow(ICollection<string> guids)
         {
             // 1. open window

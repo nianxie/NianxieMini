@@ -20,6 +20,8 @@ namespace Nianxie.Editor
         public class OutViewHierachy: EasyHierarchy
         {
             public RadioButton radio;
+            public VisualElement kindGame;
+            public VisualElement kindCraft;
             public Label name;
             public Label miniId;
             public Button selectBtn;
@@ -226,11 +228,11 @@ namespace Nianxie.Editor
                 }
                 view.runBtn.clicked+=()=>
                 {
-                    stepContext.LinkFolder(view.folderField.value);
+                    Debug.LogError("create TODO");
                 };
                 view.pingBtn.clicked+=()=>
                 {
-                    Debug.Log(321);
+                    stepContext.LinkFolder(view.folderField.value);
                 };
             }
             protected override bool isOkay()
@@ -243,11 +245,11 @@ namespace Nianxie.Editor
             }
             protected override bool runBtnEnable()
             {
-                return envPaths == null && folderSet.Contains(view.folderField.value);
+                return envPaths == null && !folderSet.Contains(view.folderField.value);
             }
             protected override bool pingBtnEnable()
             {
-                return envPaths == null && !folderSet.Contains(view.folderField.value);
+                return envPaths == null && folderSet.Contains(view.folderField.value);
             }
         }
         public class BuildBundleStep: AbstractPipelineStep
@@ -410,6 +412,8 @@ namespace Nianxie.Editor
             view.deleteBtn.SetDisplay(selected);
             view.copyBtn.SetDisplay(selected);
             view.miniId.text = stepContext.dbMini.miniId;
+            view.kindCraft.SetDisplay(stepContext.dbMini.craft);
+            view.kindGame.SetDisplay(!stepContext.dbMini.craft);
 
             if(!stepContext.TryLoadLinkedFolder(out var linkedFolder, out var linkedFolderObject))
             {

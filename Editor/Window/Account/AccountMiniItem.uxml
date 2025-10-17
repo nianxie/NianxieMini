@@ -5,9 +5,11 @@
         <ui:VisualElement style="flex-grow: 0; flex-direction: row; justify-content: space-between; flex-shrink: 1; height: 30px;">
             <ui:VisualElement style="flex-grow: 1; flex-direction: row; justify-content: flex-start;">
                 <ui:Button parse-escape-sequences="true" display-tooltip-when-elided="true" name="selectBtn" style="flex-direction: row; justify-content: space-between; flex-grow: 0; flex-shrink: 1;">
-                    <ui:RadioButton name="radio" style="flex-direction: row-reverse;" />
-                    <ui:Label tabindex="-1" text="xxxxxxx" parse-escape-sequences="true" display-tooltip-when-elided="true" name="name" enable-rich-text="true" style="margin-right: 20px; margin-left: 20px;" />
-                    <ui:Label tabindex="-1" text="xxxxxxx" parse-escape-sequences="true" display-tooltip-when-elided="true" name="miniId" enable-rich-text="true" />
+                    <ui:RadioButton name="radio" style="flex-direction: column; align-self: center;" />
+                    <ui:VisualElement name="kindGame" style="flex-grow: 0; flex-shrink: 0; width: 18px; height: 18px; background-image: url(&quot;project://database/Assets/NianxieMini/Editor%20Default%20Resources/game.png?fileID=2800000&amp;guid=48e31103f357aba49ae31f860015749c&amp;type=3#game&quot;); align-self: center;" />
+                    <ui:VisualElement name="kindCraft" style="flex-grow: 0; flex-shrink: 0; width: 18px; height: 18px; background-image: url(&quot;project://database/Assets/NianxieMini/Editor%20Default%20Resources/craft.png?fileID=2800000&amp;guid=66d9cee5318d39a4cb6bc45f62c2a7cb&amp;type=3#craft&quot;); align-self: center;" />
+                    <ui:Label tabindex="-1" text="xxxxxxx" parse-escape-sequences="true" display-tooltip-when-elided="true" name="name" enable-rich-text="true" style="margin-right: 20px; margin-left: 20px; align-self: center;" />
+                    <ui:Label tabindex="-1" text="xxxxxxx" parse-escape-sequences="true" display-tooltip-when-elided="true" name="miniId" enable-rich-text="true" style="align-self: center;" />
                 </ui:Button>
                 <uie:ObjectField name="folderObject" style="width: 120px;" />
                 <ui:Button text="解除关联" parse-escape-sequences="true" display-tooltip-when-elided="true" name="unlinkBtn" style="display: flex;" />
@@ -17,9 +19,9 @@
         </ui:VisualElement>
         <ui:VisualElement name="pipeline" style="flex-grow: 0; margin-left: 0; margin-right: 0; padding-right: 100px; padding-left: 20px;">
             <ui:Instance template="AccountMiniPipeline" name="linkProject">
-                <AttributeOverrides element-name="pingBtn" text="创建" />
-                <AttributeOverrides element-name="info" text="1. 关联或创建本地项目" />
-                <AttributeOverrides element-name="runBtn" text="关联" />
+                <AttributeOverrides element-name="pingBtn" text="关联" />
+                <AttributeOverrides element-name="info" text="1. 创建或关联本地项目" />
+                <AttributeOverrides element-name="runBtn" text="创建" />
                 <AttributeOverrides element-name="fixBtn" text="绑定" />
                 <AttributeOverrides element-name="btn1" text="关联" />
                 <AttributeOverrides element-name="btn2" text="取消关联" />

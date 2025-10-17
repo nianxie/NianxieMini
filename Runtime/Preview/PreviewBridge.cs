@@ -46,9 +46,9 @@ namespace Nianxie.Preview
                     var args = new MiniPlayArgs
                     {
                         playEnding=null,
-                        craft=config.craft,
+                        craft=config.craftable,
                     };
-                    if (config.craft)
+                    if (config.craftable)
                     {
                         var (craftJson, atlasTex) = OpenPanel();
                         args.craftJson = craftJson;

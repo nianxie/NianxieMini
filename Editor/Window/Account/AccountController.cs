@@ -57,14 +57,15 @@ namespace Nianxie.Editor
             EditorPrefs.SetString(nameof(token), token);
         }
 
-        public static async UniTask CreateMini(string name, bool isCraft)
+        public static async UniTask<DB_Mini> CreateMini(string name, bool craftable)
         {
             var reqData = JsonUtility.ToJson(new MiniCreateRequest()
             {
                 name=name,
             });
-            await Post<string>(URL_CREATE, reqData);
+            var dbMini = await Post<DB_Mini>(URL_CREATE, reqData);
             await RefreshList();
+            return dbMini;
         }
         
         public static async UniTask DeleteMini(string miniId)

@@ -40,8 +40,13 @@ namespace Nianxie.Editor
             public VisualElement createForm;
             public Button cancelBtn;
             public TextField miniName;
+            public Toggle localCopy;
+            public VisualElement miniFolderRoot;
+            public TextField miniFolderPrefix;
+            public TextField miniFolder;
+            public VisualElement kindGame;
+            public VisualElement kindCraft;
             public Button submitBtn;
-            public Toggle craft;
         }
 
         public OutViewHierarchy outView;
@@ -67,7 +72,11 @@ namespace Nianxie.Editor
                     Refresh();
                 });
             };
-            middleView.craft.SetEnabled(false);
+            middleView.miniFolderPrefix.SetEnabled(false);
+            middleView.localCopy.RegisterValueChangedCallback((e) =>
+            {
+                middleView.miniFolderRoot.SetDisplay(e.newValue);
+            });
             middleView.createGameBtn.clicked += () =>
             {
                 creating = CreatingKind.GAME;
@@ -87,24 +96,12 @@ namespace Nianxie.Editor
             {
                 UniTask.Create(async () =>
                 {
-                    await AccountController.CreateMini(middleView.miniName.value, false);
-                    /*
-                    var srcPath = NianxieConst.TemplateSimpleGame;
-                    var dstPath = $"{NianxieConst.MiniPrefixPath}/{middleView.miniName.value}";
-                    if (!Directory.Exists(NianxieConst.MiniPrefixPath))
+                    var dbMini = await AccountController.CreateMini(middleView.miniName.value, false);
+                    if (middleView.localCopy.value)
                     {
-                        Directory.CreateDirectory(NianxieConst.MiniPrefixPath);
+                        BuildMiniWindow.CopyTemplateAsProject(dbMini.name, middleView.miniFolder.value, dbMini.craft);
                     }
-
-                    if (AssetDatabase.CopyAsset(srcPath, dstPath))
-                    {
-                        Debug.LogError("TODO update config after created");
-                    }
-                    else
-                    {
-                        Debug.LogError($"project create error: copy maybe fail {srcPath} -> {dstPath}");
-                    }
-                    Refresh();*/
+                    Refresh();
                     creating = CreatingKind.NONE;
                     selectIndex = SELECT_NOTHING;
                     Refresh();
@@ -128,7 +125,8 @@ namespace Nianxie.Editor
         {
             middleView.createBtns.SetDisplay(creating == CreatingKind.NONE);
             middleView.createForm.SetDisplay(creating != CreatingKind.NONE);
-            middleView.craft.value = creating == CreatingKind.CRAFT;
+            middleView.kindCraft.SetDisplay(creating == CreatingKind.CRAFT);
+            middleView.kindGame.SetDisplay(creating == CreatingKind.GAME);
             for (int i = 0; i < AccountController.dbMiniDatas.Count; i++)
             {
                 AccountMiniItem curItemView;

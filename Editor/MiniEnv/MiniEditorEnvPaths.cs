@@ -69,7 +69,7 @@ namespace Nianxie.Editor
                     _config = null;
                     return ;
                 }
-                if (!_config.CheckMatch(luaAssetPaths))
+                if (!_config.CheckScriptsMatch(luaAssetPaths))
                 {
                     _config.scripts = luaAssetPaths;
                     if (Directory.Exists(pathPrefix))
@@ -85,7 +85,7 @@ namespace Nianxie.Editor
                     scripts = luaAssetPaths,
                     name = "(default)",
                     version = NianxieConst.MINI_VERSION,
-                    craft = false,
+                    craftable = false,
                 };
                 if (Directory.Exists(pathPrefix))
                 {
@@ -95,14 +95,22 @@ namespace Nianxie.Editor
             }
         }
 
-        public void UpdateProjectConfig(DB_Mini dbMini)
+        public void FlushProjectName(string name)
         {
-            _config.name = dbMini.name;
-            _config.craft = dbMini.craft;
-            if (Directory.Exists(pathPrefix))
+            if (_config.IsError())
             {
-                File.WriteAllBytes(miniProjectConfig, _config.ToJson());
-                AssetDatabase.Refresh();
+                Debug.LogError("config.txt is error when flush name");
+                return;
+            }
+
+            if (_config.name != name)
+            {
+                _config.name = name;
+                if (Directory.Exists(pathPrefix))
+                {
+                    File.WriteAllBytes(miniProjectConfig, _config.ToJson());
+                    AssetDatabase.Refresh();
+                }
             }
         }
         public string GetCachedName()
