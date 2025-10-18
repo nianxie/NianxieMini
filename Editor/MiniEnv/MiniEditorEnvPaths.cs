@@ -27,6 +27,17 @@ namespace Nianxie.Editor
             }
             return envPaths;
         }
+        public static MiniEditorEnvPaths SilentGet(string folder)
+        {
+            if (cache.TryGetValue(folder, out var envPaths))
+            {
+                return envPaths;
+            }
+            else
+            {
+                return null;
+            }
+        }
         protected override EditorReflectEnv CreateReflectEnv()
         {
             Debug.Log($"mini refresh editor reflect env : {pathPrefix}");
@@ -95,17 +106,18 @@ namespace Nianxie.Editor
             }
         }
 
-        public void FlushProjectName(string name)
+        public void FlushWithRemoteInfo(string name, bool remoteCraftable)
         {
-            if (_config.IsError())
+            if (_config.IsError() || !_config.MatchRemote(name, remoteCraftable))
             {
-                Debug.LogError("config.txt is error when flush name");
-                return;
-            }
-
-            if (_config.name != name)
-            {
-                _config.name = name;
+                var luaAssetPaths = collectScriptDict.Keys.Select(a => assetPath2relativePath(a)).ToArray();
+                _config = new MiniProjectConfig
+                {
+                    scripts = luaAssetPaths,
+                    name = name,
+                    version = NianxieConst.MINI_VERSION,
+                    craftable = remoteCraftable,
+                };
                 if (Directory.Exists(pathPrefix))
                 {
                     File.WriteAllBytes(miniProjectConfig, _config.ToJson());

@@ -77,14 +77,28 @@ namespace Nianxie.Editor
             {
                 middleView.miniFolderRoot.SetDisplay(e.newValue);
             });
+
+            string autoProjectName()
+            {
+                string defaultFolder = "newProject";
+                string validFolder = defaultFolder;
+                int k = 1;
+                while (Directory.Exists($"{NianxieConst.MiniPrefixPath}/{validFolder}"))
+                {
+                    validFolder = $"{defaultFolder}_{k++}";
+                }
+                return validFolder;
+            }
             middleView.createGameBtn.clicked += () =>
             {
                 creating = CreatingKind.GAME;
+                middleView.miniFolder.value = autoProjectName();
                 Refresh();
             };
             middleView.createCraftBtn.clicked += () =>
             {
                 creating = CreatingKind.CRAFT;
+                middleView.miniFolder.value = autoProjectName();
                 Refresh();
             };
             middleView.cancelBtn.clicked += () =>
@@ -99,7 +113,9 @@ namespace Nianxie.Editor
                     var dbMini = await AccountController.CreateMini(middleView.miniName.value, false);
                     if (middleView.localCopy.value)
                     {
-                        BuildMiniWindow.CopyTemplateAsProject(dbMini.name, middleView.miniFolder.value, dbMini.craft);
+                        var folder = middleView.miniFolder.value;
+                        BuildMiniWindow.CopyTemplateAsProject(dbMini.name, folder, dbMini.craft);
+                        AccountController.LinkFolder(dbMini, folder);
                     }
                     Refresh();
                     creating = CreatingKind.NONE;

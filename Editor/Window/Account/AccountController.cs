@@ -205,5 +205,45 @@ namespace Nianxie.Editor
                 return (TResponse)JsonUtility.FromJson(retText, typeof(TResponse));
             }
         }
+        private static void ReplaceFolderMeta(string folderPath, string oldGuid, string newGuid)
+        {
+            var folderMeta = $"{folderPath}.meta";
+            if (oldGuid.Length==32 && Directory.Exists(folderPath))
+            {
+                var newMeta = File.ReadAllText(folderMeta).Replace($"guid: {oldGuid}", $"guid: {newGuid}");
+                File.WriteAllText(folderMeta, newMeta);
+                AssetDatabase.Refresh();
+            }
+            else
+            {
+                Debug.LogError($"{folderPath} is not a valid project");
+            }
+        }
+
+        public static void LinkFolder(DB_Mini dbMini, string folder)
+        {
+            var miniId = dbMini.miniId;
+            var folderPath = $"{NianxieConst.MiniPrefixPath}/{folder}";
+            var conflictPath = AssetDatabase.GUIDToAssetPath(miniId);
+            if (!string.IsNullOrEmpty(conflictPath) && conflictPath != folderPath)
+            {
+                File.Delete($"{conflictPath}.meta");
+            }
+            var oldGuid = AssetDatabase.AssetPathToGUID(folderPath);
+            if (oldGuid != miniId)
+            {
+                ReplaceFolderMeta(folderPath, oldGuid, miniId);
+            }
+        }
+        public static void UnlinkFolder(DB_Mini dbMini)
+        {
+            var miniId = dbMini.miniId;
+            var folderPath = AssetDatabase.GUIDToAssetPath(miniId);
+            var folder = Path.GetFileName(folderPath);
+            if (folderPath == $"{NianxieConst.MiniPrefixPath}/{folder}")
+            {
+                ReplaceFolderMeta(folderPath, miniId, Guid.NewGuid().ToString("N"));
+            }
+        }
     }
 }

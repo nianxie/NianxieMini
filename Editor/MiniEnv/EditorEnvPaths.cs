@@ -56,6 +56,7 @@ namespace Nianxie.Editor
         protected EditorEnvPaths(string folder) : base(folder)
         {
         }
+
         public static bool TryMapEnvPaths(string assetPath, out EditorEnvPaths envPaths)
         {
             if (assetPath.StartsWith(NianxieConst.ShellResPath))

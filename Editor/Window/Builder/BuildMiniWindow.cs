@@ -104,7 +104,7 @@ namespace Nianxie.Editor
                 var miniEnvPaths = MiniEditorEnvPaths.Get(folder);
                 if (miniEnvPaths!=null)
                 {
-                    miniEnvPaths.FlushProjectName(name);
+                    miniEnvPaths.FlushWithRemoteInfo(name, craftable);
                 }
                 else
                 {

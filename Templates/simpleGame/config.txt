@@ -3,8 +3,7 @@
         "luafab/MiniRoot.thlua",
         "src/MiniContext.thlua"
     ],
-    "miniId": "",
     "name": "simpleGame",
     "version": 20250904,
-    "craft": false
+    "craftable": false
 }

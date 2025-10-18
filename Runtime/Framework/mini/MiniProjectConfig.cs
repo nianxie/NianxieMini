@@ -47,5 +47,10 @@ namespace Nianxie.Framework
         {
             return this == ErrorInstance;
         }
+
+        public bool MatchRemote(string remoteName, bool remoteCraftable)
+        {
+            return name == remoteName && craftable == remoteCraftable;
+        }
     }
 }
