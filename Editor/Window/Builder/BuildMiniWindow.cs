@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 using System.Reflection;
+using Nianxie.Framework;
 using Nianxie.Utils;
 
 namespace Nianxie.Editor
@@ -90,9 +91,9 @@ namespace Nianxie.Editor
             ShowExportPackageWindow(guids);
         }
 
-        public static void CopyTemplateAsProject(string name, string folder, bool craftable)
+        public static bool CopyTemplateAsProject(MiniCommonConfig config, string folder)
         {
-            var srcPath = craftable?NianxieConst.TemplateSimpleCraft:NianxieConst.TemplateSimpleGame;
+            var srcPath = config.craftable?NianxieConst.TemplateSimpleCraft:NianxieConst.TemplateSimpleGame;
             var dstPath = $"{NianxieConst.MiniPrefixPath}/{folder}";
             if (!Directory.Exists(NianxieConst.MiniPrefixPath))
             {
@@ -104,16 +105,14 @@ namespace Nianxie.Editor
                 var miniEnvPaths = MiniEditorEnvPaths.Get(folder);
                 if (miniEnvPaths!=null)
                 {
-                    miniEnvPaths.FlushWithRemoteInfo(name, craftable);
+                    miniEnvPaths.FlushName(config.name);
                 }
-                else
-                {
-                    Debug.LogError("flush name fail when create project");
-                }
+                return true;
             }
             else
             {
                 Debug.LogError($"project create error: copy maybe fail {srcPath} -> {dstPath}");
+                return false;
             }
         }
 

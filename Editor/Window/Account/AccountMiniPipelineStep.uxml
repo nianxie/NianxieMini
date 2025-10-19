@@ -1,16 +1,14 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
     <ui:VisualElement style="flex-grow: 1;">
         <ui:VisualElement name="step" style="flex-grow: 1; flex-direction: row; justify-content: space-between; font-size: 16px; margin-top: 2px; margin-bottom: 2px;">
-            <ui:VisualElement name="left" style="flex-grow: 0; flex-direction: row; align-self: center; align-items: center; -unity-text-align: middle-left;">
+            <ui:VisualElement name="left" style="flex-grow: 0; flex-direction: row; align-self: center; align-items: stretch; -unity-text-align: middle-left; flex-shrink: 0;">
                 <ui:Label tabindex="-1" text="?" parse-escape-sequences="true" display-tooltip-when-elided="true" name="okay" style="align-self: auto; -unity-text-align: middle-center; justify-content: center;" />
-                <ui:Label tabindex="-1" text="1. 执行步骤1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="info" />
+                <ui:Label tabindex="-1" text="1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="titleIndex" style="justify-content: flex-start; align-self: stretch; align-items: stretch; -unity-text-align: middle-left; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; flex-direction: row; flex-wrap: nowrap;" />
+                <ui:Label tabindex="-1" text="." parse-escape-sequences="true" display-tooltip-when-elided="true" name="titleDot" style="justify-content: flex-start; align-self: stretch; align-items: stretch; -unity-text-align: middle-left; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; flex-direction: row;" />
+                <ui:Label tabindex="-1" text="执行步骤" parse-escape-sequences="true" display-tooltip-when-elided="true" name="titleInfo" style="padding-bottom: 0; padding-top: 0; margin-bottom: 0; margin-top: 0; flex-direction: row; align-self: stretch;" />
             </ui:VisualElement>
             <ui:VisualElement style="flex-grow: 1; flex-direction: row; justify-content: flex-end;">
-                <ui:VisualElement name="initTools" style="flex-grow: 0; flex-direction: row; flex-shrink: 0;">
-                    <uie:ToolbarPopupSearchField name="initFolderField" style="width: 120px; justify-content: center; font-size: 16px;" />
-                    <ui:Button text="创建" parse-escape-sequences="true" display-tooltip-when-elided="true" name="initByCreate" style="width: 80px; font-size: 16px;" />
-                    <ui:Button text="关联" parse-escape-sequences="true" display-tooltip-when-elided="true" name="initByLink" style="width: 80px; font-size: 16px;" />
-                </ui:VisualElement>
+                <uie:ToolbarPopupSearchField name="folderField" style="width: 120px; justify-content: center; font-size: 16px;" />
                 <ui:Button text="执行" parse-escape-sequences="true" display-tooltip-when-elided="true" name="btn1" style="width: 80px; font-size: 16px;" />
                 <ui:Button text="查看" parse-escape-sequences="true" display-tooltip-when-elided="true" name="btn2" style="width: 80px; font-size: 16px;" />
             </ui:VisualElement>

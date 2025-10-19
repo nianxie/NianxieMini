@@ -7,16 +7,53 @@ using UnityEngine;
 namespace Nianxie.Framework
 {
     [Serializable]
-    public class MiniProjectConfig
+    public class MiniCommonConfig
+    {
+        public string name = "";
+        public bool craftable = false;
+        public int majorVersion = NianxieConst.MINOR_VERSION;
+        public int minorVersion = NianxieConst.MARJOR_VERSION;
+        public string patchVersion = NianxieConst.PATCH_VERSION;
+        public string unityVersion = Application.unityVersion;
+        public MiniCommonConfig()
+        {
+        }
+        public MiniCommonConfig(MiniCommonConfig commonConfig)
+        {
+            name = commonConfig.name;
+            craftable = commonConfig.craftable;
+            majorVersion = commonConfig.majorVersion;
+            minorVersion = commonConfig.minorVersion;
+            patchVersion = commonConfig.patchVersion;
+            unityVersion = commonConfig.unityVersion;
+        }
+        public bool Match(MiniCommonConfig commonConfig)
+        {
+            return name == commonConfig.name &&
+            craftable == commonConfig.craftable &&
+            majorVersion == commonConfig.majorVersion &&
+            minorVersion == commonConfig.minorVersion &&
+            patchVersion == commonConfig.patchVersion &&
+            unityVersion == commonConfig.unityVersion;
+        }
+    }
+
+    [Serializable]
+    public class MiniProjectConfig:MiniCommonConfig
     {
         public static MiniProjectConfig ErrorInstance = new MiniProjectConfig
         {
             name = "(ERROR)",
         };
         public string[] scripts = {};
-        public string name = "";
-        public int version = NianxieConst.MINI_VERSION;
-        public bool craftable = false;
+
+        public MiniProjectConfig()
+        {
+        }
+        public MiniProjectConfig(MiniCommonConfig commonConfig):base(commonConfig)
+        {
+        }
+
         public static MiniProjectConfig FromJson(byte[] jsonBytes)
         {
             var jsonStr = Encoding.UTF8.GetString(jsonBytes);
@@ -48,9 +85,5 @@ namespace Nianxie.Framework
             return this == ErrorInstance;
         }
 
-        public bool MatchRemote(string remoteName, bool remoteCraftable)
-        {
-            return name == remoteName && craftable == remoteCraftable;
-        }
     }
 }

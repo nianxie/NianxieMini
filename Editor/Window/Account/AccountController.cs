@@ -28,6 +28,7 @@ namespace Nianxie.Editor
         private static string URL_DELETE => $"{SERVER_URL}/api/mini/Delete";
         private static string URL_BEGIN_UPLOAD => $"{SERVER_URL}/api/mini/BeginUpload";
         private static string URL_END_UPLOAD => $"{SERVER_URL}/api/mini/EndUpload";
+        private static string URL_SYNC_CONFIG => $"{SERVER_URL}/api/mini/SyncConfig";
 
         private static string token = "";
         public static bool signinRunning = false;
@@ -57,12 +58,9 @@ namespace Nianxie.Editor
             EditorPrefs.SetString(nameof(token), token);
         }
 
-        public static async UniTask<DB_Mini> CreateMini(string name, bool craftable)
+        public static async UniTask<DB_Mini> CreateMini(MiniCommonConfig commonConfig)
         {
-            var reqData = JsonUtility.ToJson(new MiniCreateRequest()
-            {
-                name=name,
-            });
+            var reqData = JsonUtility.ToJson(new MiniCreateRequest(commonConfig));
             var dbMini = await Post<DB_Mini>(URL_CREATE, reqData);
             await RefreshList();
             return dbMini;
@@ -91,7 +89,7 @@ namespace Nianxie.Editor
             }
         }
 
-        public static async UniTask UploadBundle(MiniEditorEnvPaths envPaths, Action<string, int, int> onFileProgress)
+        public static async UniTask UploadBundle(string miniId, MiniEditorEnvPaths envPaths, Action<string, int, int> onFileProgress)
         {
             var files = new []
             {
@@ -101,7 +99,7 @@ namespace Nianxie.Editor
 
             var beginResp = await Post<MiniBeginUploadResponse>($"{URL_BEGIN_UPLOAD}", JsonUtility.ToJson(new MiniBeginUploadRequest()
             {
-                miniId=envPaths.miniId,
+                miniId=miniId,
                 fileSize=(int)maxFileSize,
             }));
             var postSign = AliyunOssPostSign.HardDecode(beginResp.postSign);
@@ -132,13 +130,15 @@ namespace Nianxie.Editor
                     }
                 }
             }
-            await Post<string>($"{URL_END_UPLOAD}", JsonUtility.ToJson(new EndUploadRequest
-            {
-                miniId=envPaths.miniId,
-                readyTime=beginResp.readyTime,
-                version=NianxieConst.MINI_VERSION,
-            }));
+
+            await Post<string>($"{URL_END_UPLOAD}", JsonUtility.ToJson(new MiniEndUploadRequest(miniId, envPaths.config)));
             onFileProgress("", key_file_type.Length, key_file_type.Length);
+            await RefreshList();
+        }
+        
+        public static async UniTask SyncConfig(string miniId, MiniEditorEnvPaths envPaths)
+        {
+            await Post<string>($"{URL_SYNC_CONFIG}", JsonUtility.ToJson(new MiniSyncConfigRequest(miniId, envPaths.config)));
             await RefreshList();
         }
 

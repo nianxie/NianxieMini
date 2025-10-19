@@ -50,7 +50,6 @@ namespace Nianxie.Editor
         public readonly string finalManifest;
         public Dictionary<BuildTarget, string> finalBundleDict { get; }
 
-        public string miniId => AssetDatabase.AssetPathToGUID(pathPrefix);
         public readonly string folder;
         private MiniEditorEnvPaths(string folder):base(folder)
         {
@@ -95,7 +94,6 @@ namespace Nianxie.Editor
                 {
                     scripts = luaAssetPaths,
                     name = "(default)",
-                    version = NianxieConst.MINI_VERSION,
                     craftable = false,
                 };
                 if (Directory.Exists(pathPrefix))
@@ -106,24 +104,15 @@ namespace Nianxie.Editor
             }
         }
 
-        public void FlushWithRemoteInfo(string name, bool remoteCraftable)
+        public void FlushName(string name)
         {
-            if (_config.IsError() || !_config.MatchRemote(name, remoteCraftable))
+            _config = new MiniProjectConfig(_config)
             {
-                var luaAssetPaths = collectScriptDict.Keys.Select(a => assetPath2relativePath(a)).ToArray();
-                _config = new MiniProjectConfig
-                {
-                    scripts = luaAssetPaths,
-                    name = name,
-                    version = NianxieConst.MINI_VERSION,
-                    craftable = remoteCraftable,
-                };
-                if (Directory.Exists(pathPrefix))
-                {
-                    File.WriteAllBytes(miniProjectConfig, _config.ToJson());
-                    AssetDatabase.Refresh();
-                }
-            }
+                scripts = _config.scripts,
+                name = name,
+            };
+            File.WriteAllBytes(miniProjectConfig, _config.ToJson());
+            AssetDatabase.Refresh();
         }
         public string GetCachedName()
         {

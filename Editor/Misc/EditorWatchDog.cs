@@ -141,13 +141,9 @@ namespace Nianxie.Editor
             // Kanglai: only check in the first minute...
             if (EditorApplication.timeSinceStartup < 60)
             {
-                if (!CheckVersion(2022, 3, "1f1"))
+                if (Application.unityVersion != NianxieConst.UNITY_VERSION)
                 {
-                    if (EditorUtility.DisplayDialog("EditorWatchDog", "Please contact DEVs to install the right version(2022.3.1f1)", "OK"))
-                    {
-                        EditorApplication.Exit(1);
-                        return;
-                    }
+                    Debug.LogWarning($"[EditorWatchDog] wrong unity version : {Application.unityVersion}. {NianxieConst.UNITY_VERSION} expected");
                 }
             }
 

@@ -142,17 +142,24 @@ namespace Nianxie.Craft
 
         protected override Sprite DataProcess(Texture2D tex)
         {
-            var cropRect = CalcPackAndCrop(tex, out _);
-            var pixelsPerUnit = 100.0f;
-            if (m_FitViewAxis == FitViewAxis.Horizontal)
+            if (tex != null)
             {
-                pixelsPerUnit = 100.0f * tex.width / m_Size.x;
+                var cropRect = CalcPackAndCrop(tex, out _);
+                var pixelsPerUnit = 100.0f;
+                if (m_FitViewAxis == FitViewAxis.Horizontal)
+                {
+                    pixelsPerUnit = 100.0f * tex.width / m_Size.x;
+                }
+                else
+                {
+                    pixelsPerUnit = 100.0f * tex.height / m_Size.y;
+                }
+                return Sprite.Create(tex, cropRect.ToUnityRect(), m_Pivot, pixelsPerUnit);
             }
             else
             {
-                pixelsPerUnit = 100.0f * tex.height / m_Size.y;
+                return null;
             }
-            return Sprite.Create(tex, cropRect.ToUnityRect(), m_Pivot, pixelsPerUnit);
         }
 
         protected override void DestroyFinalData(Sprite finalSprite)

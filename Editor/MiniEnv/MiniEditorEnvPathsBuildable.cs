@@ -80,7 +80,7 @@ namespace Nianxie.Editor
              */
             var bundleBuild = new AssetBundleBuild()
             {
-                assetBundleName = miniId,
+                assetBundleName = AssetDatabase.AssetPathToGUID(pathPrefix),
                 assetBundleVariant = "",
                 assetNames = reflectEnv.scriptAssetDict.Keys
                     .Concat(explicitCollects.Select(a => a.path))

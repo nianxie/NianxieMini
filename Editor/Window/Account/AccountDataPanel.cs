@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using Cysharp.Threading.Tasks;
+using Nianxie.Framework;
 using Nianxie.Utils;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
@@ -110,14 +111,19 @@ namespace Nianxie.Editor
             {
                 UniTask.Create(async () =>
                 {
-                    var dbMini = await AccountController.CreateMini(middleView.miniName.value, false);
+                    var dbMini = await AccountController.CreateMini(new MiniCommonConfig()
+                    {
+                        name=middleView.miniName.value,
+                        craftable=creating == CreatingKind.CRAFT,
+                    });
                     if (middleView.localCopy.value)
                     {
                         var folder = middleView.miniFolder.value;
-                        BuildMiniWindow.CopyTemplateAsProject(dbMini.name, folder, dbMini.craft);
-                        AccountController.LinkFolder(dbMini, folder);
+                        if (BuildMiniWindow.CopyTemplateAsProject(dbMini, folder))
+                        {
+                            AccountController.LinkFolder(dbMini, folder);
+                        }
                     }
-                    Refresh();
                     creating = CreatingKind.NONE;
                     selectIndex = SELECT_NOTHING;
                     Refresh();
@@ -169,7 +175,8 @@ namespace Nianxie.Editor
                 {
                     curItemView = items[i];
                 }
-                curItemView.Refresh(i==selectIndex, i, AccountController.dbMiniDatas[i]);
+
+                curItemView.Refresh(i == selectIndex, i);
             }
 
             for (int i = items.Count-1; i >= AccountController.dbMiniDatas.Count; i--)
