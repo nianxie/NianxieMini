@@ -27,14 +27,10 @@ namespace Nianxie.Framework
             patchVersion = commonConfig.patchVersion;
             unityVersion = commonConfig.unityVersion;
         }
-        public bool Match(MiniCommonConfig commonConfig)
+        public bool MatchBasic(MiniCommonConfig commonConfig)
         {
             return name == commonConfig.name &&
-            craftable == commonConfig.craftable &&
-            majorVersion == commonConfig.majorVersion &&
-            minorVersion == commonConfig.minorVersion &&
-            patchVersion == commonConfig.patchVersion &&
-            unityVersion == commonConfig.unityVersion;
+            craftable == commonConfig.craftable;
         }
     }
 

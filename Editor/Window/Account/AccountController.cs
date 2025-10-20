@@ -19,8 +19,8 @@ namespace Nianxie.Editor
     {
         private const string MIME_BIN = "application/octet-stream";
         private const string MIME_JSON = "application/json";
-        //private const string SERVER_URL = "http://127.0.0.1:5239";
-        private const string SERVER_URL = "http://39.107.44.97:10080";
+        private const string SERVER_URL = "http://127.0.0.1:5239";
+        //private const string SERVER_URL = "http://39.107.44.97:10080";
 
         private static string URL_SIGNIN => $"{SERVER_URL}/api/account/sign/UnitySignin";
         private static string URL_LIST => $"{SERVER_URL}/api/mini/List";
@@ -28,7 +28,7 @@ namespace Nianxie.Editor
         private static string URL_DELETE => $"{SERVER_URL}/api/mini/Delete";
         private static string URL_BEGIN_UPLOAD => $"{SERVER_URL}/api/mini/BeginUpload";
         private static string URL_END_UPLOAD => $"{SERVER_URL}/api/mini/EndUpload";
-        private static string URL_SYNC_CONFIG => $"{SERVER_URL}/api/mini/SyncConfig";
+        private static string URL_SYNC_CONFIGS => $"{SERVER_URL}/api/mini/SyncConfigs";
 
         private static string token = "";
         public static bool signinRunning = false;
@@ -136,10 +136,28 @@ namespace Nianxie.Editor
             await RefreshList();
         }
         
-        public static async UniTask SyncConfig(string miniId, MiniEditorEnvPaths envPaths)
+        public static async UniTask SyncConfigs(DB_Mini syncMini)
         {
-            await Post<string>($"{URL_SYNC_CONFIG}", JsonUtility.ToJson(new MiniSyncConfigRequest(miniId, envPaths.config)));
-            await RefreshList();
+            var configDict = new Dictionary<string, MiniCommonConfig>();
+            foreach (var dbMini in dbMiniDatas ?? new List<DB_Mini>{syncMini})
+            {
+                if (TryMapLinkedFolder(dbMini, out _, out var folderName))
+                {
+                    if (MiniEditorEnvPaths.readOnlyCache.TryGetValue(folderName, out var miniEnvPaths))
+                    {
+                        if (!miniEnvPaths.config.IsError() && ! miniEnvPaths.config.MatchBasic(dbMini))
+                        {
+                            configDict[dbMini.miniId] = miniEnvPaths.config;
+                        }
+                    }
+                }
+            }
+
+            if (configDict.Count > 0)
+            {
+                await Post<string>($"{URL_SYNC_CONFIGS}", JsonUtility.ToJson(new MiniSyncConfigsRequest(configDict)));
+                await RefreshList();
+            }
         }
 
         private static async UniTask<string> Get(string url)
@@ -243,6 +261,21 @@ namespace Nianxie.Editor
             if (folderPath == $"{NianxieConst.MiniPrefixPath}/{folder}")
             {
                 ReplaceFolderMeta(folderPath, miniId, Guid.NewGuid().ToString("N"));
+            }
+        }
+        public static bool TryMapLinkedFolder(DB_Mini dbMini, out string folderPath, out string folderName)
+        {
+            folderPath = AssetDatabase.GUIDToAssetPath(dbMini.miniId);
+            var folder = Path.GetFileName(folderPath??"");
+            if (folderPath == $"{NianxieConst.MiniPrefixPath}/{folder}" && Directory.Exists(folderPath))
+            {
+                folderName = folder;
+                return true;
+            }
+            else
+            {
+                folderName = null;
+                return false;
             }
         }
     }

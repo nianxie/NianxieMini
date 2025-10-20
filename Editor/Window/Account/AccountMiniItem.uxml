@@ -24,23 +24,14 @@
                 <AttributeOverrides element-name="fixBtn" text="绑定" />
                 <AttributeOverrides element-name="btn1" text="创建" />
                 <AttributeOverrides element-name="btn2" text="关联" />
-                <AttributeOverrides element-name="titleInfo" text="创建或关联本地项目" />
-            </ui:Instance>
-            <ui:Instance template="AccountMiniPipeline" name="syncConfig">
-                <AttributeOverrides element-name="pingBtn" text="解除关联" tooltip="本地项目名称或项目类型与远端不一致，修正本地配置。" />
-                <AttributeOverrides element-name="info" text="2. 同步本地和远端的配置" />
-                <AttributeOverrides element-name="runBtn" text="修正配置" />
-                <AttributeOverrides element-name="fixBtn" text="绑定" />
-                <AttributeOverrides element-name="btn1" text="同步配置" />
-                <AttributeOverrides element-name="btn2" text="查看" />
-                <AttributeOverrides element-name="titleInfo" text="同步本地配置到远端" />
+                <AttributeOverrides element-name="titleInfo" text="本地：创建或关联项目" />
             </ui:Instance>
             <ui:Instance template="AccountMiniPipeline" name="buildBundle">
                 <AttributeOverrides element-name="info" text="3. 打包Bundle" />
                 <AttributeOverrides element-name="btn" text="去打包" />
                 <AttributeOverrides element-name="runBtn" text="去打包" />
                 <AttributeOverrides element-name="btn1" text="去打包" />
-                <AttributeOverrides element-name="titleInfo" text="打包Bundle" />
+                <AttributeOverrides element-name="titleInfo" text="本地：打包Bundle" />
             </ui:Instance>
             <ui:Instance template="AccountMiniPipeline" name="uploadBundle">
                 <AttributeOverrides element-name="info" text="4. 上传Bundle" />
@@ -49,11 +40,11 @@
                 <AttributeOverrides element-name="pingBtn" text="Url" />
                 <AttributeOverrides element-name="btn1" text="上传" />
                 <AttributeOverrides element-name="btn2" text="Url" />
-                <AttributeOverrides element-name="titleInfo" text="上传Bundle" />
+                <AttributeOverrides element-name="titleInfo" text="远端：上传Bundle" />
             </ui:Instance>
             <ui:Instance template="AccountMiniPipelineStep" name="distribute">
                 <AttributeOverrides element-name="info" text="5. 在叙事中使用" />
-                <AttributeOverrides element-name="titleInfo" text="在叙事中使用" />
+                <AttributeOverrides element-name="titleInfo" text="远端：在叙事中使用" />
             </ui:Instance>
             <ui:Foldout text="————————————————" value="false">
                 <ui:Instance template="AccountMiniPipeline" name="buildPackage">
@@ -61,7 +52,7 @@
                     <AttributeOverrides element-name="btn" text="去导出" />
                     <AttributeOverrides element-name="runBtn" text="去导出" />
                     <AttributeOverrides element-name="btn1" text="去打包" />
-                    <AttributeOverrides element-name="titleInfo" text="导出Package" />
+                    <AttributeOverrides element-name="titleInfo" text="本地：导出Package" />
                 </ui:Instance>
                 <ui:Instance template="AccountMiniPipeline" name="uploadPackage">
                     <AttributeOverrides element-name="info" text="7. 上传Package（可选项）" />
@@ -69,7 +60,7 @@
                     <AttributeOverrides element-name="runBtn" text="上传" />
                     <AttributeOverrides element-name="btn1" text="上传" />
                     <AttributeOverrides element-name="btn2" text="Url" />
-                    <AttributeOverrides element-name="titleInfo" text="上传Package" />
+                    <AttributeOverrides element-name="titleInfo" text="远端：上传Package" />
                 </ui:Instance>
             </ui:Foldout>
         </ui:VisualElement>

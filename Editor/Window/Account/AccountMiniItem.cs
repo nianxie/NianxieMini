@@ -16,7 +16,7 @@ namespace Nianxie.Editor
 {
     public class AccountMiniItem: EasyViewModel
     {
-        private const int STEP_NUM = 7;
+        private const int STEP_NUM = 6;
         public class OutViewHierachy: EasyHierarchy
         {
             public RadioButton radio;
@@ -61,7 +61,6 @@ namespace Nianxie.Editor
             public int miniIndex;
             public MiniEditorEnvPaths envPaths;
             public string miniId => dbMini.miniId;
-            public bool showCraftable => envPaths?.config.craftable ?? dbMini.craftable;
 
             public PipelineStepContext(Action miniRefresh)
             {
@@ -73,25 +72,16 @@ namespace Nianxie.Editor
                 AccountController.LinkFolder(dbMini, folder);
                 miniRefresh();
             }
-            public void UnlinkFolder()
-            {
-                AccountController.UnlinkFolder(dbMini);
-                miniRefresh();
-            }
 
             public bool TryLoadLinkedFolder(out string linkedFolder, out UnityEngine.Object folderObject)
             {
-                var folderPath = AssetDatabase.GUIDToAssetPath(miniId);
-                var folder = Path.GetFileName(folderPath??"");
-                if (folderPath == $"{NianxieConst.MiniPrefixPath}/{folder}" && Directory.Exists(folderPath))
+                if (AccountController.TryMapLinkedFolder(dbMini, out var folderPath, out linkedFolder))
                 {
-                    linkedFolder = folder;
                     folderObject = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(folderPath);
                     return true;
                 }
                 else
                 {
-                    linkedFolder = null;
                     folderObject = null;
                     return false;
                 }
@@ -207,11 +197,21 @@ namespace Nianxie.Editor
                     if (BuildMiniWindow.CopyTemplateAsProject(context.dbMini, folder))
                     {
                         view.folderField.SetValueWithoutNotify("");
-                        context.LinkFolder(folder);
+                        AccountController.LinkFolder(context.dbMini, folder);
+                        UniTask.Create(async () =>
+                        {
+                            await AccountController.SyncConfigs(context.dbMini);
+                            context.miniRefresh();
+                        }).Forget();
                     }
                 };
                 view.btn2.clicked+= () => { 
-                    context.LinkFolder(view.folderField.value);
+                    AccountController.LinkFolder(context.dbMini, view.folderField.value);
+                    UniTask.Create(async () =>
+                    {
+                        await AccountController.SyncConfigs(context.dbMini);
+                        context.miniRefresh();
+                    }).Forget();
                 };
             }
             protected override bool isOkay()
@@ -231,43 +231,6 @@ namespace Nianxie.Editor
             {
                 base.Refresh();
                 view.folderField.SetEnabled(envPaths==null);
-            }
-        }
-
-        public class SyncConfigStep: AbstractPipelineStep
-        {
-            public SyncConfigStep(OutViewHierachy pipelineView, PipelineStepContext stepContext, int stepIndex):
-                base(pipelineView.syncConfig, stepContext, stepIndex)
-            {
-                view.btn1.clicked += () =>
-                {
-                    UniTask.Create(async () =>
-                    {
-                        if (envPaths.config.IsError())
-                        {
-                            throw new Exception($"config error in {envPaths.miniProjectConfig}");
-                        }
-                        await AccountController.SyncConfig(context.miniId, envPaths);
-                        context.miniRefresh();
-                    }).Forget();
-                };
-                view.btn2.clicked += () =>
-                {
-                    var dir = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(envPaths.miniProjectConfig);
-                    EditorGUIUtility.PingObject(dir);
-                };
-            }
-            protected override bool isOkay()
-            {
-                return envPaths != null;
-            }
-            protected override bool btn1Enable()
-            {
-                return envPaths != null && !envPaths.config.Match(context.dbMini);
-            }
-            protected override bool btn2Enable()
-            {
-                return envPaths != null;
             }
         }
 
@@ -388,12 +351,11 @@ namespace Nianxie.Editor
             steps = new AbstractPipelineStep[STEP_NUM]
             {
                 new InitProjectStep(view, stepContext, 1),
-                new SyncConfigStep(view, stepContext, 2),
-                new BuildBundleStep(view, stepContext, 3),
-                new UploadBundleStep(view, stepContext, 4),
-                new DistributeStep(view, stepContext, 5),
-                new BuildPackageStep(view, stepContext, 6),
-                new UploadPackageStep(view, stepContext, 7),
+                new BuildBundleStep(view, stepContext, 2),
+                new UploadBundleStep(view, stepContext, 3),
+                new DistributeStep(view, stepContext, 4),
+                new BuildPackageStep(view, stepContext, 5),
+                new UploadPackageStep(view, stepContext, 6),
             };
             view.folderObject.SetEnabled(false);
             view.deleteBtn.clicked += () =>
@@ -413,7 +375,8 @@ namespace Nianxie.Editor
             };
             view.unlinkBtn.clicked += () =>
             {
-                stepContext.UnlinkFolder();
+                AccountController.UnlinkFolder(stepContext.dbMini);
+                stepContext.miniRefresh();
             };
             /*view.copyBtn.clicked += () =>
             {
@@ -449,8 +412,8 @@ namespace Nianxie.Editor
                 view.folderObject.value = linkedFolderObject;
                 view.unlinkBtn.SetEnabled(true);
             }
-            view.kindCraft.SetDisplay(stepContext.showCraftable);
-            view.kindGame.SetDisplay(!stepContext.showCraftable);
+            view.kindCraft.SetDisplay(stepContext.dbMini.craftable);
+            view.kindGame.SetDisplay(!stepContext.dbMini.craftable);
             
             // refresh pipeline step
             view.pipeline.SetDisplay(selected);

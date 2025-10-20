@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Net;
-using Nianxie.Components;
 using Nianxie.Framework;
 using Nianxie.Utils;
 using UnityEditor;
@@ -15,7 +13,7 @@ namespace Nianxie.Editor
 {
     public partial class MiniEditorEnvPaths : EditorEnvPaths
     {
-        private static Dictionary<string, MiniEditorEnvPaths> cache = new();
+        private static readonly Dictionary<string, MiniEditorEnvPaths> cache = new();
         public static BuildTarget[] BuildTargets { get; } = {BuildTarget.iOS, BuildTarget.Android};
         public static MiniEditorEnvPaths Get(string folder)
         {
@@ -27,17 +25,7 @@ namespace Nianxie.Editor
             }
             return envPaths;
         }
-        public static MiniEditorEnvPaths SilentGet(string folder)
-        {
-            if (cache.TryGetValue(folder, out var envPaths))
-            {
-                return envPaths;
-            }
-            else
-            {
-                return null;
-            }
-        }
+        public static readonly ReadOnlyDictionary<string, MiniEditorEnvPaths> readOnlyCache = new (cache);
         protected override EditorReflectEnv CreateReflectEnv()
         {
             Debug.Log($"mini refresh editor reflect env : {pathPrefix}");

@@ -25,8 +25,11 @@ namespace Nianxie.Editor
                 if (splitArr.Length >= 3 && !string.IsNullOrEmpty(splitArr[2]))
                 {
                     var folder = splitArr[2];
-                    envPaths = MiniEditorEnvPaths.SilentGet(folder);
-                    return envPaths != null;
+                    if(MiniEditorEnvPaths.readOnlyCache.TryGetValue(folder, out var miniEnvPaths))
+                    {
+                        envPaths = miniEnvPaths;
+                        return true;
+                    } 
                 }
             }
             envPaths = null;

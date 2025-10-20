@@ -139,6 +139,7 @@ namespace Nianxie.Editor
             UniTask.Create(async () =>
             {
                 await AccountController.RefreshList();
+                await AccountController.SyncConfigs(null);
                 Refresh();
             }).Forget();
         }

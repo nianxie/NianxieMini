@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Nianxie.Framework;
 
 namespace Nianxie.Editor
@@ -71,14 +72,27 @@ namespace Nianxie.Editor
         public string iosFileKey;
         public string postSign;
     }
-    
+
+
     [Serializable]
-    public class MiniSyncConfigRequest:MiniCommonConfig
+    public class MiniSyncConfigsRequest
     {
-        public string miniId;
-        public MiniSyncConfigRequest(string miniId, MiniCommonConfig commonConfig) : base(commonConfig)
+        [Serializable]
+        public class MiniSyncConfig:MiniCommonConfig
         {
-            this.miniId = miniId;
+            public string miniId;
+            public MiniSyncConfig(string miniId, MiniCommonConfig commonConfig) : base(commonConfig)
+            {
+                this.miniId = miniId;
+            }
+        }
+        public List<MiniSyncConfig> configs = new();
+        public MiniSyncConfigsRequest(Dictionary<string, MiniCommonConfig> configDict)
+        {
+            foreach (var (k, v) in configDict)
+            {
+                configs.Add(new MiniSyncConfig(k, v));
+            }
         }
     }
     [Serializable]
