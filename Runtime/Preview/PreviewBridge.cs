@@ -45,7 +45,7 @@ namespace Nianxie.Preview
                 {
                     var args = new MiniPlayArgs
                     {
-                        playEnding=null,
+                        playEnding=selfWrap.Get<LuaFunction>(nameof(ExecuteEnding)),
                         craft=config.craftable,
                     };
                     if (config.craftable)
@@ -74,7 +74,7 @@ namespace Nianxie.Preview
             Destroy(this);
         }
 
-        private void ExecuteEnding()
+        public void ExecuteEnding()
         {
             Debug.Log("假装播放一下结束视频");
         }
