@@ -291,14 +291,17 @@ namespace Nianxie.Editor
 
             protected override bool btn1Enable()
             {
-                if(envPaths != null && File.Exists(envPaths.finalManifest) && envPaths.finalBundleDict.Values.All(path => File.Exists(path)))
+                if (envPaths != null)
                 {
-                    return true;
+                    if(File.Exists(envPaths.finalManifest) && envPaths.finalBundleDict.Values.All(path => File.Exists(path)))
+                    {
+                        if (context.dbMini.readyStatus != DB_Mini.STATUS_VIDEO_USED)
+                        {
+                            return true;
+                        }
+                    }
                 }
-                else
-                {
-                    return false;
-                }
+                return false;
             }
         }
         public class BuildPackageStep: AbstractPipelineStep

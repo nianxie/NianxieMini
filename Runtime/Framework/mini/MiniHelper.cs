@@ -12,7 +12,7 @@ namespace Nianxie.Framework
 {
     public class MiniHelper : AsyncHelper
     {
-        private MiniGameManager miniManager;
+        private MiniGameManager miniManager => (MiniGameManager)gameManager;
         public void PlayEnding()
         {
             miniManager.playArgs.PlayEnding(miniManager);

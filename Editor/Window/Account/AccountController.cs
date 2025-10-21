@@ -145,7 +145,7 @@ namespace Nianxie.Editor
                 {
                     if (MiniEditorEnvPaths.readOnlyCache.TryGetValue(folderName, out var miniEnvPaths))
                     {
-                        if (!miniEnvPaths.config.IsError() && ! miniEnvPaths.config.MatchBasic(dbMini))
+                        if (!miniEnvPaths.config.IsError() && ! miniEnvPaths.config.CheckBasicMatch(dbMini))
                         {
                             configDict[dbMini.miniId] = miniEnvPaths.config;
                         }

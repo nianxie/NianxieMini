@@ -18,10 +18,9 @@ namespace Nianxie.Editor
     public class MiniProjectManifest: MiniProjectConfig
     {
         public BundleInfo[] bundles;
-        public new static MiniProjectManifest FromJson(byte[] jsonBytes)
+
+        public MiniProjectManifest(MiniProjectConfig projConfig):base(projConfig)
         {
-            var jsonStr = Encoding.UTF8.GetString(jsonBytes);
-            return JsonUtility.FromJson<MiniProjectManifest>(jsonStr);
         }
     }
 }

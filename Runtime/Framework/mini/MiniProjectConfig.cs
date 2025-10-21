@@ -9,14 +9,23 @@ namespace Nianxie.Framework
     [Serializable]
     public class MiniCommonConfig
     {
-        public string name = "";
-        public bool craftable = false;
-        public int majorVersion = NianxieConst.MINOR_VERSION;
-        public int minorVersion = NianxieConst.MARJOR_VERSION;
-        public string patchVersion = NianxieConst.PATCH_VERSION;
-        public string unityVersion = Application.unityVersion;
+        public string name;
+        public bool craftable;
+        public int majorVersion;
+        public int minorVersion;
+        public string patchVersion;
+        public string unityVersion;
         public MiniCommonConfig()
         {
+        }
+        public MiniCommonConfig(string _name, bool _craftable)
+        {
+            name = _name;
+            craftable = _craftable;
+            majorVersion = NianxieConst.MARJOR_VERSION;
+            minorVersion = NianxieConst.MINOR_VERSION;
+            patchVersion = NianxieConst.PATCH_VERSION;
+            unityVersion = Application.unityVersion;
         }
         public MiniCommonConfig(MiniCommonConfig commonConfig)
         {
@@ -27,27 +36,36 @@ namespace Nianxie.Framework
             patchVersion = commonConfig.patchVersion;
             unityVersion = commonConfig.unityVersion;
         }
-        public bool MatchBasic(MiniCommonConfig commonConfig)
+        public bool CheckBasicMatch(MiniCommonConfig commonConfig)
         {
             return name == commonConfig.name &&
             craftable == commonConfig.craftable;
+        }
+        public bool CheckVersionMatch()
+        {
+            return majorVersion == NianxieConst.MARJOR_VERSION &&
+            minorVersion == NianxieConst.MINOR_VERSION &&
+            patchVersion == NianxieConst.PATCH_VERSION &&
+            unityVersion == NianxieConst.UNITY_VERSION;
         }
     }
 
     [Serializable]
     public class MiniProjectConfig:MiniCommonConfig
     {
-        public static MiniProjectConfig ErrorInstance = new MiniProjectConfig
+        public static MiniProjectConfig ErrorInstance = new MiniProjectConfig(new string[]{}, null, false)
         {
             name = "(ERROR)",
         };
         public string[] scripts = {};
 
-        public MiniProjectConfig()
+        public MiniProjectConfig(string [] scripts, string name, bool craftable):base(name, craftable)
         {
+            this.scripts = scripts;
         }
-        public MiniProjectConfig(MiniCommonConfig commonConfig):base(commonConfig)
+        public MiniProjectConfig(MiniProjectConfig projectConfig):base(projectConfig)
         {
+            scripts = projectConfig.scripts;
         }
 
         public static MiniProjectConfig FromJson(byte[] jsonBytes)

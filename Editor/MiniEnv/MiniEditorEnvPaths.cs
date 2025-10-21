@@ -67,9 +67,9 @@ namespace Nianxie.Editor
                     _config = null;
                     return ;
                 }
-                if (!_config.CheckScriptsMatch(luaAssetPaths))
+                if (!_config.CheckScriptsMatch(luaAssetPaths) || !_config.CheckVersionMatch())
                 {
-                    _config.scripts = luaAssetPaths;
+                    _config = new MiniProjectConfig(luaAssetPaths, _config.name, _config.craftable);
                     if (Directory.Exists(pathPrefix))
                     {
                         File.WriteAllBytes(miniProjectConfig, _config.ToJson());
@@ -78,12 +78,7 @@ namespace Nianxie.Editor
                 }
             } else
             {
-                _config = new MiniProjectConfig
-                {
-                    scripts = luaAssetPaths,
-                    name = "(default)",
-                    craftable = false,
-                };
+                _config = new MiniProjectConfig(luaAssetPaths, "???", false);
                 if (Directory.Exists(pathPrefix))
                 {
                     File.WriteAllBytes(miniProjectConfig, _config.ToJson());
@@ -96,7 +91,6 @@ namespace Nianxie.Editor
         {
             _config = new MiniProjectConfig(_config)
             {
-                scripts = _config.scripts,
                 name = name,
             };
             File.WriteAllBytes(miniProjectConfig, _config.ToJson());

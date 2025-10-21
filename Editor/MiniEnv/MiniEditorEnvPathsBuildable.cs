@@ -128,7 +128,7 @@ namespace Nianxie.Editor
                     throw new Exception($"Get crc failed for {srcMainName}");
                 }
             }
-            var miniManifest = MiniProjectManifest.FromJson(config.ToJson());
+            var miniManifest = new MiniProjectManifest(config);
             miniManifest.bundles = bundleInfos.ToArray();
             File.WriteAllBytes(finalManifest, miniManifest.ToJson());
             EditorUtility.RevealInFinder(buildDir);
