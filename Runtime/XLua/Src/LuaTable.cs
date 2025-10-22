@@ -399,17 +399,20 @@ namespace XLua
                         if (keyType == LuaTypes.LUA_TSTRING)
                         {
                             var key = LuaAPI.lua_tostring(L, -2);
-                            if (valueType == LuaTypes.LUA_TNUMBER || valueType == LuaTypes.LUA_TSTRING ||
-                                valueType == LuaTypes.LUA_TBOOLEAN)
+                            if (valueType == LuaTypes.LUA_TNUMBER || valueType == LuaTypes.LUA_TSTRING)
                             {
                                 var value = LuaAPI.lua_tostring(L, -1);
                                 ret[key] = value;
+                            }
+                            else if(valueType == LuaTypes.LUA_TBOOLEAN)
+                            {
+                                var value = LuaAPI.lua_toboolean(L, -1);
+                                ret[key] = value?"true":"false";
                             }
                             else
                             {
                                 throw new InvalidCastException($"LuaTable convert to Dictionary<string, string> fail, key={key} with value type:{valueType}");
                             }
-
                         }
                         LuaAPI.lua_pop(L, 1);
                     }
