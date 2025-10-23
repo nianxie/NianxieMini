@@ -23,7 +23,7 @@ namespace Nianxie.Craft
         {
             playArgs = args;
             editRoot.camera.gameObject.SetActive(false);
-            if (miniManager.playArgs.craft)
+            if (miniManager.bridge.miniConfig.craftable)
             {
                 var craftLuafabLoading =
                     miniManager.assetModule.AttachLuafabLoading(miniManager.bridge.envPaths.miniCraftLuafabPath, false);

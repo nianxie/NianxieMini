@@ -12,74 +12,78 @@ namespace Nianxie.Preview
 {
     public class PreviewBridge: MiniBridge
     {
-        public MiniGameManager miniManager;
-        private Scene scene;
-        private AssetBundle assetBundle;
-
-        public void Main(PreviewManager previewManager, LuaTable selfWrap, string folder, string bundlePath)
+        public PreviewBridge(AssetBundle bundle) : base(EditorGetMiniBoot(), bundle.CheckMiniFolder(), bundle)
         {
-            // enable touch simulation
-            // TouchSimulation.Enable();
-            envPaths = EnvPaths.MiniEnvPaths(folder);
-            UniTask.Create(async () =>
-            {
-                if (!string.IsNullOrEmpty(bundlePath))
-                {
-                    assetBundle = await AssetBundle.LoadFromFileAsync(bundlePath);
-                }
-                var configTextAsset = await LoadAssetAsync<TextAsset>(envPaths.miniProjectConfig);
-                var config = MiniProjectConfig.FromJson(configTextAsset.bytes);
+        }
+        public PreviewBridge(string folder) : base(EditorGetMiniBoot(), folder, null)
+        {
+        }
 
-                (scene, miniManager) = await previewManager.LoadScene();
-                SceneManager.SetActiveScene(scene);
-                await miniManager.PreInit(this);
-                if (previewManager.editCraft)
+        private LuaEnv luaEnv;
+        private LuaFunction bridgeWrapFn;
+        private MiniGameManager miniManager;
+        public async UniTask Main(bool editCraft)
+        {
+            luaEnv = new LuaEnv();
+            bridgeWrapFn = luaEnv.LoadString<LuaFunction>(@"
+local bridge = ...
+return setmetatable({
+}, {
+    __index=function(t,k)
+        return function(...)
+            return bridge[k](bridge, ...)
+        end
+    end
+})
+");
+            var selfWrap = bridgeWrapFn.Func<PreviewBridge, LuaTable>(this);
+            miniManager = await LoadMini();
+            if (editCraft)
+            {
+                var args = new MiniEditArgs
                 {
-                    var args = new MiniEditArgs
-                    {
-                        onSelect=selfWrap.Get<LuaFunction>(nameof(OnSelect)),
-                    };
-                    await miniManager.EditMain(args);
+                    onSelect=selfWrap.Get<LuaFunction>(nameof(OnSelect)),
+                };
+                await miniManager.EditMain(args);
+            }
+            else
+            {
+                var args = new MiniPlayArgs
+                {
+                    playEnding=selfWrap.Get<LuaFunction>(nameof(ExecuteEnding)),
+                };
+                if (miniConfig.craftable)
+                {
+                    var (craftJson, atlasTex) = OpenPanel();
+                    args.craftJson = craftJson;
+                    args.atlasTex = atlasTex;
                 }
                 else
                 {
-                    var args = new MiniPlayArgs
-                    {
-                        playEnding=selfWrap.Get<LuaFunction>(nameof(ExecuteEnding)),
-                        craft=config.craftable,
-                    };
-                    if (config.craftable)
-                    {
-                        var (craftJson, atlasTex) = OpenPanel();
-                        args.craftJson = craftJson;
-                        args.atlasTex = atlasTex;
-                    }
                     await miniManager.PlayMain(args);
                 }
-            }).Forget();
-        }
-
-        public void OnDestroy()
-        {
-            if (assetBundle != null)
-            {
-                assetBundle.UnloadAsync(true);
-                assetBundle = null;
             }
-            SceneManager.UnloadSceneAsync(scene);
-        }
-        
-        public override async UniTask UnloadMini(MiniGameManager miniManager)
-        {
-            Destroy(this);
         }
 
-        public void ExecuteEnding()
+        public void Unload()
+        {
+            if (bundle != null)
+            {
+                bundle.UnloadAsync(true);
+            }
+            if (miniManager != null)
+            {
+                UnityEngine.Object.Destroy(miniManager);
+                miniManager = null;
+            }
+        }
+
+        private void ExecuteEnding()
         {
             Debug.Log("假装播放一下结束视频");
         }
         
-        public (CraftJson, Texture2D) OpenPanel()
+        private (CraftJson, Texture2D) OpenPanel()
         {
 #if UNITY_EDITOR
             var selectPath = UnityEditor.EditorUtility.OpenFilePanel("Open Craft Game", Path.Combine(Application.dataPath, ".."), "json,png");
@@ -111,33 +115,37 @@ namespace Nianxie.Preview
             }
 #endif
         }
-#if UNITY_EDITOR
-        public override byte[] GetMiniBoot()
+        private static byte[] EditorGetMiniBoot()
         {
+#if UNITY_EDITOR
             return UnityEditor.AssetDatabase.LoadAssetAtPath<TextAsset>(NianxieConst.MiniBootPath).bytes;
+#else
+            return null;
+#endif
         }
+#if UNITY_EDITOR
         
         public override async UniTask<Object> LoadAssetAsync(string resPath, System.Type resType)
         {
-            if (assetBundle == null)
+            if (bundle == null)
             {
                 return UnityEditor.AssetDatabase.LoadAssetAtPath(resPath, resType);
             }
             else
             {
-                return await assetBundle.LoadAssetAsync(resPath, resType).ToUniTask();
+                return await bundle.LoadAssetAsync(resPath, resType).ToUniTask();
             }
         }
 
         public override async UniTask<Object[]> LoadSubAssetsAsync(string resPath)
         {
-            if (assetBundle == null)
+            if (bundle == null)
             {
                 return UnityEditor.AssetDatabase.LoadAllAssetsAtPath(resPath);
             }
             else
             {
-                var request = assetBundle.LoadAssetWithSubAssetsAsync(resPath);
+                var request = bundle.LoadAssetWithSubAssetsAsync(resPath);
                 await request.ToUniTask();
                 return request.allAssets;
             }

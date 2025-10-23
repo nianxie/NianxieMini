@@ -3,14 +3,16 @@ using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using Cysharp.Threading.Tasks;
 using Nianxie.Craft;
+using Nianxie.Utils;
 using UnityEngine;
+using UnityEngine.Assertions;
 using XLua;
+using XLua.LuaDLL;
 
 namespace Nianxie.Framework
 {
     public struct MiniPlayArgs
     {
-        public bool craft;
         public LuaFunction playEnding;
         public CraftJson craftJson;
         public Texture2D atlasTex;
@@ -25,29 +27,42 @@ namespace Nianxie.Framework
         public LuaFunction onSelect;
     }
 
-    public abstract class MiniBridge:MonoBehaviour, IAssetLoader
+    public class MiniBridge: IAssetLoader
     {
-        public EnvPaths envPaths { get; protected set; }
-        public RuntimeReflectEnv shellEnv { get; protected set; }
-
-        public virtual byte[] GetMiniBoot()
+        protected readonly AssetBundle bundle;
+        public readonly EnvPaths envPaths;
+        public readonly byte[] miniBoot;
+        public MiniProjectConfig miniConfig { get; private set; }
+        public MiniBridge(byte[] miniBoot, string folder, AssetBundle bundle)
         {
-            throw new System.NotImplementedException();
+            this.bundle = bundle;
+            this.miniBoot = miniBoot;
+            envPaths = EnvPaths.MiniEnvPaths(folder);
         }
 
-        public abstract UniTask UnloadMini(MiniGameManager miniManager);
+        public async UniTask<MiniGameManager> LoadMini()
+        {
+            var scene = await SceneAsyncUtility.LoadSceneAsync(NianxieConst.MiniSceneName);
+            var objList = scene.GetRootGameObjects();
+            var miniManager = objList[0].GetComponent<MiniGameManager>();
+            SceneManager.SetActiveScene(scene);
+            Assert.IsTrue(objList.Length == 1, "mini scene's root object is not one and only one");
+            await miniManager.PreInit(this);
+            // TODO, 这里需要注意一下加载的时序问题，可能在加载中，玩家返回了。
+            return miniManager;
+        }
 
         #region // 以下是AssetLoader的相关函数
         public async UniTask<Dictionary<string, TextAsset>> LoadScriptAssetsAsync()
         {
             var configTextAsset = await LoadAssetAsync<TextAsset>(envPaths.miniProjectConfig);
-            var config = MiniProjectConfig.FromJson(configTextAsset.bytes);
+            miniConfig = MiniProjectConfig.FromJson(configTextAsset.bytes);
             var retScriptDict = new Dictionary<string, TextAsset>();
             // 预加载 lua text asset
-            UniTask[] preloadTask = new UniTask[config.scripts.Length];
-            for (int i = 0; i < config.scripts.Length; i++)
+            UniTask[] preloadTask = new UniTask[miniConfig.scripts.Length];
+            for (int i = 0; i < miniConfig.scripts.Length; i++)
             {
-                var path = $"{envPaths.pathPrefix}/{config.scripts[i]}";
+                var path = $"{envPaths.pathPrefix}/{miniConfig.scripts[i]}";
                 preloadTask[i] = UniTask.Create(async () =>
                 {
                     retScriptDict[path] = await LoadAssetAsync<TextAsset>(path);
@@ -63,14 +78,16 @@ namespace Nianxie.Framework
         }
         
 
-        public virtual UniTask<UnityEngine.Object> LoadAssetAsync(string resPath, Type resType)
+        public virtual async UniTask<UnityEngine.Object> LoadAssetAsync(string resPath, Type resType)
         {
-            throw new NotImplementedException();
+            return await bundle.LoadAssetAsync(resPath, resType).ToUniTask();
         }
 
-        public virtual UniTask<UnityEngine.Object[]> LoadSubAssetsAsync(string resPath)
+        public virtual async UniTask<UnityEngine.Object[]> LoadSubAssetsAsync(string resPath)
         {
-            throw new System.NotImplementedException();
+            var request = bundle.LoadAssetWithSubAssetsAsync(resPath);
+            await request.ToUniTask();
+            return request.allAssets;
         }
         #endregion
     }

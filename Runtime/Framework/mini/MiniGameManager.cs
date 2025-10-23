@@ -1,5 +1,6 @@
 using Cysharp.Threading.Tasks;
 using Nianxie.Craft;
+using Nianxie.Utils;
 using UnityEngine;
 using UnityEngine.Assertions;
 using XLua;
@@ -39,19 +40,13 @@ namespace Nianxie.Framework
             Assert.IsNotNull(bridge, "MiniGame is not PreInit");
             await craftModule.EditMain(args);
         }
-        
-        [HintReturn(new []{typeof(MiniPlayArgs)})]
-        public lua_CSFunction FuturePlayMain => bridge.shellEnv.AsyncAction<MiniPlayArgs>(this, PlayMain);
-        [HintReturn(new System.Type[]{}, typeof(CraftModule))]
-        public lua_CSFunction FutureEditMain => bridge.shellEnv.AsyncAction<MiniEditArgs>(this, EditMain);
-
 
         protected override RuntimeReflectEnv CreateReflectEnv()
         {
-            return RuntimeReflectEnv.Create(this, bridge.envPaths, bridge.GetMiniBoot());
+            return RuntimeReflectEnv.Create(this, bridge.envPaths, bridge.miniBoot);
         }
 
-        public void Stop()
+        void OnDestroy()
         {
             if (stopped) return;
             stopped = true;
@@ -59,7 +54,7 @@ namespace Nianxie.Framework
             {
                 try
                 {
-                    await bridge.UnloadMini(this);
+                    await SceneAsyncUtility.UnloadSceneAsync(gameObject.scene);
                 }
                 finally
                 {
@@ -67,11 +62,6 @@ namespace Nianxie.Framework
                     //reflectEnv.Dispose();
                 }
             }).Forget();
-        }
-
-        void OnDestroy()
-        {
-            Stop();
         }
     }
 }
