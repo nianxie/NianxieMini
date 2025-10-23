@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers.Text;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -32,6 +33,11 @@ namespace Nianxie.Utils
         {
             var data = Encoding.UTF8.GetBytes(str);
             return new LargeBytes(data);
+        }
+
+        public void Save(string path)
+        {
+            File.WriteAllBytes(path, data);
         }
     }
 }

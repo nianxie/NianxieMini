@@ -35,10 +35,11 @@ namespace Nianxie.Framework
         }
 
         [BlackList]
-        public async UniTask EditMain(MiniEditArgs args)
+        public async UniTask<CraftModule> EditMain(MiniEditArgs args)
         {
             Assert.IsNotNull(bridge, "MiniGame is not PreInit");
             await craftModule.EditMain(args);
+            return craftModule;
         }
 
         protected override RuntimeReflectEnv CreateReflectEnv()

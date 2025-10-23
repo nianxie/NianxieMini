@@ -116,18 +116,14 @@ namespace Nianxie.Editor
                 onFileProgress(key, i + 1, key_file_type.Length);
                 var fileBytes = await File.ReadAllBytesAsync(file);
                 var respMd5 = await postSign.PostFile(fileBytes, key, type);
-                using (MD5 md5 = MD5.Create())
+                var fileMd5 = new LargeBytes(fileBytes).Md5Base64();
+                if (fileMd5 == respMd5)
                 {
-                    // 计算字节数组的哈希值
-                    var fileMd5 = Convert.ToBase64String(md5.ComputeHash(fileBytes));
-                    if (fileMd5 == respMd5)
-                    {
-                        Debug.Log($"文件 {file} 上传成功");
-                    }
-                    else
-                    {
-                        throw new Exception("上传异常，md5不一致");
-                    }
+                    Debug.Log($"文件 {file} 上传成功");
+                }
+                else
+                {
+                    throw new Exception("上传异常，md5不一致");
                 }
             }
 
