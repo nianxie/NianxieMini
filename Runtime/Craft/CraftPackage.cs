@@ -7,7 +7,7 @@ namespace Nianxie.Craft
 {
     public class CraftPackage
     {
-        public LargeBytes craftAtlas;
+        public LargeBytes atlasBytes;
         public CraftJson craftJson;
     }
 }
