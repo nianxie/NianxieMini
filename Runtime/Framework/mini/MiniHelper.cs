@@ -18,12 +18,12 @@ namespace Nianxie.Framework
             miniManager.playArgs.PlayEnding(miniManager);
         }
 
-        public LuaTable GetCraftSlot()
+        public LuaTable GetCraftTable()
         {
-            var craftSlot = miniManager.craftModule.craftSlot;
+            var craftSlot = miniManager.editRoot.rootSlot;
             if (craftSlot != null)
             {
-                return craftSlot.luaTable;
+                return craftSlot.behav.luaTable;
             }
             else
             {

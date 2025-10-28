@@ -2,7 +2,7 @@
 
 namespace Nianxie.Craft
 {
-    public class SlotScriptJson: AbstractSlotJson
+    public class BehavJson: AbstractSlotJson
     {
         public Dictionary<string, AbstractSlotJson> slotDict = new();
     }

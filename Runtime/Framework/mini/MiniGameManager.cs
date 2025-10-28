@@ -11,7 +11,7 @@ namespace Nianxie.Framework
     public class MiniGameManager : AbstractGameManager
     {
         private bool stopped = false;
-        public CraftModule craftModule { get; private set; }
+        public EditRoot editRoot;
         public MiniBridge bridge { get; private set; }
         public MiniPlayArgs playArgs { get; private set; }
 
@@ -19,7 +19,6 @@ namespace Nianxie.Framework
         {
             Assert.IsNull(bridge, "MiniGame is running");
             bridge = _bridge;
-            craftModule = GetComponent<CraftModule>();
             GetComponent<AssetModule>().PreInit(bridge);
             await InitGameModule();
         }
@@ -29,17 +28,25 @@ namespace Nianxie.Framework
         {
             Assert.IsNotNull(bridge, "MiniGame is not PreInit");
             playArgs = args;
-            await craftModule.PlayMain(playArgs);
+            LuafabLoading miniCraftLoading = null;
+            if (bridge.miniConfig.craftable)
+            {
+                miniCraftLoading = assetModule.AttachLuafabLoading(bridge.envPaths.miniCraftLuafabPath, false);
+                await miniCraftLoading.WaitTask;
+            }
+            editRoot.PlayMain(args, miniCraftLoading);
             await PrepareContextAndRoot();
             rootLuafabLoading.Fork(transform);
         }
 
         [BlackList]
-        public async UniTask<CraftModule> EditMain(MiniEditArgs args)
+        public async UniTask<EditRoot> EditMain(MiniEditArgs args)
         {
             Assert.IsNotNull(bridge, "MiniGame is not PreInit");
-            await craftModule.EditMain(args);
-            return craftModule;
+            var miniCraftLoading = assetModule.AttachLuafabLoading(bridge.envPaths.miniCraftLuafabPath, false);
+            await miniCraftLoading.WaitTask;
+            editRoot.EditMain(args, miniCraftLoading);
+            return editRoot;
         }
 
         protected override RuntimeReflectEnv CreateReflectEnv()

@@ -23,7 +23,6 @@ namespace XLua
             typeof(Nianxie.Framework.AsyncHelper),
             typeof(Nianxie.Components.LuaBehaviour),
             typeof(Nianxie.Components.MiniBehaviour),
-            typeof(Nianxie.Craft.SlotBehaviour),
             typeof(Nianxie.Craft.AbstractAssetSlot),
             typeof(Nianxie.Craft.AbstractSlotCom),
             typeof(Nianxie.Craft.PositionSlot),
@@ -33,7 +32,7 @@ namespace XLua
             // mini
             typeof(Nianxie.Framework.MiniGameManager),
             typeof(Nianxie.Framework.MiniPlayArgs),
-            typeof(Nianxie.Craft.CraftModule),
+            typeof(Nianxie.Framework.MiniEditArgs),
             
             // unity items
             typeof(UnityEngine.LayerMask),

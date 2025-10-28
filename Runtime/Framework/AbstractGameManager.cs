@@ -10,7 +10,7 @@ namespace Nianxie.Framework
         public AsyncHelper baseHelper { get; private set; }
 
         public RuntimeReflectEnv reflectEnv { get; private set; }
-        // TODO 这里添加一个interface来包裹context的方法。
+        // TODO 这里添加一个interface来包裹context的方法?
         public LuaTable context { get; private set; }
         public LuafabLoading rootLuafabLoading { get; private set; }
 

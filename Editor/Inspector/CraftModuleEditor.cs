@@ -7,14 +7,14 @@ using XLua;
 
 namespace Nianxie.Editor
 {
-    [CustomEditor(typeof(CraftModule), true)]
-    public class EditCraftModuleEditor:UnityEditor.Editor
+    [CustomEditor(typeof(EditRoot), true)]
+    public class EditRootEditor:UnityEditor.Editor
     {
 
-        protected CraftModule craftModule;
+        protected EditRoot editRoot;
         protected void OnEnable()
         {
-            craftModule = (CraftModule) target;
+            editRoot = (EditRoot) target;
         }
 
         public (string, string) ToJsonPngPath(string selectPath)
@@ -29,7 +29,7 @@ namespace Nianxie.Editor
             DrawDefaultInspector();
             if (GUILayout.Button("Save"))
             {
-                var (jsonBytes, pngData) = craftModule.PackJsonPng();
+                var (jsonBytes, pngData) = editRoot.PackJsonPng();
                 var selectPath = EditorUtility.SaveFilePanel("Save Craft", Path.Combine(Application.dataPath, ".."), "craft", "json,png");
                 var (jsonPath, pngPath) = ToJsonPngPath(selectPath);
                 File.WriteAllBytes(jsonPath, jsonBytes.data);
@@ -43,7 +43,7 @@ namespace Nianxie.Editor
                 var (jsonPath, pngPath) = ToJsonPngPath(selectPath);
                 var jsonBytes = new LargeBytes(File.ReadAllBytes(jsonPath));
                 var pngData = File.ReadAllBytes(pngPath);
-                craftModule.UnpackJsonPng(jsonBytes, pngData);
+                editRoot.UnpackJsonPng(jsonBytes, pngData);
             }
         }
     }

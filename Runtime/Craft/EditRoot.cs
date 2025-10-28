@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Nianxie.Components;
@@ -23,13 +24,34 @@ namespace Nianxie.Craft
         public AbstractAssetSlot selectAssetSlot;
         public PositionSlot selectPosSlot;
 
-        private CraftModule craftModule;
-        private SlotBehaviour slotRoot;
-        public void Init(CraftModule _craftModule, SlotBehaviour _slotRoot)
+        public BehavSlot rootSlot { get; private set; }
+
+        private void InitByLoading(LuafabLoading craftLuafabLoading, bool silent)
         {
-            craftModule = _craftModule;
-            slotRoot = _slotRoot;
-            foreach (var slotCom in slotRoot.GetComponentsInChildren<AbstractSlotCom>())
+            var miniBehav = (MiniBehaviour) craftLuafabLoading.RawFork(area.transform);
+            if (!miniBehav.TryGetComponent<BehavSlot>(out var behavSlot))
+            {
+                throw new Exception("BehavSlot expected in root of MiniCraft");
+            }
+            rootSlot = behavSlot;
+            if (silent)
+            {
+                foreach (var childRenderer in behavSlot.gameObject.GetComponentsInChildren<Renderer>())
+                {
+                    childRenderer.enabled = false;
+                }
+
+                foreach (var childCollider2D in behavSlot.gameObject.GetComponentsInChildren<Collider2D>())
+                {
+                    childCollider2D.enabled = false;
+                }
+
+                foreach (var childCollider in behavSlot.gameObject.GetComponentsInChildren<Collider>())
+                {
+                    childCollider.enabled = false;
+                }
+            }
+            foreach (var slotCom in rootSlot.GetComponentsInChildren<AbstractSlotCom>())
             {
                 slotCom.editRoot = this;
             }
@@ -41,13 +63,13 @@ namespace Nianxie.Craft
             {
                 selectAssetSlot = null;
                 selectPosSlot = null;
-                craftModule.editArgs.onSelect?.Action(false);
+                editArgs.onSelect?.Action(false);
             }
             else
             {
                 selectAssetSlot = assetSlot;
                 selectPosSlot = assetSlot.GetComponentInParent<PositionSlot>();
-                craftModule.editArgs.onSelect?.Action(assetSlot);
+                editArgs.onSelect?.Action(assetSlot);
             }
         }
 
@@ -80,6 +102,53 @@ namespace Nianxie.Craft
             camera.orthographicSize = Mathf.Max(0.5f, camera.orthographicSize - deltaY*0.001f);
             var newPinch = camera.ScreenToWorldPoint(center);
             camera.transform.position = camera.transform.position - newPinch + curPinch;
+        }
+
+        private MiniEditArgs editArgs;
+
+        public void PlayMain(MiniPlayArgs args, LuafabLoading miniCraftLoading)
+        {
+            camera.gameObject.SetActive(false);
+            if (miniCraftLoading != null)
+            {
+                InitByLoading(miniCraftLoading, true);
+
+                var craftJson = args.craftJson;
+                var altasTex = args.atlasTex;
+                if (craftJson != null)
+                {
+                    var unpackContext = new CraftUnpackContext(craftJson, altasTex);
+                    unpackContext.UnpackRoot(rootSlot);
+                }
+            }
+        }
+
+        public void EditMain(MiniEditArgs args, LuafabLoading miniCraftLoading)
+        {
+            editArgs = args;
+            camera.gameObject.SetActive(true);
+            InitByLoading(miniCraftLoading, false);
+        }
+        
+        public (LargeBytes, byte[]) PackJsonPng()
+        {
+            var packContext = new PngPackContext();
+            packContext.PackRoot(rootSlot);
+            return packContext.DumpJsonPng();
+        }
+
+        private Texture2D editorTex;
+        public void UnpackJsonPng(LargeBytes jsonBytes, byte[] pngData)
+        {
+            if (editorTex != null)
+            {
+                DestroyImmediate(editorTex);
+            }
+            var json = CraftJson.FromLargeBytes(jsonBytes);
+            editorTex = new Texture2D(2,2);
+            editorTex.LoadImage(pngData);
+            var context = new CraftUnpackContext(json, editorTex);
+            context.UnpackRoot(rootSlot);
         }
     }
 }

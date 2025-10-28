@@ -30,10 +30,10 @@ namespace Nianxie.Craft
             });
             return index;
         }
-        public void PackRoot(SlotBehaviour craftSlot)
+        public void PackRoot(BehavSlot craftSlot)
         {
             UnityEngine.Assertions.Assert.IsFalse(finished, "pack context is finished");
-            craftJson.root = craftSlot.PackToJson(this);
+            craftJson.root = (BehavJson)craftSlot.PackToJson(this);
             var sortedRectArr = spriteList.Select(s => s.atlasRect).OrderByDescending(r => r.width * r.height).ToArray();
             craftJson.atlasSize = RectanglePacker.PackRectsInplace(sortedRectArr);
             craftJson.atlasRects = spriteList.Select(a => a.atlasRect).ToArray();

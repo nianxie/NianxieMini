@@ -57,7 +57,7 @@ namespace Nianxie.Preview
             UniTask.Create(async () =>
             {
                 await previewBridge.Main(editCraft);
-            });
+            }).Forget();
         }
 
         public void Unload()

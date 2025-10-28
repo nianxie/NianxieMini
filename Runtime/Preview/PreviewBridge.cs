@@ -78,7 +78,7 @@ return setmetatable({
             }
         }
 
-        private void ExecuteEnding()
+        public void ExecuteEnding()
         {
             Debug.Log("假装播放一下结束视频");
         }

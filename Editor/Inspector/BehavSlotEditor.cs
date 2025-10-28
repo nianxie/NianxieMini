@@ -2,17 +2,19 @@
 using UnityEngine;
 using UnityEditor;
 using System.IO;
+using Nianxie.Components;
 using Nianxie.Craft;
 using UnityEditorInternal;
 using XLua;
 
 namespace Nianxie.Editor
 {
-    // The custom editor of the SgLuaMonoBehaviourEditor class.
-    [CustomEditor(typeof(SlotBehaviour), false)]
-    public class SlotBehaviourEditor : LuaBehaviourEditor
+    // 这个slot的inspector暂时没想好怎么设计，先放置一些legacy代码在这里
+    [CustomEditor(typeof(BehavSlot), false)]
+    public class BehavSlotEditor : UnityEditor.Editor
     {
-        protected SlotBehaviour slotBehav => (SlotBehaviour) m_behav;
+        protected LuaBehaviour m_behav = null;
+        protected GUIStyle m_errStyle = null;
         private Action drawOneInjection(Rect rect, AbstractReflectInjection injection)
         {
             Action lateAction = null;
@@ -41,14 +43,14 @@ namespace Nianxie.Editor
                                 var pngData = File.ReadAllBytes(pngPath);
                                 var tex = new Texture2D(2,2);
                                 tex.LoadImage(pngData);
-                                if (slotBehav.editorTexDict.TryGetValue(injection.key, out var oldTex))
+                                /*if (slotBehav.editorTexDict.TryGetValue(injection.key, out var oldTex))
                                 {
                                     if (oldTex != null)
                                     {
                                         UnityEngine.Object.DestroyImmediate(oldTex);
                                     }
                                 }
-                                slotBehav.editorTexDict[injection.key] = tex;
+                                slotBehav.editorTexDict[injection.key] = tex;*/
                                 spriteSlot.WriteRawData(tex);
                             };
                         }
@@ -63,7 +65,7 @@ namespace Nianxie.Editor
 
             return lateAction;
         }
-        protected override void DrawInjections(AbstractReflectEnv reflectEnv, WarmedReflectClass reflectInfo)
+        protected void DrawInjections(AbstractReflectEnv reflectEnv, WarmedReflectClass reflectInfo)
         {
             Action lateAction = null;
             var injectionList = new ReorderableList(reflectInfo.injections, typeof(AbstractReflectInjection), false, true, false, false);
@@ -74,6 +76,10 @@ namespace Nianxie.Editor
             };
             injectionList.DoLayoutList();
             lateAction?.Invoke();
+        }
+        public override void OnInspectorGUI()
+        {
+            DrawDefaultInspector();
         }
     }
 }

@@ -10,12 +10,10 @@ using XLua;
 
 namespace Nianxie.Editor
 {
-    using Utils;
-    // The custom editor of the SgLuaMonoBehaviourEditor class.
+    // The custom editor of the LuaBehaviour class.
     [CustomEditor(typeof(LuaBehaviour), true)]
     public class LuaBehaviourEditor : UnityEditor.Editor
     {
-        // The lua params property.
         protected LuaBehaviour m_behav = null;
         protected GUIStyle m_errStyle = null;
 

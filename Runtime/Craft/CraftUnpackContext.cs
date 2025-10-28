@@ -14,10 +14,10 @@ namespace Nianxie.Craft
             this.atlasTex = atlasTex;
         }
 
-        public void UnpackRoot(SlotBehaviour craftSlot)
+        public void UnpackRoot(BehavSlot rootBehavSlot)
         {
             UnityEngine.Assertions.Assert.IsFalse(finished, "unpack context is finished");
-            craftSlot.UnpackFromJson(this, craftJson.root);
+            rootBehavSlot.UnpackFromJson(this, craftJson.root);
             finished = true;
         }
 
