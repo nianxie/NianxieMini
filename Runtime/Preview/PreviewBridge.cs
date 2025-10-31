@@ -12,16 +12,21 @@ namespace Nianxie.Preview
 {
     public class PreviewBridge: MiniBridge
     {
-        public PreviewBridge(AssetBundle bundle) : base(EditorGetMiniBoot(), bundle.CheckMiniFolder(), bundle)
+        public PreviewBridge(PreviewGizmos previewGizmos, AssetBundle bundle) : base(EditorGetMiniBoot(), bundle.CheckMiniFolder(), bundle)
         {
+            gizmos = previewGizmos;
         }
-        public PreviewBridge(string folder) : base(EditorGetMiniBoot(), folder, null)
+        public PreviewBridge(PreviewGizmos previewGizmos, string folder) : base(EditorGetMiniBoot(), folder, null)
         {
+            gizmos = previewGizmos;
         }
 
+        private PreviewGizmos gizmos;
         private LuaEnv luaEnv;
         private LuaFunction bridgeWrapFn;
         private MiniGameManager miniManager;
+        public CraftEdit craftEdit { get; private set; }
+
         public async UniTask Main(bool editCraft)
         {
             luaEnv = new LuaEnv();
@@ -42,9 +47,9 @@ return setmetatable({
             {
                 var args = new MiniEditArgs
                 {
-                    onSelect=selfWrap.Get<LuaFunction>(nameof(OnSelect)),
+                    refresh=selfWrap.Get<LuaFunction>(nameof(GizmosRefresh)),
                 };
-                await miniManager.EditMain(args);
+                craftEdit = await miniManager.EditMain(args);
             }
             else
             {
@@ -67,6 +72,7 @@ return setmetatable({
 
         public void Unload()
         {
+            gizmos.Refresh(null);
             if (bundle != null)
             {
                 bundle.UnloadAsync(true);
@@ -101,19 +107,10 @@ return setmetatable({
             throw new System.NotImplementedException();
 #endif
         }
-        public void OnSelect(AbstractAssetSlot slot)
+
+        public void GizmosRefresh()
         {
-#if UNITY_EDITOR
-            if (slot != null)
-            {
-                Debug.Log($"try select {slot.gameObject.name}");
-                UnityEditor.Selection.activeGameObject = slot.gameObject;
-            }
-            else
-            {
-                UnityEditor.Selection.activeGameObject = null;
-            }
-#endif
+            gizmos.Refresh(craftEdit);
         }
         private static byte[] EditorGetMiniBoot()
         {

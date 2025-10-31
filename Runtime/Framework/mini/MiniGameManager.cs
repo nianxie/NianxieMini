@@ -11,8 +11,10 @@ namespace Nianxie.Framework
     public class MiniGameManager : AbstractGameManager
     {
         private bool stopped = false;
-        public EditRoot editRoot;
-        public MiniBridge bridge { get; private set; }
+        [SerializeField]
+        private CraftEdit craftEdit;
+
+        private MiniBridge bridge;
         public MiniPlayArgs playArgs { get; private set; }
 
         public async UniTask PreInit(MiniBridge _bridge)
@@ -23,7 +25,6 @@ namespace Nianxie.Framework
             await InitGameModule();
         }
 
-        [BlackList]
         public async UniTask PlayMain(MiniPlayArgs args)
         {
             Assert.IsNotNull(bridge, "MiniGame is not PreInit");
@@ -34,19 +35,18 @@ namespace Nianxie.Framework
                 miniCraftLoading = assetModule.AttachLuafabLoading(bridge.envPaths.miniCraftLuafabPath, false);
                 await miniCraftLoading.WaitTask;
             }
-            editRoot.PlayMain(args, miniCraftLoading);
+            craftEdit.PlayMain(args, miniCraftLoading);
             await PrepareContextAndRoot();
             rootLuafabLoading.Fork(transform);
         }
 
-        [BlackList]
-        public async UniTask<EditRoot> EditMain(MiniEditArgs args)
+        public async UniTask<CraftEdit> EditMain(MiniEditArgs args)
         {
             Assert.IsNotNull(bridge, "MiniGame is not PreInit");
             var miniCraftLoading = assetModule.AttachLuafabLoading(bridge.envPaths.miniCraftLuafabPath, false);
             await miniCraftLoading.WaitTask;
-            editRoot.EditMain(args, miniCraftLoading);
-            return editRoot;
+            craftEdit.EditMain(args, miniCraftLoading);
+            return craftEdit;
         }
 
         protected override RuntimeReflectEnv CreateReflectEnv()
@@ -70,6 +70,22 @@ namespace Nianxie.Framework
                     //reflectEnv.Dispose();
                 }
             }).Forget();
+        }
+
+        public LuaTable craftTable
+        {
+            get
+            {
+                var craftSlot = craftEdit.rootSlot;
+                if (craftSlot != null)
+                {
+                    return craftSlot.behav.luaTable;
+                }
+                else
+                {
+                    return null;
+                }
+            }
         }
     }
 }

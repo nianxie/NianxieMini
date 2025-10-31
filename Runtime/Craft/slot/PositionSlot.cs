@@ -42,7 +42,7 @@ namespace Nianxie.Craft
         }
         void IInitializePotentialDragHandler.OnInitializePotentialDrag(PointerEventData eventData)
         {
-            if (editRoot.selectPosSlot == this)
+            if (craftEdit.selectPosSlot == this)
             {
                 eventData.useDragThreshold = false;
             }
@@ -51,7 +51,7 @@ namespace Nianxie.Craft
         void IBeginDragHandler.OnBeginDrag(PointerEventData eventData)
         {
             dragging = true;
-            if (editRoot.selectPosSlot != this)
+            if (craftEdit.selectPosSlot != this)
             {
                 ExecuteEvents.ExecuteHierarchy(transform.parent.gameObject, eventData, ExecuteEvents.beginDragHandler);
             }
@@ -60,7 +60,7 @@ namespace Nianxie.Craft
         void IEndDragHandler.OnEndDrag(PointerEventData eventData)
         {
             dragging = false;
-            if (editRoot.selectPosSlot != this)
+            if (craftEdit.selectPosSlot != this)
             {
                 ExecuteEvents.ExecuteHierarchy(transform.parent.gameObject, eventData, ExecuteEvents.endDragHandler);
             }
@@ -68,19 +68,20 @@ namespace Nianxie.Craft
         }
         void IDragHandler.OnDrag(PointerEventData eventData)
         {
-            if (editRoot.selectPosSlot != this)
+            if (craftEdit.selectPosSlot != this)
             {
                 ExecuteEvents.ExecuteHierarchy(transform.parent.gameObject, eventData, ExecuteEvents.dragHandler);
             }
             else
             {
                 var delta = eventData.delta;
-                transform.position += editRoot.camera.ScreenToWorldPoint(delta) - editRoot.camera.ScreenToWorldPoint(Vector3.zero);
+                transform.position += craftEdit.camera.ScreenToWorldPoint(delta) - craftEdit.camera.ScreenToWorldPoint(Vector3.zero);
+                craftEdit.OnGizmosRefresh();
             }
         }
 #if UNITY_EDITOR
         [BlackList]
-        public override void OnInspectorUpdate(bool change)
+        public override void ON_INSPECTOR_UPDATE(bool change)
         {
             m_DefaultPosition = transform.localPosition;
         }

@@ -7,7 +7,11 @@ namespace Nianxie.Craft
     public class ListSlot : AbstractSlotCom
     {
         [SerializeField]
-        private MonoBehaviour element;
+        private Vector2 delta = new Vector2(1, 1);
+        [SerializeField]
+        private AbstractElementSlot template;
+        [SerializeField]
+        private List<AbstractElementSlot> list;
         public override AbstractSlotJson PackToJson(AbstractPackContext packContext)
         {
             throw new System.NotImplementedException();
@@ -21,6 +25,12 @@ namespace Nianxie.Craft
         public override object ReadData()
         {
             throw new System.NotImplementedException();
+        }
+
+        public void Append()
+        {
+            var com = UnityEngine.Object.Instantiate(template, transform);
+            list.Add(com);
         }
     }
 }

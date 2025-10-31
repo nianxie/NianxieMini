@@ -24,7 +24,7 @@ namespace Nianxie.Framework
     }
     public struct MiniEditArgs
     {
-        public LuaFunction onSelect;
+        public LuaFunction refresh;
     }
 
     public class MiniBridge: IAssetLoader

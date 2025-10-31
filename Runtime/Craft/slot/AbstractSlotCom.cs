@@ -7,7 +7,7 @@ namespace Nianxie.Craft
 {
     public abstract class AbstractSlotCom:MonoBehaviour
     {
-        [NonSerialized] public EditRoot editRoot;
+        [NonSerialized] public CraftEdit craftEdit;
         public abstract AbstractSlotJson PackToJson(AbstractPackContext packContext);
         public abstract void UnpackFromJson(CraftUnpackContext unpackContext, AbstractSlotJson slotJson);
         public abstract object ReadData();
@@ -18,7 +18,7 @@ namespace Nianxie.Craft
         }
 #if UNITY_EDITOR
         [BlackList]
-        public virtual void OnInspectorUpdate(bool change)
+        public virtual void ON_INSPECTOR_UPDATE(bool change)
         {
         }
 #endif

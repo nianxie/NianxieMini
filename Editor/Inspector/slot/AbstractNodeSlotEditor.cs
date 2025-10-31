@@ -7,13 +7,13 @@ using XLua;
 
 namespace Nianxie.Editor
 {
-    [CustomEditor(typeof(AbstractAssetSlot), true)]
-    public class AbstractAssetSlotEditor: UnityEditor.Editor
+    [CustomEditor(typeof(AbstractNodeSlot), true)]
+    public class AbstractNodeSlotEditor: UnityEditor.Editor
     {
-        protected AbstractAssetSlot slotCom;
+        protected AbstractNodeSlot slotCom;
         protected void OnEnable()
         {
-            slotCom = (AbstractAssetSlot) target;
+            slotCom = (AbstractNodeSlot) target;
         }
         public override void OnInspectorGUI()
         {
@@ -34,7 +34,7 @@ namespace Nianxie.Editor
             EditorGUI.BeginChangeCheck();
             DrawDefaultInspector();
             var change = EditorGUI.EndChangeCheck();
-            slotCom.OnInspectorUpdate(change);
+            slotCom.ON_INSPECTOR_UPDATE(change);
         }
     }
 }

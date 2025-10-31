@@ -14,15 +14,15 @@ namespace Nianxie.Craft
     [RequireComponent(typeof(BoxCollider2D))]
     public class EditArea : MonoBehaviour, IPointerClickHandler
     {
-        private EditRoot editRoot;
+        private CraftEdit craftEdit;
         void Awake()
         {
-            editRoot = GetComponentInParent<EditRoot>();
+            craftEdit = GetComponentInParent<CraftEdit>();
         }
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            editRoot.OnSelect(null);
+            craftEdit.OnSelect(null);
         }
     }
 }

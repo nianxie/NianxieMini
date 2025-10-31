@@ -12,7 +12,7 @@ using XLua;
 
 namespace Nianxie.Craft
 {
-    public class EditRoot: MonoBehaviour, IScrollHandler, IInitializePotentialDragHandler, IBeginDragHandler, IEndDragHandler, IDragHandler
+    public class CraftEdit: MonoBehaviour, IScrollHandler, IInitializePotentialDragHandler, IBeginDragHandler, IEndDragHandler, IDragHandler
     {
         [SerializeField]
         private Camera m_Camera;
@@ -20,41 +20,32 @@ namespace Nianxie.Craft
         [SerializeField]
         private EditArea m_Area;
         public EditArea area => m_Area;
+        [SerializeField]
+        private Canvas m_Canvas;
+        public Canvas canvas => m_Canvas;
 
-        public AbstractAssetSlot selectAssetSlot;
-        public PositionSlot selectPosSlot;
+        public AbstractAssetSlot selectAssetSlot { get; private set; }
+        public PositionSlot selectPosSlot { get; private set; }
 
         public BehavSlot rootSlot { get; private set; }
 
-        private void InitByLoading(LuafabLoading craftLuafabLoading, bool silent)
+        private void InitByLoading(LuafabLoading miniCraftLoading)
         {
-            var miniBehav = (MiniBehaviour) craftLuafabLoading.RawFork(area.transform);
+            var miniBehav = miniCraftLoading.RawFork(area.transform);
             if (!miniBehav.TryGetComponent<BehavSlot>(out var behavSlot))
             {
                 throw new Exception("BehavSlot expected in root of MiniCraft");
             }
             rootSlot = behavSlot;
-            if (silent)
+            foreach (var slotCom in GetComponentsInChildren<AbstractSlotCom>())
             {
-                foreach (var childRenderer in behavSlot.gameObject.GetComponentsInChildren<Renderer>())
-                {
-                    childRenderer.enabled = false;
-                }
-
-                foreach (var childCollider2D in behavSlot.gameObject.GetComponentsInChildren<Collider2D>())
-                {
-                    childCollider2D.enabled = false;
-                }
-
-                foreach (var childCollider in behavSlot.gameObject.GetComponentsInChildren<Collider>())
-                {
-                    childCollider.enabled = false;
-                }
+                slotCom.craftEdit = this;
             }
-            foreach (var slotCom in rootSlot.GetComponentsInChildren<AbstractSlotCom>())
-            {
-                slotCom.editRoot = this;
-            }
+        }
+
+        public void OnGizmosRefresh()
+        {
+            editArgs.refresh.Action();
         }
 
         public void OnSelect(AbstractAssetSlot assetSlot)
@@ -63,14 +54,13 @@ namespace Nianxie.Craft
             {
                 selectAssetSlot = null;
                 selectPosSlot = null;
-                editArgs.onSelect?.Action(false);
             }
             else
             {
                 selectAssetSlot = assetSlot;
                 selectPosSlot = assetSlot.GetComponentInParent<PositionSlot>();
-                editArgs.onSelect?.Action(assetSlot);
             }
+            OnGizmosRefresh();
         }
 
         public void OnInitializePotentialDrag(PointerEventData eventData)
@@ -92,6 +82,7 @@ namespace Nianxie.Craft
         {
             var delta = eventData.delta;
             camera.transform.position -= camera.ScreenToWorldPoint(delta) - camera.ScreenToWorldPoint(Vector3.zero);
+            OnGizmosRefresh();
         }
 
         public void OnScroll(PointerEventData eventData)
@@ -102,6 +93,7 @@ namespace Nianxie.Craft
             camera.orthographicSize = Mathf.Max(0.5f, camera.orthographicSize - deltaY*0.001f);
             var newPinch = camera.ScreenToWorldPoint(center);
             camera.transform.position = camera.transform.position - newPinch + curPinch;
+            OnGizmosRefresh();
         }
 
         private MiniEditArgs editArgs;
@@ -109,9 +101,10 @@ namespace Nianxie.Craft
         public void PlayMain(MiniPlayArgs args, LuafabLoading miniCraftLoading)
         {
             camera.gameObject.SetActive(false);
+            canvas.gameObject.SetActive(false);
             if (miniCraftLoading != null)
             {
-                InitByLoading(miniCraftLoading, true);
+                InitByLoading(miniCraftLoading);
 
                 var craftJson = args.craftJson;
                 var altasTex = args.atlasTex;
@@ -121,13 +114,27 @@ namespace Nianxie.Craft
                     unpackContext.UnpackRoot(rootSlot);
                 }
             }
+            foreach (var childRenderer in gameObject.GetComponentsInChildren<Renderer>())
+            {
+                childRenderer.enabled = false;
+            }
+
+            foreach (var childCollider2D in gameObject.GetComponentsInChildren<Collider2D>())
+            {
+                childCollider2D.enabled = false;
+            }
+
+            foreach (var childCollider in gameObject.GetComponentsInChildren<Collider>())
+            {
+                childCollider.enabled = false;
+            }
         }
 
         public void EditMain(MiniEditArgs args, LuafabLoading miniCraftLoading)
         {
             editArgs = args;
             camera.gameObject.SetActive(true);
-            InitByLoading(miniCraftLoading, false);
+            InitByLoading(miniCraftLoading);
         }
         
         public (LargeBytes, byte[]) PackJsonPng()

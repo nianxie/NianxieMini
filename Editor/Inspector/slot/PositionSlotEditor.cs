@@ -26,7 +26,7 @@ namespace Nianxie.Editor
                 {
                     ComponentUtility.MoveComponentUp(posSlot);
                 }
-                posSlot.OnInspectorUpdate(false);
+                posSlot.ON_INSPECTOR_UPDATE(false);
             }
         }
     }

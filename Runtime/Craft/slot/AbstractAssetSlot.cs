@@ -115,7 +115,7 @@ namespace Nianxie.Craft
         }
 #if UNITY_EDITOR
         [BlackList]
-        public override void OnInspectorUpdate(bool change)
+        public override void ON_INSPECTOR_UPDATE(bool change)
         {
             if (!change) return;
             if (defaultFinalData != null)
@@ -129,9 +129,8 @@ namespace Nianxie.Craft
     }
     
     [ExecuteAlways]
-    [DisallowMultipleComponent]
     [RequireComponent(typeof(BoxCollider2D))]
-    public abstract class AbstractAssetSlot : AbstractSlotCom, IPointerDownHandler, IPointerClickHandler, IPointerUpHandler
+    public abstract class AbstractAssetSlot : AbstractNodeSlot, IPointerDownHandler, IPointerClickHandler, IPointerUpHandler
     {
         [NonSerialized] BoxCollider2D m_collider2D;
         public BoxCollider2D touchCollider2D
@@ -157,7 +156,7 @@ namespace Nianxie.Craft
         {
             if (!TryGetComponent<PositionSlot>(out var posSlot) || !posSlot.dragging)
             {
-                editRoot.OnSelect(this);
+                craftEdit.OnSelect(this);
             }
         }
 

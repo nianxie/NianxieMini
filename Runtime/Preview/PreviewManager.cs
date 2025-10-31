@@ -19,6 +19,7 @@ namespace Nianxie.Preview
         public Button backBtn;
         public Toggle craftToggle;
 
+        public PreviewGizmos previewGizmos;
         public PreviewBridge previewBridge;
         public MiniGameManager miniManager;
         public bool editCraft => craftToggle.isOn;
@@ -47,12 +48,12 @@ namespace Nianxie.Preview
             backBtn.gameObject.SetActive(true);
             if (string.IsNullOrEmpty(bundlePath))
             {
-                previewBridge = new PreviewBridge(folder);
+                previewBridge = new PreviewBridge(previewGizmos, folder);
             }
             else
             {
                 var bundle = AssetBundle.LoadFromFile(bundlePath);
-                previewBridge = new PreviewBridge(bundle);
+                previewBridge = new PreviewBridge(previewGizmos, bundle);
             }
             UniTask.Create(async () =>
             {

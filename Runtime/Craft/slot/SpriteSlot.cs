@@ -175,7 +175,7 @@ namespace Nianxie.Craft
         }
 #if UNITY_EDITOR
         [BlackList]
-        public override void OnInspectorUpdate(bool change)
+        public override void ON_INSPECTOR_UPDATE(bool change)
         {
             if (!change)
             {
@@ -190,7 +190,7 @@ namespace Nianxie.Craft
                 boxSize.x * (0.5f - m_Pivot.x),
                 boxSize.y * (0.5f - m_Pivot.y)
                 );
-            base.OnInspectorUpdate(change);
+            base.ON_INSPECTOR_UPDATE(change);
         }
 #endif
     }
