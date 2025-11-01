@@ -58,6 +58,7 @@ namespace Nianxie.Framework
             name = "(ERROR)",
         };
         public string[] scripts = {};
+        public string previewVideoUrl = "";
 
         public MiniProjectConfig(string [] scripts, string name, bool craftable):base(name, craftable)
         {

@@ -4,6 +4,7 @@
         "luafab/MiniRoot.thlua",
         "src/MiniContext.thlua"
     ],
+    "previewVideoUrl": "",
     "name": "simpleCraft",
     "version": 20250904,
     "craftable": true

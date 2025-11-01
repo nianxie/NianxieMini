@@ -8,6 +8,7 @@ using Nianxie.Utils;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.Video;
 using XLua;
 
 namespace Nianxie.Preview
@@ -17,6 +18,7 @@ namespace Nianxie.Preview
         public RectTransform menuRect;
         public RectTransform btnTpl;
         public Button backBtn;
+        public VideoPlayer videoPlayer;
         public Toggle craftToggle;
 
         public PreviewGizmos previewGizmos;
@@ -46,14 +48,15 @@ namespace Nianxie.Preview
         {
             menuRect.gameObject.SetActive(false);
             backBtn.gameObject.SetActive(true);
+            videoPlayer.gameObject.SetActive(false);
             if (string.IsNullOrEmpty(bundlePath))
             {
-                previewBridge = new PreviewBridge(previewGizmos, folder);
+                previewBridge = new PreviewBridge(previewGizmos, folder, PlayEnding);
             }
             else
             {
                 var bundle = AssetBundle.LoadFromFile(bundlePath);
-                previewBridge = new PreviewBridge(previewGizmos, bundle);
+                previewBridge = new PreviewBridge(previewGizmos, bundle, PlayEnding);
             }
             UniTask.Create(async () =>
             {
@@ -61,8 +64,24 @@ namespace Nianxie.Preview
             }).Forget();
         }
 
+        public void PlayEnding(string previewVideoUrl)
+        {
+            if (string.IsNullOrEmpty(previewVideoUrl))
+            {
+                Debug.Log("假装播放一下结束视频, 如果想预览一下结束视频，可以配置config.txt中的previewVideoUrl（注意，该值仅用于开发）");
+            }
+            else
+            {
+                videoPlayer.url = previewVideoUrl;
+            }
+            videoPlayer.gameObject.SetActive(true);
+            videoPlayer.Play();
+        }
+
         public void Unload()
         {
+            videoPlayer.Stop();
+            videoPlayer.gameObject.SetActive(false);
             menuRect.gameObject.SetActive(true);
             backBtn.gameObject.SetActive(false);
             if (previewBridge != null)

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Cysharp.Threading.Tasks;
 using Nianxie.Craft;
 using Nianxie.Framework;
@@ -7,20 +8,29 @@ using UnityEngine;
 using UnityEngine.InputSystem.EnhancedTouch;
 using UnityEngine.SceneManagement;
 using XLua;
+using Object = UnityEngine.Object;
 
 namespace Nianxie.Preview
 {
     public class PreviewBridge: MiniBridge
     {
-        public PreviewBridge(PreviewGizmos previewGizmos, AssetBundle bundle) : base(EditorGetMiniBoot(), bundle.CheckMiniFolder(), bundle)
+        public PreviewBridge(byte[] miniBoot, AssetBundle bundle, Action<string> playEnding) : base(miniBoot, bundle.CheckMiniFolder(), bundle)
         {
-            gizmos = previewGizmos;
+            gizmos = null;
+            this.playEnding = playEnding;
         }
-        public PreviewBridge(PreviewGizmos previewGizmos, string folder) : base(EditorGetMiniBoot(), folder, null)
+        public PreviewBridge(PreviewGizmos previewGizmos, AssetBundle bundle, Action<string> playEnding) : base(EditorGetMiniBoot(), bundle.CheckMiniFolder(), bundle)
         {
             gizmos = previewGizmos;
+            this.playEnding = playEnding;
+        }
+        public PreviewBridge(PreviewGizmos previewGizmos, string folder, Action<string> playEnding) : base(EditorGetMiniBoot(), folder, null)
+        {
+            gizmos = previewGizmos;
+            this.playEnding = playEnding;
         }
 
+        private Action<string> playEnding;
         private PreviewGizmos gizmos;
         private LuaEnv luaEnv;
         private LuaFunction bridgeWrapFn;
@@ -55,7 +65,7 @@ return setmetatable({
             {
                 var args = new MiniPlayArgs
                 {
-                    playEnding=selfWrap.Get<LuaFunction>(nameof(ExecuteEnding)),
+                    playEnding=selfWrap.Get<LuaFunction>(nameof(PlayEnding)),
                 };
                 if (miniConfig.craftable)
                 {
@@ -72,7 +82,10 @@ return setmetatable({
 
         public void Unload()
         {
-            gizmos.Refresh(null);
+            if (gizmos != null)
+            {
+                gizmos.Refresh(null);
+            }
             if (bundle != null)
             {
                 bundle.UnloadAsync(true);
@@ -84,9 +97,9 @@ return setmetatable({
             }
         }
 
-        public void ExecuteEnding()
+        public void PlayEnding()
         {
-            Debug.Log("假装播放一下结束视频");
+            playEnding(miniConfig.previewVideoUrl);
         }
         
         private (CraftJson, Texture2D) OpenPanel()

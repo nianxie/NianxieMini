@@ -3,6 +3,7 @@
         "luafab/MiniRoot.thlua",
         "src/MiniContext.thlua"
     ],
+    "previewVideoUrl": "",
     "name": "simpleGame",
     "version": 20250904,
     "craftable": false
