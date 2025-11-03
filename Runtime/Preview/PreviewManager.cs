@@ -40,11 +40,11 @@ namespace Nianxie.Preview
                 newRect.anchoredPosition = new Vector2(pos.x, pos.y-i*btnTpl.rect.height*2.2f);
                 newRect.gameObject.SetActive(true);
                 var project = projectList[i];
-                newRect.GetComponent<PreviewMiniButtons>().Main(this, project);
+                newRect.GetComponent<PreviewMiniButtons>().Main(LoadProject, project);
             }
         }
 
-        public void LoadProject(string folder, string bundlePath)
+        private void LoadProject(string folder, string bundlePath)
         {
             menuRect.gameObject.SetActive(false);
             backBtn.gameObject.SetActive(true);
@@ -64,7 +64,7 @@ namespace Nianxie.Preview
             }).Forget();
         }
 
-        public void PlayEnding(string previewVideoUrl)
+        private void PlayEnding(string previewVideoUrl)
         {
             if (string.IsNullOrEmpty(previewVideoUrl))
             {
@@ -78,7 +78,7 @@ namespace Nianxie.Preview
             videoPlayer.Play();
         }
 
-        public void Unload()
+        private void Unload()
         {
             videoPlayer.Stop();
             videoPlayer.gameObject.SetActive(false);
