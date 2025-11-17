@@ -6,8 +6,10 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 using System.Reflection;
+using Cysharp.Threading.Tasks;
 using Nianxie.Framework;
 using Nianxie.Utils;
+using Button = UnityEngine.UIElements.Button;
 
 namespace Nianxie.Editor
 {
@@ -18,7 +20,7 @@ namespace Nianxie.Editor
 
         private const string WND_NAME = "打包构建";
         
-        [MenuItem("念写Mini/"+WND_NAME, false, 2)]
+        [UnityEditor.MenuItem("念写Mini/"+WND_NAME, false, 2)]
         public static void OpenBuildWindow()
         {
             BuildMiniWindow wnd = GetWindow<BuildMiniWindow>(WND_NAME, true);
@@ -75,13 +77,37 @@ namespace Nianxie.Editor
                 ExecutePack(folder);
             };
         }
+        
+        /**
+         * 重命名, 通过一些hack重命名bundle，下个版本统一重构
+         */
+        public static void ExecuteRename(string folder, Guid targetGuid)
+        {
+            AssetBundle.UnloadAllAssetBundles(true);
+            var envPaths = MiniEditorEnvPaths.Get(folder);
+            UniTask.Create(async () =>
+            {
+                foreach (var (platform,path) in envPaths.finalBundleDict)
+                {
+                    // 解压->重命名->压缩
+                    var originPath = envPaths.finalBundleDict[BuildTarget.iOS];
+                    var uncompressPath = $"{envPaths.buildDir}/temp_{envPaths.folder}_uncompress.bundle";
+                    var finalPath = $"{envPaths.buildDir}/{envPaths.folder}_{platform}.bundle";
+                    await AssetBundle.RecompressAssetBundleAsync(originPath, uncompressPath, BuildCompression.Uncompressed).ToUniTask();
+                    var bundleBytes = await File.ReadAllBytesAsync(uncompressPath);
+                    MiniEditorEnvPaths.RenameMagicBundle(bundleBytes, targetGuid);
+                    await File.WriteAllBytesAsync(uncompressPath, bundleBytes);
+                    await AssetBundle.RecompressAssetBundleAsync(uncompressPath, finalPath, BuildCompression.LZ4Runtime).ToUniTask();
+                }
+            }).Forget();
+        }
 
         public static void ExecuteBuild(string folder)
         {
             var envPaths = MiniEditorEnvPaths.Get(folder);
             envPaths.Build();
         }
-        
+
         public static void ExecutePack(string folder)
         {
             var envPaths = MiniEditorEnvPaths.Get(folder);

@@ -34,7 +34,7 @@ namespace Nianxie.Editor
         }
         
         
-        private readonly string buildDir;
+        public readonly string buildDir;
         public readonly string finalManifest;
         public Dictionary<BuildTarget, string> finalBundleDict { get; }
 

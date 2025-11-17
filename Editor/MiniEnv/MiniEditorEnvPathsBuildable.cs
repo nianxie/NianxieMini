@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Text;
+using Nianxie.Utils;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,6 +13,7 @@ namespace Nianxie.Editor
     public partial class MiniEditorEnvPaths
     {
         private const string BUNDLE_EXT = "bundle";
+        private static string AB_MAGIC = "_magic_20251015_";
         
         private string GetPlatformFinalBundle(BuildTarget buildTarget)
         {
@@ -73,14 +77,14 @@ namespace Nianxie.Editor
             var explicitCollects = notScriptDict.Values.Where(a => a.isExplicit).ToArray();
 
             /*
-             * asset bundle中包含三种资源：
+             * asset bundle的构建中显示包含三种资源：
              * 1. script 资源
-             * 2. 显式引用的资源
+             * 2. prefab和script引用的资源
              * 3. config.txt
              */
             var bundleBuild = new AssetBundleBuild()
             {
-                assetBundleName = AssetDatabase.AssetPathToGUID(pathPrefix),
+                assetBundleName = $"{AB_MAGIC}{Guid.NewGuid():N}", 
                 assetBundleVariant = "",
                 assetNames = reflectEnv.scriptAssetDict.Keys
                     .Concat(explicitCollects.Select(a => a.path))
@@ -132,6 +136,54 @@ namespace Nianxie.Editor
             miniManifest.bundles = bundleInfos.ToArray();
             File.WriteAllBytes(finalManifest, miniManifest.ToJson());
             EditorUtility.RevealInFinder(buildDir);
+        }
+        
+        public static void RenameMagicBundle(byte[] bundleBytes, Guid targetGuid)
+        {
+            string bundleName = null;
+            {
+                var bundle = AssetBundle.LoadFromMemory(bundleBytes);
+                bundleName = bundle.name;
+                bundle.Unload(true);
+            }
+            var targetNameBytes = Encoding.ASCII.GetBytes($"{AB_MAGIC}{targetGuid:N}");
+            if (!bundleName.StartsWith(AB_MAGIC) || bundleName.Length != targetNameBytes.Length)
+            {
+                throw new Exception($"bundle is not a valid mini bundle, name={bundleName}");
+            }
+            // 1. 匹配
+            var bundleNameBytes = Encoding.ASCII.GetBytes(bundleName);
+            var bundleSpan = new ReadOnlySpan<byte>(bundleBytes);
+            var matchCount = 0;
+            var matchNamePosArr = new int[2]{0, 0};
+            for (int i = 0; i < bundleBytes.Length - bundleNameBytes.Length; i++)
+            {
+                var nameSpan = bundleSpan.Slice(i, bundleNameBytes.Length);
+                if (nameSpan.SequenceCompareTo(bundleNameBytes) == 0)
+                {
+                    if (matchCount >= 2)
+                    {
+                        throw new Exception($"bundle is not a valid mini bundle, name match more than 2");
+                    }
+                    matchNamePosArr[matchCount++] = i;
+                }
+            }
+            if (matchCount != 2)
+            {
+                throw new Exception($"bundle is not a valid mini bundle, name match less than 2");
+            }
+            // 2. 替换
+            var name1Pos = matchNamePosArr[0];
+            var name2Pos = matchNamePosArr[1];
+            for (int i = 0; i < targetNameBytes.Length; i++)
+            {
+                bundleBytes[name1Pos + i] = targetNameBytes[i];
+                bundleBytes[name2Pos + i] = targetNameBytes[i];
+            }
+
+            /*var finalBundle = AssetBundle.LoadFromMemory(bundleBytes);
+            Debug.Log($"yesyesyes {finalBundle.name}");
+            finalBundle.Unload(true);*/
         }
     }
 }
