@@ -73,7 +73,7 @@ namespace Nianxie.Framework
                     }
                 } else if (injection is AssetInjection assetInjection)
                 {
-                    foreach (var assetPath in assetInjection.EachAssetPath())
+                    foreach (var assetPath in assetInjection.assetPathList)
                     {
                         var childLoading = cacheLoader.CacheAssetLoading(assetPath, assetInjection.csharpType);
                         if (!childLoading.Done)

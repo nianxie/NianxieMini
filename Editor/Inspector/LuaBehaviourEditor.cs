@@ -33,51 +33,45 @@ namespace Nianxie.Editor
                 var rect23 = new Rect(rect.x+rect.width/3, y, 2*rect.width/3, EditorGUIUtility.singleLineHeight);
                 if(injection is AssetInjection assetInjection)
                 {
-                    foreach (var assetPath in assetInjection.EachAssetPath())
+                    var assetPath = assetInjection.assetPathList[i];
+                    var obj = AssetDatabase.LoadAssetAtPath(assetPath, injection.csharpType);
+                    if (obj == null)
                     {
-                        var obj = AssetDatabase.LoadAssetAtPath(assetPath, injection.csharpType);
-                        if (obj == null)
-                        {
-                            EditorGUI.LabelField(rect23, $"asset missing : {assetPath}", m_errStyle);
-                        }
-                        else
-                        {
-                            EditorGUI.ObjectField(rect3, obj, null, false);
-                        }
+                        EditorGUI.LabelField(rect23, $"asset missing : {assetPath}", m_errStyle);
+                    }
+                    else
+                    {
+                        EditorGUI.ObjectField(rect3, obj, null, false);
                     }
                 } else if (injection is SubAssetInjection subAssetInjection)
                 {
                     var assetDict = AssetDatabase.LoadAllAssetsAtPath(subAssetInjection.assetPath).ToDictionary((a) => a.name);
-                    foreach (var subName in subAssetInjection.EachSubName())
+                    var subName = subAssetInjection.subNameList[i];
+                    if (assetDict.TryGetValue(subName, out var obj))
                     {
-                        if (assetDict.TryGetValue(subName, out var obj))
-                        {
-                            EditorGUI.ObjectField(rect3, obj, null, false);
-                        }
-                        else
-                        {
-                            EditorGUI.LabelField(rect23, $"asset missing : {subAssetInjection.assetPath} {subName}", m_errStyle);
-                        }
+                        EditorGUI.ObjectField(rect3, obj, null, false);
+                    }
+                    else
+                    {
+                        EditorGUI.LabelField(rect23, $"asset missing : {subAssetInjection.assetPath} {subName}", m_errStyle);
                     }
                 } else if (injection is AbstractNodeInjection nodeInjection)
                 {
-                    foreach (var nodePath in nodeInjection.EachNodePath())
+                    var nodePath = nodeInjection.nodePathList[i];
+                    var obj = nodeInjection.ToNodeObject(m_behav, nodePath);
+                    if(obj == null)
                     {
-                        var obj = nodeInjection.ToNodeObject(m_behav, nodePath);
-                        if(obj == null)
+                        EditorGUI.LabelField(rect23, $"node missing : {nodePath}", m_errStyle);
+                    }
+                    else
+                    {
+                        if (reflectEnv is EditorReflectEnv editorReflectEnv && nodeInjection is ScriptInjection scriptInjection && !editorReflectEnv.CheckFieldClassMatch(scriptInjection, obj as LuaBehaviour))
                         {
-                            EditorGUI.LabelField(rect23, $"node missing : {nodePath}", m_errStyle);
+                            EditorGUI.LabelField(rect23, $"class mismatch : {nodePath}", m_errStyle);
                         }
                         else
                         {
-                            if (reflectEnv is EditorReflectEnv editorReflectEnv && nodeInjection is ScriptInjection scriptInjection && !editorReflectEnv.CheckFieldClassMatch(scriptInjection, obj as LuaBehaviour))
-                            {
-                                EditorGUI.LabelField(rect23, $"class mismatch : {nodePath}", m_errStyle);
-                            }
-                            else
-                            {
-                                EditorGUI.ObjectField(rect2, obj, injection.csharpType, false);
-                            }
+                            EditorGUI.ObjectField(rect2, obj, injection.csharpType, false);
                         }
                     }
                 }
@@ -159,7 +153,7 @@ namespace Nianxie.Editor
                     }
                     foreach (var nestedInjection in reflectClass.eachNestedInjection)
                     {
-                        foreach (var nodePath in nestedInjection.EachNodePath())
+                        foreach (var nodePath in nestedInjection.nodePathList)
                         {
                             var nestedBehav = nestedInjection.ToLuaBehaviour(behav, nodePath);
                             if (nestedBehav != null)

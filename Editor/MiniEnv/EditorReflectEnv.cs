@@ -80,7 +80,7 @@ namespace XLua
         {
             if (injection is AbstractNodeInjection nodeInjection)
             {
-                foreach (var nodePath in nodeInjection.EachNodePath())
+                foreach (var nodePath in nodeInjection.nodePathList)
                 {
                     if (nodeInjection.ToNodeObject(behav, nodePath) == null)
                     {
@@ -90,21 +90,21 @@ namespace XLua
             }
             else if(injection is AssetInjection assetInjection)
             {
-                foreach (var assetPath in assetInjection.EachAssetPath())
+                foreach (var assetPath in assetInjection.assetPathList)
                 {
-                    if (AssetDatabase.GetMainAssetTypeAtPath(assetPath) != assetInjection.csharpType)
+                    if (AssetDatabase.GetImporterType(assetPath) == null)
                     {
                         return true;
                     }
                 }
             } else if (injection is SubAssetInjection subAssetInjection)
             {
-                if (AssetDatabase.GetMainAssetTypeAtPath(subAssetInjection.assetPath) == null)
+                if (AssetDatabase.GetImporterType(subAssetInjection.assetPath) == null)
                 {
                     return true;
                 }
             } else if (injection is LuafabInjection luafabInjection) {
-                if (AssetDatabase.GetMainAssetTypeAtPath(luafabInjection.assetPath) == null)
+                if (AssetDatabase.GetImporterType(luafabInjection.assetPath) == null)
                 {
                     return true;
                 }

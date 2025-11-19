@@ -44,7 +44,7 @@
             </ui:Instance>
             <ui:Instance template="AccountMiniPipelineStep" name="distribute">
                 <AttributeOverrides element-name="info" text="5. 在叙事中使用" />
-                <AttributeOverrides element-name="titleInfo" text="远端：在叙事中使用" />
+                <AttributeOverrides element-name="titleInfo" text="远端：在互动叙事中使用" focusable="false" />
             </ui:Instance>
             <ui:Foldout text="————————————————" value="false">
                 <ui:Instance template="AccountMiniPipeline" name="buildPackage">

@@ -1,11 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace XLua
 {
     public class SubAssetInjection:AbstractMultipleInjection
     {
         public readonly string subName;
-        public readonly string[] subNameList;
+        private readonly string[] subNameArr;
+        public ReadOnlySpan<string> subNameList => new (subNameArr);
         public readonly string assetPath;
         public readonly InjectionMultipleKind collectionKind;
 
@@ -14,27 +16,15 @@ namespace XLua
             assetPath = cls.reflectEnv.envPaths.relativePath2assetPath(rawInjection.assetPath);
             if (rawInjection.table)
             {
-                subNameList = rawInjection.nodePathTable.Cast<string[]>();
+                subName = null;
+                subNameArr = rawInjection.nodePathTable.Cast<string[]>();
                 _count = subNameList.Length;
             }
             else
             {
                 subName = rawInjection.nodePath;
+                subNameArr = new []{subName};
                 _count = 1;
-            }
-        }
-        public IEnumerable<string> EachSubName()
-        {
-            if (multipleKind == InjectionMultipleKind.Single)
-            {
-                yield return subName;
-            }
-            else
-            {
-                foreach (var a in subNameList)
-                {
-                    yield return a;
-                }
             }
         }
     }

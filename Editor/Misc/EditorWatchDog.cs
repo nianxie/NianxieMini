@@ -114,7 +114,7 @@ namespace Nianxie.Editor
                         // 显示lua object的属性
                         var nodeInjections = envPaths.reflectEnv.GetWarmedReflect(luaBehav.classPath, luaBehav.nestedKeys).nodeInjections;
                         foreach(var firstInjection in nodeInjections) {
-                            foreach (var nodePath in firstInjection.EachNodePath())
+                            foreach (var nodePath in firstInjection.nodePathList)
                             {
                                 var node = firstInjection.ToNodeObject(luaBehav, nodePath);
                                 if (node != null)

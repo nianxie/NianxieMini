@@ -67,7 +67,7 @@ namespace XLua
                     collection.Add(luafabInjection.assetPath);
                 } else if (injection is AssetInjection assetInjection)
                 {
-                    foreach (var assetPath in assetInjection.EachAssetPath())
+                    foreach (var assetPath in assetInjection.assetPathList)
                     {
                         collection.Add(assetPath);
                     }

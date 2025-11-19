@@ -47,11 +47,11 @@ namespace Nianxie.Editor
         {
             m_VisualTreeAsset.CloneTree(root);
             view = EasyHierarchy.CreateByQuery<View>(root);
-            signPage = EasyViewModel.CreateViewModelAsNode<AccountSignPage>(view.signPage).Setup(() => { 
+            signPage = EasyViewModel.CreateViewModelAsNode<AccountSignPage>(view.signPage).Setup(() => {
                 dataPage.ScheduleRemoteRefresh();
                 refresh();
             });
-            dataPage = EasyViewModel.CreateViewModelAsNode<AccountDataPage>(view.dataPage).Setup(() => { 
+            dataPage = EasyViewModel.CreateViewModelAsNode<AccountDataPage>(view.dataPage).Setup(() => {
                 refresh();
             });
             refresh();
