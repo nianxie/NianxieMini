@@ -125,7 +125,7 @@ namespace Nianxie.Components
 						luaSelf.Set(injection.key, t);
 					}
 	            } else if (injection is AbstractNodeInjection nodeInjection) {
-					if (nodeInjection.collectionKind == InjectionMultipleKind.Single)
+					if (nodeInjection.multipleKind == InjectionMultipleKind.Single)
 					{
 						if (nodeInjection is ScriptInjection scriptInjection)
 						{
@@ -138,7 +138,7 @@ namespace Nianxie.Components
 							luaSelf.Set(injection.key, obj);
 						}
 					}
-					else if(nodeInjection.collectionKind == InjectionMultipleKind.List)
+					else if(nodeInjection.multipleKind == InjectionMultipleKind.List)
 					{
 						var t = reflectEnv.NewTable();
 						if (nodeInjection is ScriptInjection scriptInjection)

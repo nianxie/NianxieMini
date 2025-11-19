@@ -79,11 +79,11 @@ namespace XLua
             }
             else
             {
-                var collectionKind = InjectionMultipleKind.List;
+                var multipleKind = InjectionMultipleKind.List;
                 if (indexType != null)
                 {
                     Debug.LogError("injection Dict TODO");
-                    collectionKind = InjectionMultipleKind.Dict;
+                    multipleKind = InjectionMultipleKind.Dict;
                     return new ReferenceInjection(cls, this);
                 }
 
@@ -92,11 +92,11 @@ namespace XLua
                     return CreateNodeInjection(cls, nestedKeys, InjectionMultipleKind.List);
                 } else if (assetPathTable != null)
                 {
-                    return new AssetInjection(cls, this, collectionKind);
+                    return new AssetInjection(cls, this, multipleKind);
                 }
                 else if(assetPath != null && nodePathTable != null)
                 {
-                    return new SubAssetInjection(cls, this, collectionKind);
+                    return new SubAssetInjection(cls, this, multipleKind);
                 }
                 return new ReferenceInjection(cls, this);
             }

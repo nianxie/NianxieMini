@@ -12,7 +12,6 @@ namespace XLua
         public readonly string nodePath;
         private readonly string[] nodePathArr;
         public ReadOnlySpan<string> nodePathList => new (nodePathArr);
-        public readonly InjectionMultipleKind collectionKind;
         protected AbstractNodeInjection(WarmedReflectClass cls, RawReflectInjection rawInjection, InjectionMultipleKind kind) : base(cls, rawInjection, kind)
         {
             if (rawInjection.table)
