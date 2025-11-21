@@ -49,30 +49,29 @@ namespace XLua
         /// <returns></returns>
         public Dictionary<string, string> CollectReferenceAssetPaths()
         {
-            var absPathToValidGuid = new Dictionary<string, string>();
+            var pathToValidGuid = new Dictionary<string, string>();
             foreach (var warmedReflect in fileWarmedReflectDict.Values)
             {
                 var pathSet = new HashSet<string>();
                 warmedReflect.CollectReference(pathSet);
                 foreach (var path in pathSet)
                 {
-                    var absPath = $"{envPaths.pathPrefix}/{path}";
-                    var guid = AssetDatabase.AssetPathToGUID(absPath);
-                    if (Directory.Exists(absPath))
+                    var guid = AssetDatabase.AssetPathToGUID(path);
+                    if (Directory.Exists(path))
                     {
-                        Debug.LogError($"collect error in {warmedReflect.classPath}: {absPath} is a folder");
+                        Debug.LogError($"collect error in {warmedReflect.classPath}: {path} is a folder");
                     }
                     else if(string.IsNullOrEmpty(guid))
                     {
-                        Debug.LogError($"collect error in {warmedReflect.classPath}: {absPath} not existed");
+                        Debug.LogError($"collect error in {warmedReflect.classPath}: {path} not existed");
                     }
                     else
                     {
-                        absPathToValidGuid[absPath] = guid;
+                        pathToValidGuid[path] = guid;
                     }
                 }
             }
-            return absPathToValidGuid;
+            return pathToValidGuid;
         }
         
 

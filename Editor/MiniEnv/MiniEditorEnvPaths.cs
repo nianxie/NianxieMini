@@ -14,7 +14,7 @@ namespace Nianxie.Editor
     public partial class MiniEditorEnvPaths : EditorEnvPaths
     {
         private static readonly Dictionary<string, MiniEditorEnvPaths> cache = new();
-        public static BuildTarget[] BuildTargets { get; } = {BuildTarget.iOS, BuildTarget.Android};
+        public static BuildTarget[] BuildTargets { get; } = {BuildTarget.iOS, BuildTarget.Android, BuildTarget.WebGL};
         public static MiniEditorEnvPaths Get(string folder)
         {
             if (!cache.TryGetValue(folder, out var envPaths))
