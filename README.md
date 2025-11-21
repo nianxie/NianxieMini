@@ -1,2 +1,17 @@
-# NianxieMini
-common assets for mini game in nianxie
+# Nianxie 互动叙事短游戏Unity插件
+
+## Unity版本
+
+2022.3.62f2c1
+
+## 安装
+
+由于一些依赖的配置较麻烦，建议直接拉取[示例项目](https://github.com/nianxie/MiniExample)使用插件.
+
+## 文档
+
+[官方文档](https://docs.nianxie.com/docs/intro)
+
+## 技术支持
+
+QQ群：1063062993
