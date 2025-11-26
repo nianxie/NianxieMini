@@ -44,10 +44,10 @@ namespace XLua
 
         public override IReadOnlyDictionary<string, TextAsset> scriptAssetDict => assetModule.GetScriptAssetDict();
 
-        public void WrapLuaTaskOut<T>(UniTask<T> uniTask, out LuaTable outTask)
+        [Obsolete("TODO Use Future")]
+        public LuaTable WrapLuaTask<T>(UniTask<T> uniTask)
         {
             var ltask = boot.NewFuture.Func<LuaTable>();
-            outTask = ltask;
             UniTask.Create(async () =>
             {
                 try
@@ -60,12 +60,6 @@ namespace XLua
                     boot.CompleteFuture.Action(ltask, false, $"{e.GetType()}:{e.Message}:{e.StackTrace}");
                 }
             }).Forget();
-        }
-
-        [Obsolete("TODO Use Future")]
-        public LuaTable WrapLuaTask<T>(UniTask<T> uniTask)
-        {
-            WrapLuaTaskOut(uniTask, out var ltask);
             return ltask;
         }
 
@@ -221,6 +215,21 @@ namespace XLua
                 translator.Get(asyncL, 4, out T4 arg4);
                 return SafeAsyncEndResult(asyncL, func(arg2, arg3, arg4));
             });
+        }
+        public void AsyncCompleteFuture<TResult>(LuaTable future, Func<UniTask<TResult>> asyncFn)
+        {
+            UniTask.Create(async () =>
+            {
+                try
+                {
+                    var ret = await asyncFn();
+                    boot.CompleteFuture.Action(future, true, ret);
+                }
+                catch (Exception e)
+                {
+                    boot.CompleteFuture.Action(future, false, $"{e.GetType()}:{e.Message}:{e.StackTrace}");
+                }
+            }).Forget();
         }
         public LuaFunction bootSleep => boot.Sleep;
         public LuaFunction bootNewFuture => boot.NewFuture;

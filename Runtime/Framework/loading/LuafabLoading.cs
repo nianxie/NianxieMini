@@ -10,7 +10,7 @@ namespace Nianxie.Framework
     {
         public LuaTable clsOpen { get; }
         private LuaBehaviour luaBehav;
-        private LuaTable lazyTask;
+        private LuaTable readyFuture;
         private WarmedReflectClass warmedReflect { get; }
         private ICacheLoader cacheLoader;
 
@@ -36,19 +36,20 @@ namespace Nianxie.Framework
             return Object.Instantiate(luaBehav, parent, false);
         }
         
-        [HintReturn(typeof(LuaTable), true)]
-        public LuaTable WithLazyTask() {
-            if (lazyTask == null)
+        [HintReturn(typeof(LuafabLoading), true)]
+        public LuaTable ReadyFuture() {
+            if (readyFuture == null)
             {
+                var reflectEnv = cacheLoader.GetGameManager().reflectEnv;
+                readyFuture = reflectEnv.bootNewFuture.Func<LuaTable>();
                 Start();
-                var gameManager = cacheLoader.GetGameManager();
-                gameManager.reflectEnv.WrapLuaTaskOut(UniTask.Create(async()=>
+                reflectEnv.AsyncCompleteFuture(readyFuture, async () =>
                 {
                     await LoadAsync();
                     return this;
-                }), out lazyTask);
+                });
             }
-            return lazyTask;
+            return readyFuture;
         }
 
         private void addLoadTaskByReflect(List<UniTask> taskList, WarmedReflectClass reflectInfo)
