@@ -75,7 +75,7 @@ namespace Nianxie.Craft
             else
             {
                 var delta = eventData.delta;
-                transform.position += craftEdit.camera.ScreenToWorldPoint(delta) - craftEdit.camera.ScreenToWorldPoint(Vector3.zero);
+                transform.position += craftEdit.editCamera.ScreenToWorldPoint(delta) - craftEdit.editCamera.ScreenToWorldPoint(Vector3.zero);
                 craftEdit.OnGizmosRefresh();
             }
         }

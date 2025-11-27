@@ -1,14 +1,8 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using Cysharp.Threading.Tasks;
-using Nianxie.Components;
 using Nianxie.Framework;
 using Nianxie.Utils;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
-using XLua;
 
 namespace Nianxie.Craft
 {
@@ -16,7 +10,7 @@ namespace Nianxie.Craft
     {
         [SerializeField]
         private Camera m_Camera;
-        public Camera camera => m_Camera;
+        public Camera editCamera => m_Camera;
         [SerializeField]
         private EditArea m_Area;
         public EditArea area => m_Area;
@@ -81,7 +75,7 @@ namespace Nianxie.Craft
         public void OnDrag(PointerEventData eventData)
         {
             var delta = eventData.delta;
-            camera.transform.position -= camera.ScreenToWorldPoint(delta) - camera.ScreenToWorldPoint(Vector3.zero);
+            editCamera.transform.position -= editCamera.ScreenToWorldPoint(delta) - editCamera.ScreenToWorldPoint(Vector3.zero);
             OnGizmosRefresh();
         }
 
@@ -89,10 +83,10 @@ namespace Nianxie.Craft
         {
             var center = eventData.position;
             var deltaY = eventData.scrollDelta.y;
-            var curPinch = camera.ScreenToWorldPoint(center);
-            camera.orthographicSize = Mathf.Max(0.5f, camera.orthographicSize - deltaY*0.001f);
-            var newPinch = camera.ScreenToWorldPoint(center);
-            camera.transform.position = camera.transform.position - newPinch + curPinch;
+            var curPinch = editCamera.ScreenToWorldPoint(center);
+            editCamera.orthographicSize = Mathf.Max(0.5f, editCamera.orthographicSize - deltaY*0.001f);
+            var newPinch = editCamera.ScreenToWorldPoint(center);
+            editCamera.transform.position = editCamera.transform.position - newPinch + curPinch;
             OnGizmosRefresh();
         }
 
@@ -100,7 +94,7 @@ namespace Nianxie.Craft
 
         public void PlayMain(MiniPlayArgs args, LuafabLoading miniCraftLoading)
         {
-            camera.gameObject.SetActive(false);
+            editCamera.gameObject.SetActive(false);
             canvas.gameObject.SetActive(false);
             if (miniCraftLoading != null)
             {
@@ -133,7 +127,7 @@ namespace Nianxie.Craft
         public void EditMain(MiniEditArgs args, LuafabLoading miniCraftLoading)
         {
             editArgs = args;
-            camera.gameObject.SetActive(true);
+            editCamera.gameObject.SetActive(true);
             InitByLoading(miniCraftLoading);
         }
         

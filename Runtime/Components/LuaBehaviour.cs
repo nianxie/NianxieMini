@@ -47,6 +47,7 @@ namespace Nianxie.Components
             _luaTable = null;
         }
 
+        protected abstract void OnCreateLuaTable(LuaTable luaSelf);
         private void CreateLuaTable(out LuaTable outLuaTable)
         {
 	        if (_luaTable != null)
@@ -69,11 +70,7 @@ namespace Nianxie.Components
             luaSelf.Set("gameObject", gameObject);
             luaSelf.Set("transform", gameObject.transform);
             luaSelf.Set("context", gameManager.context);
-            var parentBehav = GetComponentInParent<LuaBehaviour>();
-            if (parentBehav != null)
-            {
-				luaSelf.Set("parent", parentBehav.luaTable);
-            }
+            OnCreateLuaTable(luaSelf);
             // TODO， 考虑挪到RuntimeReflectEnv中..吗？
             foreach (var injection in luaReflect.injections)
             {

@@ -57,5 +57,10 @@ namespace Nianxie.Components
                 base.OnDestroy();
             }
         }
+
+        protected override void OnCreateLuaTable(LuaTable luaSelf)
+        {
+            // do nothing
+        }
     }
 }

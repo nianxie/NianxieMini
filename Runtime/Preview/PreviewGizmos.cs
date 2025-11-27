@@ -30,7 +30,7 @@ namespace Nianxie.Preview
                     rectTransform.localScale = Vector3.one;
                 }
 
-                var screenPoint = RectTransformUtility.WorldToScreenPoint(craftEdit.camera, selectTransform.position);
+                var screenPoint = RectTransformUtility.WorldToScreenPoint(craftEdit.editCamera, selectTransform.position);
                 rectTransform.anchoredPosition = screenPoint;
             }
         }
