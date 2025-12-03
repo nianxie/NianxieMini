@@ -5,7 +5,7 @@ using TMPro;
 
 namespace DG.Tweening
 {
-    public static class DOTweenModifyTextMeshPro
+    public static class DOTweenModuleTextMeshPro
     {
         public static TweenerCore<Color, Color, ColorOptions> DOColor(this TMP_Text target, Color endValue, float duration)
         {

@@ -77,6 +77,7 @@ namespace XLua
             typeof(UnityEngine.EventSystems.BaseEventData),
 
             // ui
+            typeof(UnityEngine.UI.Outline),
             typeof(UnityEngine.UI.ScrollRect),
             typeof(UnityEngine.UI.Image),
             typeof(UnityEngine.UI.RawImage),
@@ -105,7 +106,7 @@ namespace XLua
             typeof(DG.Tweening.DOTweenModulePhysics),
             typeof(DG.Tweening.DOTweenModulePhysics2D),
             typeof(DG.Tweening.DOTweenModuleUnityVersion),
-            typeof(DG.Tweening.DOTweenModifyTextMeshPro),
+            typeof(DG.Tweening.DOTweenModuleTextMeshPro),
             // TODO 考虑EPOOueline是否需要引入？
             // typeof(DG.Tweening.DOTweenModuleEPOOutline),
             
