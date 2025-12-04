@@ -116,14 +116,14 @@ namespace Nianxie.Editor
                         name=middleView.miniName.value,
                         craftable=creating == CreatingKind.CRAFT,
                     });
-                    if (middleView.localCopy.value)
+                    /*if (middleView.localCopy.value)
                     {
                         var folder = middleView.miniFolder.value;
                         if (BuildMiniWindow.CopyTemplateAsProject(dbMini, folder))
                         {
                             AccountController.LinkFolder(dbMini, folder);
                         }
-                    }
+                    }*/
                     creating = CreatingKind.NONE;
                     selectIndex = SELECT_NOTHING;
                     Refresh();

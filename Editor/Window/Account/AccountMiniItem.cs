@@ -194,7 +194,7 @@ namespace Nianxie.Editor
                         Debug.LogError("路径为空");
                         return;
                     }
-                    if (BuildMiniWindow.CopyTemplateAsProject(context.dbMini, folder))
+                    /*if (BuildMiniWindow.CopyTemplateAsProject(context.dbMini, folder))
                     {
                         view.folderField.SetValueWithoutNotify("");
                         AccountController.LinkFolder(context.dbMini, folder);
@@ -203,7 +203,7 @@ namespace Nianxie.Editor
                             await AccountController.SyncConfigs(context.dbMini);
                             context.miniRefresh();
                         }).Forget();
-                    }
+                    }*/
                 };
                 view.btn2.clicked+= () => { 
                     AccountController.LinkFolder(context.dbMini, view.folderField.value);
@@ -268,7 +268,7 @@ namespace Nianxie.Editor
                             {
                                 throw new Exception($"config error in {envPaths.miniProjectConfig}");
                             }
-                            await AccountController.UploadBundle(stepContext.miniId, envPaths, (name, progress, total) =>
+                            await AccountController.UploadBundle(null, envPaths, (name, progress, total) =>
                             {
                                 EditorUtility.DisplayProgressBar("上传文件", $"{progress}/{total} {name}", (progress*1.0f)/total);
                             });
@@ -280,13 +280,12 @@ namespace Nianxie.Editor
                 };
                 view.btn2.clicked += () =>
                 {
-                    Debug.Log($"资源地址：{context.dbMini.manifestUrl} {context.dbMini.iosUrl} {context.dbMini.androidUrl}");
+                    Debug.Log($"资源地址：{context.dbMini.webglUrl} {context.dbMini.iosUrl} {context.dbMini.androidUrl}");
                 };
             }
             protected override bool isOkay()
             {
-                var readyStatus = context.dbMini.readyStatus;
-                return readyStatus==DB_Mini.STATUS_UPLOADED || readyStatus==DB_Mini.STATUS_VIDEO_USED;
+                return false;
             }
 
             protected override bool btn1Enable()
@@ -295,10 +294,7 @@ namespace Nianxie.Editor
                 {
                     if(File.Exists(envPaths.finalManifest) && envPaths.finalBundleDict.Values.All(path => File.Exists(path)))
                     {
-                        if (context.dbMini.readyStatus != DB_Mini.STATUS_VIDEO_USED)
-                        {
-                            return true;
-                        }
+                        return false;
                     }
                 }
                 return false;
@@ -334,7 +330,8 @@ namespace Nianxie.Editor
             }
             protected override bool isOkay()
             {
-                return context.dbMini.readyStatus==DB_Mini.STATUS_VIDEO_USED;
+                //return context.dbMini.readyStatus==DB_Mini.STATUS_VIDEO_USED;
+                return false;
             }
             public override void Refresh()
             {

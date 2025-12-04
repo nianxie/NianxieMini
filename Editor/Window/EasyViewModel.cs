@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -15,8 +16,26 @@ namespace Nianxie.Editor
         }
     }
 
+    public abstract class EasyState
+    {
+    }
+
+    public abstract class EasyHierarchy<TView> : EasyHierarchy where TView:EasyHierarchy
+    {
+        public void Apply(Action<TView> callSelf)
+        {
+            callSelf((TView)(EasyHierarchy)this);
+        }
+    }
+
     public abstract class EasyHierarchy
     {
+        public void SetDisplay(bool display)
+        {
+            self.SetDisplay(display);
+        }
+
+        private VisualElement self;
         /// <summary>
         /// 使用c#的反射能力，基于uxml的命名自动绑定view的属性
         /// </summary>
@@ -43,7 +62,32 @@ namespace Nianxie.Editor
 
         public static TView CreateByQuery<TView>(VisualElement root) where TView:EasyHierarchy, new()
         {
-            return (TView)CreateByQuery(root, typeof(TView));
+            var view = (TView)CreateByQuery(root, typeof(TView));
+            view.self = root;
+            return view;
+        }
+    }
+
+    public abstract class EasyWindow<TView, TState> : EditorWindow where TView:EasyHierarchy, new() where TState:EasyState, new()
+    {
+        [SerializeField]
+        private VisualTreeAsset uxmlAsset = default;
+        protected TView view;
+        protected TState state;
+
+        protected virtual void Setup()
+        {
+        }
+        protected virtual void Refresh()
+        {
+        }
+
+        public void CreateGUI()
+        {
+            uxmlAsset.CloneTree(rootVisualElement);
+            view = EasyHierarchy.CreateByQuery<TView>(rootVisualElement);
+            state = new TState();
+            Setup();
         }
     }
 

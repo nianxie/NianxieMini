@@ -5,103 +5,54 @@ using Nianxie.Framework;
 namespace Nianxie.Editor
 {
     [Serializable]
-    public class DB_Mini: MiniCommonConfig
+    public class DB_Mini
     {
-        public const int STATUS_INIT = 0;
-        public const int STATUS_UPLOADED = 1;
-        public const int STATUS_VIDEO_USED= 2;
         public string miniId;
         public string accountId;
-        public string videoId;
+        public string storyId;
         public string createTime;
-        //public string name;
-        //public bool craftable;
-        //public int majorVersion;
-        //public int minorVersion;
-        //public int patchVersion;
-        public int readyStatus;
-        public string readyToken;
-        public string manifestUrl;
+        public string name;
+        public bool craftable;
+        public string miniVersion;
+        public string unityVersion;
+        public string thumbnailUrl;
         public string androidUrl;
         public string iosUrl;
+        public string webglUrl;
+        public bool used;
         public bool packageReady;
-        public string packageReadyToken;
+        public string packageReadyTime;
         public string packageUrl;
-        public bool deleted;
     }
 
-    [Serializable]
-    public class MiniCreateRequest:MiniCommonConfig
-    {
-        public MiniCreateRequest(MiniCommonConfig commonConfig) : base(commonConfig)
-        {
-        }
-    }
-
-    [Serializable]
-    public class MiniList
-    {
-        public int pageNum;
-        public int pageSize;
-        public DB_Mini[] itemList;
-        public int totalPages;
-    }
-    
     [Serializable]
     public class MiniPaginationResponse
     {
         public int pageNum;
         public int pageSize;
         public DB_Mini[] itemList;
-        public int totalPages;
-    }
-    
-    [Serializable]
-    public class MiniBeginUploadRequest
-    {
-        public string miniId;
-        public int fileSize;
     }
     
     [Serializable]
     public class MiniBeginUploadResponse
     {
-        public string readyTime;
-        public string manifestFileKey;
+        public string session;
+        public int sizeLimit;
+        public string thumbnailFileKey;
         public string androidFileKey;
         public string iosFileKey;
+        public string webglFileKey;
         public string postSign;
     }
 
-
     [Serializable]
-    public class MiniSyncConfigsRequest
+    public class MiniEndUploadRequest
     {
-        [Serializable]
-        public class MiniSyncConfig:MiniCommonConfig
-        {
-            public string miniId;
-            public MiniSyncConfig(string miniId, MiniCommonConfig commonConfig) : base(commonConfig)
-            {
-                this.miniId = miniId;
-            }
-        }
-        public List<MiniSyncConfig> configs = new();
-        public MiniSyncConfigsRequest(Dictionary<string, MiniCommonConfig> configDict)
-        {
-            foreach (var (k, v) in configDict)
-            {
-                configs.Add(new MiniSyncConfig(k, v));
-            }
-        }
-    }
-    [Serializable]
-    public class MiniEndUploadRequest:MiniCommonConfig
-    {
-        public string miniId;
-        public MiniEndUploadRequest(string miniId, MiniCommonConfig commonConfig) : base(commonConfig)
-        {
-            this.miniId = miniId;
-        }
+        public string session;
+        public string name;
+        public bool craftable;
+        public bool thumbnailUploaded;
+        public string miniVersion;
+        public string unityVersion;
     }
 }

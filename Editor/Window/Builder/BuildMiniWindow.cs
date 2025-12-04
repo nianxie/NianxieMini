@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 using System.Reflection;
+using System.Web.UI.WebControls;
 using Cysharp.Threading.Tasks;
 using Nianxie.Framework;
 using Nianxie.Utils;
@@ -13,10 +14,48 @@ using Button = UnityEngine.UIElements.Button;
 
 namespace Nianxie.Editor
 {
-    public class BuildMiniWindow : EditorWindow
+    public class BuildMiniWindow : EasyWindow<BuildMiniWindow.View, BuildMiniWindow.State>
     {
-        [SerializeField]
-        private VisualTreeAsset m_VisualTreeAsset = default;
+        public class State : EasyState
+        {
+            public enum CreatingKind
+            {
+                NONE=0,
+                GAME=1,
+                CRAFT=2,
+            }
+
+            public CreatingKind creating;
+            public string folder = "";
+        }
+
+        public class View: EasyHierarchy<View>
+        {
+            public class CreateView: EasyHierarchy<CreateView>
+            {
+                public VisualElement createBtns;
+                public Button createGameBtn;
+                public Button createCraftBtn;
+                public VisualElement createForm;
+                public Button cancelBtn;
+                public TextField miniName;
+                public TextField miniFolderPrefix;
+                public TextField miniFolder;
+                public VisualElement kindGame;
+                public VisualElement kindCraft;
+                public Button submitBtn;
+            }
+            public CreateView createView;
+
+            public class BuildView : EasyHierarchy<BuildView>
+            {
+                public DropdownField folder;
+                public Button ExecutePack;
+                public Button ExecuteBuild;
+            }
+
+            public BuildView buildView;
+        }
 
         private const string WND_NAME = "打包构建";
         
@@ -35,47 +74,89 @@ namespace Nianxie.Editor
                 :new List<string>();
         }
 
-        private string folder = "";
-        
-        public void CreateGUI()
+        protected override void Refresh()
         {
-            // Each editor window contains a root VisualElement object
-            VisualElement root = rootVisualElement;
+            view.createView.Apply((createView) =>
+            {
+                createView.createBtns.SetDisplay(state.creating == State.CreatingKind.NONE);
+                createView.createForm.SetDisplay(state.creating != State.CreatingKind.NONE);
+                createView.kindCraft.SetDisplay(state.creating == State.CreatingKind.CRAFT);
+                createView.kindGame.SetDisplay(state.creating == State.CreatingKind.GAME);
+            });
+        }
 
-            // VisualElements objects can contain other VisualElement following a tree hierarchy.
-            // VisualElement label = new Label("Hello World! From C#");
-            // root.Add(label);
-
-            // Instantiate UXML
-            VisualElement labelFromUXML = m_VisualTreeAsset.Instantiate();
-            root.Add(labelFromUXML);
-            
-            // draw path drop down
+        protected override void Setup()
+        {
             var pathList = ListProjectFolders();
-            var miniProjectDropDown = root.Query<DropdownField>(nameof(folder)).First();
-            miniProjectDropDown.choices = pathList;
+            view.buildView.folder.choices = pathList;
             if (pathList.Count > 0)
             {
-                miniProjectDropDown.SetValueWithoutNotify(pathList[0]);
-                folder = miniProjectDropDown.value;
+                view.buildView.folder.SetValueWithoutNotify(pathList[0]);
+                state.folder = view.buildView.folder.value;
             }
             else
             {
-                folder = "";
+                state.folder = "";
             }
 
-            miniProjectDropDown.RegisterValueChangedCallback((e) =>
+            // binding create view
+            view.createView.Apply((createView) =>
             {
-                folder= miniProjectDropDown.value;
+                createView.miniFolderPrefix.SetEnabled(false);
+                string autoProjectName()
+                {
+                    string defaultFolder = "newProject";
+                    string validFolder = defaultFolder;
+                    int k = 1;
+                    while (Directory.Exists($"{NianxieConst.MiniPrefixPath}/{validFolder}"))
+                    {
+                        validFolder = $"{defaultFolder}_{k++}";
+                    }
+                    return validFolder;
+                }
+                createView.createGameBtn.clicked += () =>
+                {
+                    state.creating = State.CreatingKind.GAME;
+                    createView.miniFolder.value = autoProjectName();
+                    Refresh();
+                };
+                createView.createCraftBtn.clicked += () =>
+                {
+                    state.creating = State.CreatingKind.CRAFT;
+                    createView.miniFolder.value = autoProjectName();
+                    Refresh();
+                };
+                createView.cancelBtn.clicked += () =>
+                {
+                    state.creating = State.CreatingKind.NONE;
+                    Refresh();
+                };
+                createView.submitBtn.clicked += () =>
+                {
+                    if (state.creating != State.CreatingKind.NONE)
+                    {
+                        CopyTemplateAsProject(view.createView.miniFolder.value, state.creating == State.CreatingKind.CRAFT, view.createView.miniName.value);
+                        state.creating = State.CreatingKind.NONE;
+                        Refresh();
+                    }
+                };
             });
-            root.Query("Panel").First().Query<Button>(nameof(ExecuteBuild)).First().clicked+=()=>
+            // binding build view
+            view.buildView.Apply((buildView) =>
             {
-                ExecuteBuild(folder);
-            };
-            root.Query("Panel").First().Query<Button>(nameof(ExecutePack)).First().clicked+=()=>
-            {
-                ExecutePack(folder);
-            };
+                buildView.folder.RegisterValueChangedCallback((e) =>
+                {
+                    state.folder = view.buildView.folder.value;
+                });
+                buildView.ExecuteBuild.clicked+=()=>
+                {
+                    ExecuteBuild(state.folder);
+                };
+                buildView.ExecutePack.clicked+=()=>
+                {
+                    ExecutePack(state.folder);
+                };
+            });
         }
         
         /**
@@ -102,13 +183,13 @@ namespace Nianxie.Editor
             }).Forget();
         }
 
-        public static void ExecuteBuild(string folder)
+        private static void ExecuteBuild(string folder)
         {
             var envPaths = MiniEditorEnvPaths.Get(folder);
             envPaths.Build();
         }
 
-        public static void ExecutePack(string folder)
+        private static void ExecutePack(string folder)
         {
             var envPaths = MiniEditorEnvPaths.Get(folder);
             var notScriptGuids = CollectNotScript.Collect(envPaths.reflectEnv).Values.Select(a => a.guid).Where(a=>!string.IsNullOrEmpty(a));
@@ -117,9 +198,9 @@ namespace Nianxie.Editor
             ShowExportPackageWindow(guids);
         }
 
-        public static bool CopyTemplateAsProject(MiniCommonConfig config, string folder)
+        private static void CopyTemplateAsProject(string folder, bool craftable, string name)
         {
-            var srcPath = config.craftable?NianxieConst.TemplateSimpleCraft:NianxieConst.TemplateSimpleGame;
+            var srcPath = craftable?NianxieConst.TemplateSimpleCraft:NianxieConst.TemplateSimpleGame;
             var dstPath = $"{NianxieConst.MiniPrefixPath}/{folder}";
             if (!Directory.Exists(NianxieConst.MiniPrefixPath))
             {
@@ -131,14 +212,12 @@ namespace Nianxie.Editor
                 var miniEnvPaths = MiniEditorEnvPaths.Get(folder);
                 if (miniEnvPaths!=null)
                 {
-                    miniEnvPaths.FlushName(config.name);
+                    miniEnvPaths.FlushName(name);
                 }
-                return true;
             }
             else
             {
                 Debug.LogError($"project create error: copy maybe fail {srcPath} -> {dstPath}");
-                return false;
             }
         }
 

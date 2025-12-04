@@ -1,10 +1,58 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <ui:VisualElement style="flex-grow: 1;">
-        <ui:VisualElement name="Panel" style="flex-grow: 1;">
-            <ui:DropdownField label="project:" name="folder" />
-            <ui:Button text="export package" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ExecutePack" />
-            <ui:Button text="build minibundle" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ExecuteBuild" />
+        <ui:VisualElement name="createView" style="flex-grow: 0; height: auto; justify-content: flex-start; -unity-text-outline-width: 0; -unity-text-outline-color: rgba(0, 0, 0, 0); border-top-width: 5px; border-right-width: 5px; border-bottom-width: 5px; border-left-width: 5px; border-left-color: rgba(0, 255, 43, 0); border-right-color: rgba(0, 255, 43, 0); border-top-color: rgba(0, 255, 43, 0); border-bottom-color: rgba(0, 255, 43, 0); background-color: rgba(76, 75, 75, 0);">
+            <ui:VisualElement name="createBtns" style="flex-grow: 0; flex-direction: row; align-items: auto; align-self: auto; justify-content: flex-start; width: 600px;">
+                <ui:Button text="新建游戏" parse-escape-sequences="true" display-tooltip-when-elided="true" name="createGameBtn" style="-unity-text-align: middle-left; align-self: stretch; align-items: stretch; height: auto; width: 100px; font-size: 16px; justify-content: flex-end; display: flex; flex-grow: 0; flex-direction: row; padding-left: 6px; padding-right: 6px; padding-top: 6px; padding-bottom: 6px;">
+                    <ui:VisualElement style="flex-grow: 0; background-image: url(&quot;project://database/Assets/NianxieMini/Editor%20Default%20Resources/game.png?fileID=2800000&amp;guid=48e31103f357aba49ae31f860015749c&amp;type=3#game&quot;); align-self: center; align-items: auto; flex-direction: row; justify-content: space-around; flex-shrink: 0; -unity-text-align: middle-left; flex-basis: auto; width: 18px; height: 18px;" />
+                </ui:Button>
+                <ui:Button text="新建模板" parse-escape-sequences="true" display-tooltip-when-elided="true" name="createCraftBtn" style="-unity-text-align: middle-left; align-self: stretch; align-items: stretch; height: auto; width: 100px; font-size: 16px; justify-content: flex-end; display: flex; flex-grow: 0; padding-top: 6px; padding-right: 6px; padding-bottom: 6px; padding-left: 6px; flex-direction: row;">
+                    <ui:VisualElement style="flex-grow: 0; background-image: url(&quot;project://database/Assets/NianxieMini/Editor%20Default%20Resources/craft.png?fileID=2800000&amp;guid=66d9cee5318d39a4cb6bc45f62c2a7cb&amp;type=3#craft&quot;); width: 18px; height: 18px; flex-shrink: 0; align-self: center; justify-content: space-around; align-items: auto; flex-direction: row;" />
+                </ui:Button>
+            </ui:VisualElement>
+            <ui:VisualElement name="createForm" style="flex-grow: 0; flex-direction: column; align-self: auto; align-items: stretch; height: auto; justify-content: flex-start; width: 100%; -unity-text-align: upper-left; flex-wrap: nowrap; margin-left: 0; padding-left: 20px; font-size: 18px; display: none;">
+                <ui:Button text="取消" parse-escape-sequences="true" display-tooltip-when-elided="true" name="cancelBtn" style="-unity-text-align: middle-center; align-self: flex-start; align-items: stretch; height: auto; width: 100px; font-size: 16px; justify-content: flex-start; display: flex; flex-grow: 0;" />
+                <ui:VisualElement style="flex-grow: 0; flex-direction: row; margin-top: 2px; margin-right: 4px; margin-bottom: 2px; margin-left: 4px; white-space: nowrap; flex-shrink: 0;">
+                    <ui:Label tabindex="-1" text="名称：" parse-escape-sequences="true" display-tooltip-when-elided="true" style="overflow: hidden; text-overflow: ellipsis; flex-direction: row; align-self: center;" />
+                    <ui:TextField picking-mode="Ignore" value="新项目" name="miniName" style="flex-shrink: 1; flex-grow: 1; align-self: center;" />
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-grow: 0; flex-direction: row; margin-top: 2px; margin-right: 4px; margin-bottom: 2px; margin-left: 4px; white-space: nowrap; flex-shrink: 0; align-self: auto;">
+                    <ui:Label tabindex="-1" text="类别：" parse-escape-sequences="true" display-tooltip-when-elided="true" style="overflow: hidden; text-overflow: ellipsis; flex-direction: row; align-self: center;" />
+                    <ui:Label tabindex="-1" text="游戏" parse-escape-sequences="true" display-tooltip-when-elided="true" name="kindGame" style="flex-direction: row; justify-content: flex-end; width: 60px; font-size: 18px; align-self: auto; align-items: auto;">
+                        <ui:VisualElement style="flex-grow: 0; flex-direction: row; align-self: center; justify-content: space-between; align-items: stretch; width: 18px; height: 18px; flex-shrink: 0; background-image: url(&quot;project://database/Assets/NianxieMini/Editor%20Default%20Resources/game.png?fileID=2800000&amp;guid=48e31103f357aba49ae31f860015749c&amp;type=3#game&quot;);" />
+                    </ui:Label>
+                    <ui:Label tabindex="-1" text="模板" parse-escape-sequences="true" display-tooltip-when-elided="true" name="kindCraft" style="flex-direction: row; justify-content: flex-end; width: 60px; font-size: 18px; align-self: auto; align-items: auto;">
+                        <ui:VisualElement style="flex-grow: 0; flex-direction: row; align-self: center; justify-content: space-between; align-items: stretch; width: 18px; height: 18px; flex-shrink: 0; background-image: url(&quot;project://database/Assets/NianxieMini/Editor%20Default%20Resources/craft.png?fileID=2800000&amp;guid=66d9cee5318d39a4cb6bc45f62c2a7cb&amp;type=3#craft&quot;);" />
+                    </ui:Label>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-grow: 0; flex-direction: row; margin-top: 2px; margin-right: 4px; margin-bottom: 2px; margin-left: 4px; white-space: nowrap; flex-shrink: 0;">
+                    <ui:Label tabindex="-1" text="路径：" parse-escape-sequences="true" display-tooltip-when-elided="true" style="overflow: hidden; text-overflow: ellipsis; flex-direction: row; align-self: center;" />
+                    <ui:TextField picking-mode="Ignore" value="Assets/MiniProjects/" readonly="true" focusable="true" name="miniFolderPrefix" style="align-self: auto; -unity-text-align: middle-left;" />
+                    <ui:TextField picking-mode="Ignore" value="newProject" name="miniFolder" style="flex-shrink: 1; flex-grow: 1; align-self: center;" />
+                </ui:VisualElement>
+                <ui:Button text="确认创建" parse-escape-sequences="true" display-tooltip-when-elided="true" name="submitBtn" style="align-self: center; width: 30%; height: 30px; font-size: 16px;" />
+            </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="Account" style="flex-grow: 1;" />
+        <ui:Button parse-escape-sequences="true" display-tooltip-when-elided="true" enable-rich-text="false" focusable="false" style="height: 2px; min-height: 2px; max-height: 2px; background-color: rgb(255, 255, 255);" />
+        <ui:VisualElement name="buildView" style="flex-grow: 1; flex-direction: column;">
+            <ui:VisualElement style="flex-grow: 0; flex-direction: row;">
+                <ui:DropdownField label="选择项目：" name="folder" style="font-size: 16px; flex-shrink: 1; width: auto; white-space: nowrap; -unity-text-align: middle-center; padding-top: 6px; padding-right: 6px; padding-bottom: 6px; padding-left: 6px; align-self: center; align-items: stretch; justify-content: flex-start; flex-direction: row; flex-wrap: nowrap; text-overflow: clip;" />
+                <ui:Button text="导出Package" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ExecutePack" focusable="false" style="flex-shrink: 1; font-size: 16px; padding-top: 6px; padding-right: 6px; padding-bottom: 6px; padding-left: 6px; flex-direction: row; justify-content: center; align-self: center; margin-left: 20px; margin-right: 10px; width: 200px;" />
+            </ui:VisualElement>
+            <ui:VisualElement style="flex-grow: 0; flex-direction: column; justify-content: flex-start; align-items: flex-start;">
+                <ui:VisualElement style="flex-grow: 1; flex-direction: row; align-items: center; align-self: auto;">
+                    <ui:Toggle label="打包iOS" name="iosBuild" value="true" style="padding-top: 6px; padding-right: 6px; padding-bottom: 6px; padding-left: 6px; font-size: 16px; -unity-text-align: middle-center; width: auto;" />
+                    <ui:Toggle label="打包Android" name="androidBuild" value="true" style="padding-top: 6px; padding-right: 6px; padding-bottom: 6px; padding-left: 6px; font-size: 16px; -unity-text-align: middle-center;" />
+                    <ui:Toggle label="打包WebGL" name="webglBuild" value="true" style="padding-top: 6px; padding-right: 6px; padding-bottom: 6px; padding-left: 6px; font-size: 16px; -unity-text-align: middle-center;" />
+                </ui:VisualElement>
+                <ui:Button text="打包Bundle" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ExecuteBuild" style="flex-shrink: 1; font-size: 16px; flex-direction: row; padding-top: 6px; padding-right: 6px; padding-bottom: 6px; padding-left: 6px; justify-content: center; align-self: center;" />
+                <ui:Button parse-escape-sequences="true" display-tooltip-when-elided="true" enable-rich-text="false" focusable="false" style="height: 2px; min-height: 2px; max-height: 2px; background-color: rgb(255, 255, 255); flex-grow: 1; align-self: stretch;" />
+                <ui:VisualElement style="flex-grow: 1;">
+                    <ui:TextField picking-mode="Ignore" label="iOS Bundle:" name="iosBundle" readonly="true" style="font-size: 16px; -unity-text-align: middle-center;" />
+                    <ui:TextField picking-mode="Ignore" label="Android Bundle:" name="androidBundle" readonly="true" focusable="true" style="visibility: visible; font-size: 16px; -unity-text-align: middle-center;" />
+                    <ui:TextField picking-mode="Ignore" label="WebGL Bundle:" name="webglBundle" readonly="true" style="font-size: 16px; -unity-text-align: middle-center; padding-top: 6px; padding-right: 6px; padding-bottom: 6px; padding-left: 6px;" />
+                </ui:VisualElement>
+                <ui:Button text="查看" parse-escape-sequences="true" display-tooltip-when-elided="true" name="openFolder" style="flex-shrink: 1; font-size: 16px; flex-direction: row; padding-top: 6px; padding-right: 6px; padding-bottom: 6px; padding-left: 6px; justify-content: center; align-self: center; width: 100px;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>
