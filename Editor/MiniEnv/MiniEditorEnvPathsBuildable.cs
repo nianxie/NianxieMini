@@ -62,7 +62,7 @@ namespace Nianxie.Editor
             }
         }
 
-        public void Build()
+        public void Build(BuildTarget[] targets)
         {
             ClearBuildDirectory();
             if (config.IsError())
@@ -91,7 +91,7 @@ namespace Nianxie.Editor
                     .Concat(new []{miniProjectConfig}).ToArray()
             };
             
-            foreach (var buildTarget in BuildTargets)
+            foreach (var buildTarget in targets)
             {
                 string platformOutputDirectory = GetPlatformBuildDir(buildTarget);
                 var buildOptions = GetBundleBuildOptions();
@@ -112,7 +112,7 @@ namespace Nianxie.Editor
                 Debug.Log($"UnityEngine build success in platform {buildTarget}!");
             }
             var bundleInfos = new List<BundleInfo>(10);
-            foreach (var buildTarget in BuildTargets)
+            foreach (var buildTarget in targets)
             {
                 string platformOutputDir = GetPlatformBuildDir(buildTarget);
                 string srcMainName = $"{platformOutputDir}/{bundleBuild.assetBundleName}";

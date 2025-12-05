@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -18,7 +19,6 @@ namespace Nianxie.Editor
 {
     public class BuildMiniWindow : EasyWindow<BuildMiniWindow.View, BuildMiniWindow.State>
     {
-
         private const string WND_NAME = "本地项目管理";
         
         [UnityEditor.MenuItem("念写Mini/"+WND_NAME, false, 1)]
@@ -28,6 +28,9 @@ namespace Nianxie.Editor
             wnd.titleContent = new GUIContent(WND_NAME);
             wnd.minSize = new Vector2(500, 500);
         }
+        
+        [SerializeField]
+        private VisualTreeAsset uxmlItemAsset = default;
         
         public class State : EasyState
         {
@@ -41,6 +44,17 @@ namespace Nianxie.Editor
             public CreatingKind creating;
             public string folder = "";
         }
+
+        public class ItemView:EasyHierarchy<ItemView>
+        {
+            public Button selectBtn;
+            public VisualElement kindGame;
+            public VisualElement kindCraft;
+            public Label miniName;
+            public Label miniFolder;
+        }
+
+        public ItemView[] itemViews;
 
         public class View: EasyHierarchy<View>
         {
@@ -60,6 +74,7 @@ namespace Nianxie.Editor
             }
             public CreateView createView;
 
+            public VisualElement selectView;
             public class ManagerView : EasyHierarchy<ManagerView>
             {
                 public class BundleLine : EasyHierarchy<BundleLine>
@@ -68,13 +83,13 @@ namespace Nianxie.Editor
                     public Button openFolder;
                 }
 
+                public Button cancelBtn;
                 public Toggle iosBuild;
                 public Toggle androidBuild;
                 public Toggle webglBuild;
                 public BundleLine iosBundle;
                 public BundleLine androidBundle;
                 public BundleLine webglBundle;
-                public DropdownField folder;
                 public Button executePack;
                 public Button executeBuild;
                 public Button gotoUpload;
@@ -87,7 +102,6 @@ namespace Nianxie.Editor
                 }
                 public DetailView detailView;
             }
-
             public ManagerView managerView;
         }
 
@@ -107,10 +121,34 @@ namespace Nianxie.Editor
                 createView.kindCraft.SetDisplay(state.creating == State.CreatingKind.CRAFT);
                 createView.kindGame.SetDisplay(state.creating == State.CreatingKind.GAME);
             });
-            if (!string.IsNullOrEmpty(state.folder))
+            if (string.IsNullOrEmpty(state.folder))
             {
-                
-                    //folderObject = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(folderPath);
+                view.selectView.SetDisplay(true);
+                view.managerView.SetDisplay(false);
+                var pathList = ListProjectFolders();
+                view.selectView.Clear();
+                itemViews = new ItemView[pathList.Count];
+                for (int i = 0; i < pathList.Count; i++)
+                {
+                    var folder = pathList[i];
+                    uxmlItemAsset.CloneTree(view.selectView, out int index, out _);
+                    var itemView = EasyHierarchy.CreateByQuery<ItemView>(view.selectView[index]);
+                    itemView.selectBtn.clicked+=()=>{
+                        state.folder = folder;
+                        Refresh();
+                    };
+                    var envPaths = MiniEditorEnvPaths.Get(folder);
+                    var craftable = envPaths.config.craftable;
+                    itemView.kindCraft.SetDisplay(craftable);
+                    itemView.kindGame.SetDisplay(!craftable);
+                    itemView.miniFolder.text = envPaths.folder;
+                    itemView.miniName.text = envPaths.config.name;
+                    itemViews[i] = itemView;
+                }
+            } else
+            {
+                view.selectView.SetDisplay(false);
+                view.managerView.SetDisplay(true);
                 var envPaths = MiniEditorEnvPaths.Get(state.folder);
                 view.managerView.Apply((managerView) =>
                 {
@@ -150,18 +188,6 @@ namespace Nianxie.Editor
 
         protected override void Setup()
         {
-            var pathList = ListProjectFolders();
-            view.managerView.folder.choices = pathList;
-            if (pathList.Count > 0)
-            {
-                view.managerView.folder.SetValueWithoutNotify(pathList[0]);
-                state.folder = view.managerView.folder.value;
-            }
-            else
-            {
-                state.folder = "";
-            }
-
             // binding create view
             view.createView.Apply((createView) =>
             {
@@ -207,6 +233,11 @@ namespace Nianxie.Editor
             // binding build view
             view.managerView.Apply((managerView) =>
             {
+                managerView.cancelBtn.clicked += () =>
+                {
+                    state.folder = "";
+                    Refresh();
+                };
                 foreach (var bundleLine in new[] {managerView.iosBundle, managerView.androidBundle, managerView.webglBundle})
                 {
                     bundleLine.pathField.SetEnabled(false);
@@ -223,14 +254,17 @@ namespace Nianxie.Editor
                         }
                     };
                 }
-                managerView.folder.RegisterValueChangedCallback((e) =>
-                {
-                    state.folder = view.managerView.folder.value;
-                    Refresh();
-                });
                 managerView.executeBuild.clicked+=()=>
                 {
-                    ExecuteBuild(state.folder);
+
+                    var arr = new[]
+                    {
+                        (managerView.iosBuild.value, BuildTarget.iOS),
+                        (managerView.androidBuild.value, BuildTarget.Android),
+                        (managerView.webglBuild.value, BuildTarget.WebGL),
+                    };
+                    var targets = arr.Where(x=>x.Item1).Select(x=>x.Item2).ToArray();
+                    ExecuteBuild(state.folder, targets);
                     Refresh();
                 };
                 managerView.executePack.clicked+=()=>
@@ -269,10 +303,10 @@ namespace Nianxie.Editor
             }).Forget();
         }
 
-        private static void ExecuteBuild(string folder)
+        private static void ExecuteBuild(string folder, BuildTarget[] targets)
         {
             var envPaths = MiniEditorEnvPaths.Get(folder);
-            envPaths.Build();
+            envPaths.Build(targets);
         }
 
         private static void ExecutePack(string folder)

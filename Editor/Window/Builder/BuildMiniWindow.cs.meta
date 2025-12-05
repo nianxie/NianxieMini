@@ -6,6 +6,7 @@ MonoImporter:
   defaultReferences:
   - m_ViewDataDictionary: {instanceID: 0}
   - uxmlAsset: {fileID: 9197481963319205126, guid: 95ef47d7f0863914dad3ce2335b13feb, type: 3}
+  - uxmlItemAsset: {fileID: 9197481963319205126, guid: 1ff7029c41bef844ba5c5c6f42d8a826, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

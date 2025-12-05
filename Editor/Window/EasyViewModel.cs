@@ -22,9 +22,9 @@ namespace Nianxie.Editor
 
     public abstract class EasyHierarchy<TView> : EasyHierarchy where TView:EasyHierarchy
     {
-        public void Apply(Action<TView> callSelf)
+        public void Apply(Action<TView> applySelf)
         {
-            callSelf((TView)(EasyHierarchy)this);
+            applySelf((TView)(EasyHierarchy)this);
         }
     }
 
@@ -35,7 +35,7 @@ namespace Nianxie.Editor
             self.SetDisplay(display);
         }
 
-        private VisualElement self;
+        public VisualElement self;
         /// <summary>
         /// 使用c#的反射能力，基于uxml的命名自动绑定view的属性
         /// </summary>
@@ -53,6 +53,7 @@ namespace Nianxie.Editor
                     if (value != null)
                     {
                         var child = CreateByQuery(value, field.FieldType);
+                        child.self = value;
                         field.SetValue(view, child);
                     }
                 }
@@ -63,7 +64,6 @@ namespace Nianxie.Editor
         public static TView CreateByQuery<TView>(VisualElement root) where TView:EasyHierarchy, new()
         {
             var view = (TView)CreateByQuery(root, typeof(TView));
-            view.self = root;
             return view;
         }
     }
