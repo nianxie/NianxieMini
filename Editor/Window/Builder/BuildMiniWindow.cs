@@ -10,12 +10,25 @@ using System.Web.UI.WebControls;
 using Cysharp.Threading.Tasks;
 using Nianxie.Framework;
 using Nianxie.Utils;
+using UnityEditor.UIElements;
 using Button = UnityEngine.UIElements.Button;
+using Label = UnityEngine.UIElements.Label;
 
 namespace Nianxie.Editor
 {
     public class BuildMiniWindow : EasyWindow<BuildMiniWindow.View, BuildMiniWindow.State>
     {
+
+        private const string WND_NAME = "本地项目管理";
+        
+        [UnityEditor.MenuItem("念写Mini/"+WND_NAME, false, 1)]
+        public static void OpenBuildWindow()
+        {
+            BuildMiniWindow wnd = GetWindow<BuildMiniWindow>(WND_NAME, true);
+            wnd.titleContent = new GUIContent(WND_NAME);
+            wnd.minSize = new Vector2(500, 500);
+        }
+        
         public class State : EasyState
         {
             public enum CreatingKind
@@ -47,24 +60,35 @@ namespace Nianxie.Editor
             }
             public CreateView createView;
 
-            public class BuildView : EasyHierarchy<BuildView>
+            public class ManagerView : EasyHierarchy<ManagerView>
             {
+                public class BundleLine : EasyHierarchy<BundleLine>
+                {
+                    public TextField pathField;
+                    public Button openFolder;
+                }
+
+                public Toggle iosBuild;
+                public Toggle androidBuild;
+                public Toggle webglBuild;
+                public BundleLine iosBundle;
+                public BundleLine androidBundle;
+                public BundleLine webglBundle;
                 public DropdownField folder;
-                public Button ExecutePack;
-                public Button ExecuteBuild;
+                public Button executePack;
+                public Button executeBuild;
+                public Button gotoUpload;
+                public class DetailView: EasyHierarchy<DetailView>
+                {
+                    public Label miniName;
+                    public VisualElement kindGame;
+                    public VisualElement kindCraft;
+                    public ObjectField folderField;
+                }
+                public DetailView detailView;
             }
 
-            public BuildView buildView;
-        }
-
-        private const string WND_NAME = "打包构建";
-        
-        [UnityEditor.MenuItem("念写Mini/"+WND_NAME, false, 2)]
-        public static void OpenBuildWindow()
-        {
-            BuildMiniWindow wnd = GetWindow<BuildMiniWindow>(WND_NAME, true);
-            //wnd.titleContent = new GUIContent("BuildWindow");
-            wnd.minSize = new Vector2(400, 400);
+            public ManagerView managerView;
         }
 
         public static List<string> ListProjectFolders()
@@ -83,16 +107,55 @@ namespace Nianxie.Editor
                 createView.kindCraft.SetDisplay(state.creating == State.CreatingKind.CRAFT);
                 createView.kindGame.SetDisplay(state.creating == State.CreatingKind.GAME);
             });
+            if (!string.IsNullOrEmpty(state.folder))
+            {
+                
+                    //folderObject = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(folderPath);
+                var envPaths = MiniEditorEnvPaths.Get(state.folder);
+                view.managerView.Apply((managerView) =>
+                {
+                    managerView.detailView.Apply((self) =>
+                    {
+                        var craftable = envPaths.config.craftable;
+                        self.kindCraft.SetDisplay(craftable);
+                        self.kindGame.SetDisplay(!craftable);
+                        self.miniName.text = envPaths.config.name;
+                        self.folderField.value = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(envPaths.pathPrefix);
+                    });
+                    var tuple = new[]
+                    {
+                        (managerView.iosBundle, BuildTarget.iOS),
+                        (managerView.androidBundle, BuildTarget.Android),
+                        (managerView.webglBundle, BuildTarget.WebGL),
+                    };
+                    foreach (var (bundleLine, buildTarget) in tuple)
+                    {
+                        var path = envPaths.finalBundleDict[buildTarget];
+                        if (File.Exists(path))
+                        {
+                            bundleLine.pathField.value = path;
+                            bundleLine.pathField.style.color = Color.green;
+                            bundleLine.openFolder.SetEnabled(true);
+                        }
+                        else
+                        {
+                            bundleLine.pathField.value = "未构建";
+                            bundleLine.pathField.style.color = Color.red;
+                            bundleLine.openFolder.SetEnabled(false);
+                        }
+                    }
+                });
+            }
         }
 
         protected override void Setup()
         {
             var pathList = ListProjectFolders();
-            view.buildView.folder.choices = pathList;
+            view.managerView.folder.choices = pathList;
             if (pathList.Count > 0)
             {
-                view.buildView.folder.SetValueWithoutNotify(pathList[0]);
-                state.folder = view.buildView.folder.value;
+                view.managerView.folder.SetValueWithoutNotify(pathList[0]);
+                state.folder = view.managerView.folder.value;
             }
             else
             {
@@ -142,21 +205,44 @@ namespace Nianxie.Editor
                 };
             });
             // binding build view
-            view.buildView.Apply((buildView) =>
+            view.managerView.Apply((managerView) =>
             {
-                buildView.folder.RegisterValueChangedCallback((e) =>
+                foreach (var bundleLine in new[] {managerView.iosBundle, managerView.androidBundle, managerView.webglBundle})
                 {
-                    state.folder = view.buildView.folder.value;
+                    bundleLine.pathField.SetEnabled(false);
+                    bundleLine.openFolder.clicked+=() =>
+                    {
+                        var path = bundleLine.pathField.value;
+                        if (File.Exists(path))
+                        {
+                            EditorUtility.RevealInFinder(path);
+                        }
+                        else
+                        {
+                            Debug.LogError($"文件{path}不存在");
+                        }
+                    };
+                }
+                managerView.folder.RegisterValueChangedCallback((e) =>
+                {
+                    state.folder = view.managerView.folder.value;
+                    Refresh();
                 });
-                buildView.ExecuteBuild.clicked+=()=>
+                managerView.executeBuild.clicked+=()=>
                 {
                     ExecuteBuild(state.folder);
+                    Refresh();
                 };
-                buildView.ExecutePack.clicked+=()=>
+                managerView.executePack.clicked+=()=>
                 {
                     ExecutePack(state.folder);
                 };
+                managerView.gotoUpload.clicked+=()=>
+                {
+                    AccountWindow.OpenAccountWindow();
+                };
             });
+            Refresh();
         }
         
         /**

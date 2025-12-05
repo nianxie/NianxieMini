@@ -3,6 +3,7 @@ using Cysharp.Threading.Tasks;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UIElements;
 using ZXing;
 using ZXing.QrCode;
@@ -14,11 +15,11 @@ namespace Nianxie.Editor
         [SerializeField]
         private VisualTreeAsset m_VisualTreeAsset = default;
         private VisualElement root => rootVisualElement;
-        private const string WND_NAME = "创作管理";
-        [MenuItem("念写Mini/"+WND_NAME, false, 1)]
+        private const string WND_NAME = "账号作品管理";
+        [MenuItem("念写Mini/"+WND_NAME, false, 2)]
         public static void OpenAccountWindow()
         {
-            AccountWindow wnd = GetWindow<AccountWindow>(nameof(AccountWindow), true);
+            AccountWindow wnd = GetWindow<AccountWindow>(WND_NAME, true);
             wnd.titleContent = new GUIContent(WND_NAME);
             wnd.minSize = new Vector2(500, 500);
         }
