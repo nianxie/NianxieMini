@@ -32,10 +32,10 @@ namespace Nianxie.Editor
     {
         public void SetDisplay(bool display)
         {
-            self.SetDisplay(display);
+            node.SetDisplay(display);
         }
 
-        public VisualElement self;
+        public VisualElement node;
         /// <summary>
         /// 使用c#的反射能力，基于uxml的命名自动绑定view的属性
         /// </summary>
@@ -53,7 +53,7 @@ namespace Nianxie.Editor
                     if (value != null)
                     {
                         var child = CreateByQuery(value, field.FieldType);
-                        child.self = value;
+                        child.node = value;
                         field.SetValue(view, child);
                     }
                 }

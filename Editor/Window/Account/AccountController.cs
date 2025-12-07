@@ -15,6 +15,49 @@ using UnityEngine.Networking;
 
 namespace Nianxie.Editor
 {
+    public class AccountMiniItemPagination
+    {
+        public int pageNum { get; private set; } = 0;
+        private int loadingPageNum = -1;
+        public bool loading => loadingPageNum > 0;
+        public DB_Mini[] miniItems { get; private set; } = {};
+        public Dictionary<string, Texture2D> texDict = new();
+
+        public void NavPage(int targetPageNum, Action callback)
+        {
+            if (!AccountController.signed)
+            {
+                return;
+            }
+
+            if (loadingPageNum > 0)
+            {
+                return;
+            }
+            loadingPageNum = targetPageNum;
+            if (loadingPageNum < 1)
+            {
+                loadingPageNum = 1;
+            }
+            UniTask.Create(async () =>
+            {
+                try
+                {
+                    var arr = await AccountController.ListPage(loadingPageNum);
+                    if (arr.Length > 0 || loadingPageNum == 1)
+                    {
+                        pageNum = loadingPageNum;
+                        miniItems = arr;
+                    }
+                }
+                finally
+                {
+                    loadingPageNum = -1;
+                    callback();
+                }
+            }).Forget();
+        }
+    }
     public static class AccountController
     {
         private const string MIME_BIN = "application/octet-stream";
@@ -65,7 +108,6 @@ namespace Nianxie.Editor
         public static async UniTask DeleteMini(string miniId)
         {
             await Post<string>($"{URL_DELETE}/{miniId}");
-            await RefreshList();
         }
         
         private static async UniTask<MiniPaginationResponse> GetPagination(int pageNum, int pageSize)
@@ -74,23 +116,21 @@ namespace Nianxie.Editor
             return JsonUtility.FromJson<MiniPaginationResponse>(data);
         }
 
+        public static async UniTask<DB_Mini[]> ListPage(int pageNum)
+        {
+            var pagination = await GetPagination(pageNum, 10);
+            return pagination.itemList;
+        }
+        
+        [Obsolete]
         public static async UniTask RefreshList()
         {
-            var pagination = await GetPagination(1, 10);
-            dbMiniDatas.Clear();
-            for (int i = 0; i < pagination.itemList.Length; i++)
-            {
-                var item = pagination.itemList[i];
-                dbMiniDatas.Add(item);
-            }
+            throw new NotImplementedException("refresh list is obsolete");
         }
 
-        public static async UniTask UploadBundle(string thumbnailFilePath, MiniEditorEnvPaths envPaths, Action<string, int, int> onFileProgress)
+        public static async UniTask UploadBundle(Texture2D thumbnailTex, MiniEditorEnvPaths envPaths, Action<string, int, int> onFileProgress)
         {
-            var files = new []
-            {
-                envPaths.finalManifest, envPaths.finalBundleDict[BuildTarget.iOS], envPaths.finalBundleDict[BuildTarget.Android]
-            };
+            var files = envPaths.finalBundleDict.Values.ToArray();
             var maxFileSize = files.Select(e => new FileInfo(e).Length).Max();
 
             var beginResp = await Post<MiniBeginUploadResponse>($"{URL_BEGIN_UPLOAD}");
@@ -109,7 +149,7 @@ namespace Nianxie.Editor
             };
             // var fileCount = key_file_type.Count;
             // TODO 如果有缩略图，则上传缩略图
-            if (!string.IsNullOrEmpty(thumbnailFilePath))
+            if (thumbnailTex == null)
             {
                 //fileCount++;
                 //Debug.Log("TODO, 用Texture Load一下以检查缩略图的合法性，并encode为jpg提交。");
@@ -142,7 +182,6 @@ namespace Nianxie.Editor
                 unityVersion = Application.unityVersion,
             }));
             onFileProgress("", key_file_type.Count, key_file_type.Count);
-            await RefreshList();
         }
         
         public static async UniTask SyncConfigs(DB_Mini syncMini)

@@ -273,7 +273,7 @@ namespace Nianxie.Editor
                 };
                 managerView.gotoUpload.clicked+=()=>
                 {
-                    AccountWindow.OpenAccountWindow();
+                    AccountWindow.OpenAccountWindowForUploadFolder(state.folder);
                 };
             });
             Refresh();

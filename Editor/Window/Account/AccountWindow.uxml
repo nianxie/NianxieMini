@@ -1,6 +1,69 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <ui:VisualElement style="flex-grow: 1; visibility: visible; display: flex; flex-shrink: 0; flex-direction: column; justify-content: flex-start; align-self: stretch; align-items: center; height: auto; flex-wrap: nowrap; width: 100%;">
-        <ui:VisualElement name="signPage" style="flex-grow: 1; display: none; flex-shrink: 1; align-items: stretch; align-self: auto; max-height: none; max-width: none; width: 100%; margin-top: 0; margin-right: 0; margin-bottom: 0; padding-top: 10px; padding-right: 10px; padding-bottom: 10px; padding-left: 10px; justify-content: flex-start;" />
-        <ui:VisualElement name="dataPage" style="flex-grow: 1; display: none; width: 100%; align-items: stretch; justify-content: flex-start; align-self: auto; padding-top: 10px; padding-right: 10px; padding-bottom: 10px; padding-left: 10px;" />
+        <ui:VisualElement name="signinView" style="flex-grow: 1; display: flex; flex-shrink: 1; align-items: stretch; align-self: auto; max-height: none; max-width: none; width: 100%; margin-top: 0; margin-right: 0; margin-bottom: 0; padding-top: 10px; padding-right: 10px; padding-bottom: 10px; padding-left: 10px; justify-content: flex-start;">
+            <ui:VisualElement style="flex-grow: 0; width: 100%; height: 30px; flex-direction: row;">
+                <ui:Button text="扫码登录" parse-escape-sequences="true" display-tooltip-when-elided="true" name="qrCodeBtn" style="width: 30%; height: 100%; font-size: 16px; -unity-font-style: normal;" />
+                <ui:Button text="账号登录" parse-escape-sequences="true" display-tooltip-when-elided="true" name="accountBtn" style="width: 30%; height: 100%; font-size: 16px;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="accountPanel" style="flex-grow: 1; width: 100%; height: auto; display: flex; background-color: rgba(222, 222, 222, 0); justify-content: center; align-items: stretch; align-self: auto; padding-left: 20px; padding-right: 20px;">
+                <ui:TextField picking-mode="Ignore" label="账号：" name="accountInput" style="height: auto; width: auto; -unity-text-align: upper-center; font-size: 24px; margin-bottom: 30px;" />
+                <ui:TextField picking-mode="Ignore" label="密码" value="filler text" style="display: none;" />
+                <ui:Button text="登录" parse-escape-sequences="true" display-tooltip-when-elided="true" name="signinBtn" style="font-size: 18px; width: 40%; align-items: stretch; align-self: center; margin-top: 30px;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="qrCodePanel" style="flex-grow: 1; width: 100%; height: auto; background-color: rgba(222, 222, 222, 0); display: none;">
+                <ui:Label tabindex="-1" text="打开APP扫二维码：" parse-escape-sequences="true" display-tooltip-when-elided="true" name="title" style="align-items: auto; align-self: center; font-size: 20px; -unity-font-style: bold; -unity-text-align: upper-left;" />
+                <ui:VisualElement name="qrCode" style="flex-grow: 1; flex-shrink: 0; justify-content: center; align-self: center; width: 400px; align-items: center; height: 400px; max-width: 400px; max-height: 400px; min-height: 400px; min-width: 400px;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="signedView" style="flex-grow: 1; align-self: stretch;">
+            <ui:VisualElement style="flex-grow: 0; flex-direction: row; align-self: auto; align-items: auto; height: 30px; justify-content: flex-start; width: 100%;">
+                <ui:VisualElement style="flex-grow: 1; flex-direction: row; width: 100%; height: 100%; align-self: auto; align-items: stretch;">
+                    <ui:Label tabindex="-1" text="你好，" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 18px; align-self: auto; -unity-text-align: middle-left;" />
+                    <ui:Label tabindex="-1" text="已登录" parse-escape-sequences="true" display-tooltip-when-elided="true" name="nickName" style="font-size: 18px; -unity-text-align: middle-left;" />
+                </ui:VisualElement>
+                <ui:Button text="登出" parse-escape-sequences="true" display-tooltip-when-elided="true" name="signoutBtn" style="-unity-text-align: middle-center; align-self: center; align-items: stretch; height: auto; width: 30%; font-size: 16px; justify-content: flex-start;" />
+            </ui:VisualElement>
+            <ui:VisualElement style="flex-grow: 0; flex-direction: row; align-self: auto; padding-top: 4px; padding-right: 4px; padding-bottom: 4px; padding-left: 4px; margin-top: 2px; margin-right: 2px; margin-bottom: 2px; margin-left: 2px;">
+                <ui:Label tabindex="-1" text="选择项目上传：" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 16px; align-self: center;" />
+                <ui:DropdownField name="folderDropdown" style="flex-grow: 1; font-size: 16px;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="uploadView" style="flex-grow: 0;">
+                <ui:Button text="取消" parse-escape-sequences="true" display-tooltip-when-elided="true" name="cancelBtn" style="font-size: 16px; padding-top: 4px; padding-right: 4px; padding-bottom: 4px; padding-left: 4px; align-self: flex-start; width: 120px; margin-left: 4px;" />
+                <ui:VisualElement style="flex-grow: 1; flex-direction: row; align-self: center; align-items: center; justify-content: space-between; padding-top: 5px; padding-right: 20px; padding-bottom: 5px; padding-left: 20px;">
+                    <ui:VisualElement style="flex-grow: 1; align-items: stretch;">
+                        <ui:VisualElement style="flex-grow: 0; flex-direction: row; align-self: auto; align-items: center; font-size: 16px; justify-content: flex-start;">
+                            <ui:Label tabindex="-1" text="iOS Bundle:" parse-escape-sequences="true" display-tooltip-when-elided="true" style="width: 150px;" />
+                            <ui:TextField picking-mode="Ignore" name="iosBundle" style="align-self: auto; width: 400px;" />
+                        </ui:VisualElement>
+                        <ui:VisualElement style="flex-grow: 0; flex-direction: row; align-self: auto; align-items: center; font-size: 16px; justify-content: flex-start;">
+                            <ui:Label tabindex="-1" text="Android Bundle:" parse-escape-sequences="true" display-tooltip-when-elided="true" style="width: 150px;" />
+                            <ui:TextField picking-mode="Ignore" name="androidBundle" style="align-self: auto; width: 400px;" />
+                        </ui:VisualElement>
+                        <ui:VisualElement style="flex-grow: 0; flex-direction: row; align-self: auto; align-items: center; font-size: 16px; justify-content: flex-start;">
+                            <ui:Label tabindex="-1" text="WebGL Bundle:" parse-escape-sequences="true" display-tooltip-when-elided="true" style="width: 150px;" />
+                            <ui:TextField picking-mode="Ignore" name="webglBundle" style="align-self: auto; width: 400px;" />
+                        </ui:VisualElement>
+                        <ui:VisualElement style="flex-grow: 0; flex-direction: row; align-self: auto; align-items: center; font-size: 16px; justify-content: flex-start;">
+                            <ui:Label tabindex="-1" text="名称：" parse-escape-sequences="true" display-tooltip-when-elided="true" style="width: 150px;" />
+                            <ui:TextField picking-mode="Ignore" name="nameField" style="align-self: auto; width: 400px;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:Button text="选择封面" parse-escape-sequences="true" display-tooltip-when-elided="true" name="thumbnailBtn" style="width: 90px; height: 160px;" />
+                </ui:VisualElement>
+                <ui:Button text="上传" parse-escape-sequences="true" display-tooltip-when-elided="true" name="uploadBtn" style="align-self: center; width: 120px; padding-top: 6px; padding-right: 6px; padding-bottom: 6px; padding-left: 6px; font-size: 16px;" />
+            </ui:VisualElement>
+            <ui:Button parse-escape-sequences="true" display-tooltip-when-elided="true" style="padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; height: 4px; min-height: 4px; max-height: 4px; background-color: rgb(255, 255, 255);" />
+            <ui:VisualElement name="listView" style="flex-grow: 1; font-size: 16px; padding-top: 5px; padding-right: 5px; padding-bottom: 5px; padding-left: 5px;">
+                <ui:VisualElement style="flex-grow: 0; flex-direction: row; align-self: auto; align-items: center; justify-content: space-between;">
+                    <ui:Label tabindex="-1" text="已上传项目：" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 16px;" />
+                    <ui:VisualElement style="flex-grow: 0; flex-direction: row; align-items: center;">
+                        <ui:Label tabindex="-1" text="1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="pageLabel" />
+                        <ui:Button text="上一页" parse-escape-sequences="true" display-tooltip-when-elided="true" name="prevBtn" style="padding-top: 5px; padding-right: 5px; padding-bottom: 5px; padding-left: 5px;" />
+                        <ui:Button text="下一页" parse-escape-sequences="true" display-tooltip-when-elided="true" name="nextBtn" style="padding-top: 5px; padding-right: 5px; padding-bottom: 5px; padding-left: 5px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="container" style="flex-grow: 1; flex-direction: row; align-items: flex-start; align-self: flex-start;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>
