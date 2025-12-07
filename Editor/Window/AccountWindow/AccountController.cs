@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using Cysharp.Threading.Tasks;
@@ -7,7 +6,6 @@ using UnityEditor;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Security.Cryptography;
 using Nianxie.Framework;
 using Nianxie.Utils;
 using UnityEngine;
@@ -15,49 +13,6 @@ using UnityEngine.Networking;
 
 namespace Nianxie.Editor
 {
-    public class AccountMiniItemPagination
-    {
-        public int pageNum { get; private set; } = 0;
-        private int loadingPageNum = -1;
-        public bool loading => loadingPageNum > 0;
-        public DB_Mini[] miniItems { get; private set; } = {};
-        public Dictionary<string, Texture2D> texDict = new();
-
-        public void NavPage(int targetPageNum, Action callback)
-        {
-            if (!AccountController.signed)
-            {
-                return;
-            }
-
-            if (loadingPageNum > 0)
-            {
-                return;
-            }
-            loadingPageNum = targetPageNum;
-            if (loadingPageNum < 1)
-            {
-                loadingPageNum = 1;
-            }
-            UniTask.Create(async () =>
-            {
-                try
-                {
-                    var arr = await AccountController.ListPage(loadingPageNum);
-                    if (arr.Length > 0 || loadingPageNum == 1)
-                    {
-                        pageNum = loadingPageNum;
-                        miniItems = arr;
-                    }
-                }
-                finally
-                {
-                    loadingPageNum = -1;
-                    callback();
-                }
-            }).Forget();
-        }
-    }
     public static class AccountController
     {
         private const string MIME_BIN = "application/octet-stream";
@@ -100,32 +55,16 @@ namespace Nianxie.Editor
             EditorPrefs.SetString(nameof(token), token);
         }
 
-        public static async UniTask<DB_Mini> CreateMini(MiniCommonConfig commonConfig)
-        {
-            throw new NotImplementedException("not implement");
-        }
-        
         public static async UniTask DeleteMini(string miniId)
         {
             await Post<string>($"{URL_DELETE}/{miniId}");
         }
-        
-        private static async UniTask<MiniPaginationResponse> GetPagination(int pageNum, int pageSize)
-        {
-            var data = await Get($"{URL_LIST}?pageNum={pageNum}&pageSize={pageSize}");
-            return JsonUtility.FromJson<MiniPaginationResponse>(data);
-        }
 
-        public static async UniTask<DB_Mini[]> ListPage(int pageNum)
+        public static async UniTask<DB_Mini[]> List(int pageNum)
         {
-            var pagination = await GetPagination(pageNum, 10);
-            return pagination.itemList;
-        }
-        
-        [Obsolete]
-        public static async UniTask RefreshList()
-        {
-            throw new NotImplementedException("refresh list is obsolete");
+            var pageSize = 10;
+            var data = await Get($"{URL_LIST}?pageNum={pageNum}&pageSize={pageSize}");
+            return JsonUtility.FromJson<MiniPaginationResponse>(data).itemList;
         }
 
         public static async UniTask UploadBundle(Texture2D thumbnailTex, MiniEditorEnvPaths envPaths, Action<string, int, int> onFileProgress)
@@ -184,11 +123,6 @@ namespace Nianxie.Editor
             onFileProgress("", key_file_type.Count, key_file_type.Count);
         }
         
-        public static async UniTask SyncConfigs(DB_Mini syncMini)
-        {
-            throw new NotImplementedException("ignore this api");
-        }
-
         private static async UniTask<string> Get(string url)
         {
             Dictionary<string, string> headers = new();
@@ -250,61 +184,6 @@ namespace Nianxie.Editor
             else
             {
                 return (TResponse)JsonUtility.FromJson(retText, typeof(TResponse));
-            }
-        }
-        private static void ReplaceFolderMeta(string folderPath, string oldGuid, string newGuid)
-        {
-            var folderMeta = $"{folderPath}.meta";
-            if (oldGuid.Length==32 && Directory.Exists(folderPath))
-            {
-                var newMeta = File.ReadAllText(folderMeta).Replace($"guid: {oldGuid}", $"guid: {newGuid}");
-                File.WriteAllText(folderMeta, newMeta);
-                AssetDatabase.Refresh();
-            }
-            else
-            {
-                Debug.LogError($"{folderPath} is not a valid project");
-            }
-        }
-
-        public static void LinkFolder(DB_Mini dbMini, string folder)
-        {
-            var miniId = dbMini.miniId;
-            var folderPath = $"{NianxieConst.MiniPrefixPath}/{folder}";
-            var conflictPath = AssetDatabase.GUIDToAssetPath(miniId);
-            if (!string.IsNullOrEmpty(conflictPath) && conflictPath != folderPath)
-            {
-                File.Delete($"{conflictPath}.meta");
-            }
-            var oldGuid = AssetDatabase.AssetPathToGUID(folderPath);
-            if (oldGuid != miniId)
-            {
-                ReplaceFolderMeta(folderPath, oldGuid, miniId);
-            }
-        }
-        public static void UnlinkFolder(DB_Mini dbMini)
-        {
-            var miniId = dbMini.miniId;
-            var folderPath = AssetDatabase.GUIDToAssetPath(miniId);
-            var folder = Path.GetFileName(folderPath);
-            if (folderPath == $"{NianxieConst.MiniPrefixPath}/{folder}")
-            {
-                ReplaceFolderMeta(folderPath, miniId, Guid.NewGuid().ToString("N"));
-            }
-        }
-        public static bool TryMapLinkedFolder(DB_Mini dbMini, out string folderPath, out string folderName)
-        {
-            folderPath = AssetDatabase.GUIDToAssetPath(dbMini.miniId);
-            var folder = Path.GetFileName(folderPath??"");
-            if (folderPath == $"{NianxieConst.MiniPrefixPath}/{folder}" && Directory.Exists(folderPath))
-            {
-                folderName = folder;
-                return true;
-            }
-            else
-            {
-                folderName = null;
-                return false;
             }
         }
     }

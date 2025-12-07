@@ -7,66 +7,26 @@ using UnityEngine;
 namespace Nianxie.Framework
 {
     [Serializable]
-    public class MiniCommonConfig
-    {
-        public string name;
-        public bool craftable;
-        public int majorVersion;
-        public int minorVersion;
-        public string patchVersion;
-        public string unityVersion;
-        public MiniCommonConfig()
-        {
-        }
-        public MiniCommonConfig(string _name, bool _craftable)
-        {
-            name = _name;
-            craftable = _craftable;
-            majorVersion = NianxieConst.MARJOR_VERSION;
-            minorVersion = NianxieConst.MINOR_VERSION;
-            patchVersion = NianxieConst.PATCH_VERSION;
-            unityVersion = Application.unityVersion;
-        }
-        public MiniCommonConfig(MiniCommonConfig commonConfig)
-        {
-            name = commonConfig.name;
-            craftable = commonConfig.craftable;
-            majorVersion = commonConfig.majorVersion;
-            minorVersion = commonConfig.minorVersion;
-            patchVersion = commonConfig.patchVersion;
-            unityVersion = commonConfig.unityVersion;
-        }
-        public bool CheckBasicMatch(MiniCommonConfig commonConfig)
-        {
-            return name == commonConfig.name &&
-            craftable == commonConfig.craftable;
-        }
-        public bool CheckVersionMatch()
-        {
-            return majorVersion == NianxieConst.MARJOR_VERSION &&
-            minorVersion == NianxieConst.MINOR_VERSION &&
-            patchVersion == NianxieConst.PATCH_VERSION &&
-            unityVersion == NianxieConst.UNITY_VERSION;
-        }
-    }
-
-    [Serializable]
-    public class MiniProjectConfig:MiniCommonConfig
+    public class MiniProjectConfig
     {
         public static MiniProjectConfig ErrorInstance = new MiniProjectConfig(new string[]{}, null, false)
         {
             name = "(ERROR)",
         };
+        public string name;
+        public bool craftable;
+        public string miniVersion;
+        public string unityVersion;
         public string[] scripts = {};
         public string previewVideoUrl = "";
 
-        public MiniProjectConfig(string [] scripts, string name, bool craftable):base(name, craftable)
+        public MiniProjectConfig(string [] scripts, string name, bool craftable)
         {
+            this.name = name;
+            this.craftable = craftable;
             this.scripts = scripts;
-        }
-        public MiniProjectConfig(MiniProjectConfig projectConfig):base(projectConfig)
-        {
-            scripts = projectConfig.scripts;
+            miniVersion = NianxieConst.MINI_VERSION;
+            unityVersion = Application.unityVersion;
         }
 
         public static MiniProjectConfig FromJson(byte[] jsonBytes)
@@ -80,19 +40,31 @@ namespace Nianxie.Framework
             return Encoding.UTF8.GetBytes(jsonStr);
         }
 
-        public bool CheckScriptsMatch(string[] sortedScripts)
+        public bool CheckScriptsAndInfoMatch(string[] sortedScripts)
         {
+            // check script match
             if (scripts == null)
             {
                 return false;
-            }
-
+            } 
             if (scripts.Length != sortedScripts.Length)
             {
                 return false;
+            } 
+            if (!scripts.SequenceEqual(sortedScripts))
+            {
+                return false;
+            } 
+            // check version match
+            if (miniVersion != NianxieConst.MINI_VERSION)
+            {
+                return false;
+            } 
+            if (unityVersion != Application.unityVersion)
+            {
+                return false;
             }
-
-            return scripts.SequenceEqual(sortedScripts);
+            return true;
         }
 
         public bool IsError()

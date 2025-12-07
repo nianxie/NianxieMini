@@ -17,14 +17,14 @@ using Label = UnityEngine.UIElements.Label;
 
 namespace Nianxie.Editor
 {
-    public class BuildMiniWindow : EasyWindow<BuildMiniWindow.View, BuildMiniWindow.State>
+    public class ProjectWindow : EasyWindow<ProjectWindow.View, ProjectWindow.State>
     {
         private const string WND_NAME = "本地项目管理";
         
         [UnityEditor.MenuItem("念写Mini/"+WND_NAME, false, 1)]
         public static void OpenBuildWindow()
         {
-            BuildMiniWindow wnd = GetWindow<BuildMiniWindow>(WND_NAME, true);
+            ProjectWindow wnd = GetWindow<ProjectWindow>(WND_NAME, true);
             wnd.titleContent = new GUIContent(WND_NAME);
             wnd.minSize = new Vector2(500, 500);
         }
@@ -45,7 +45,7 @@ namespace Nianxie.Editor
             public string folder = "";
         }
 
-        public class ItemView:EasyHierarchy<ItemView>
+        public class ItemView:EasyView<ItemView>
         {
             public Button selectBtn;
             public VisualElement kindGame;
@@ -56,9 +56,9 @@ namespace Nianxie.Editor
 
         public ItemView[] itemViews;
 
-        public class View: EasyHierarchy<View>
+        public class View: EasyView<View>
         {
-            public class CreateView: EasyHierarchy<CreateView>
+            public class CreateView: EasyView<CreateView>
             {
                 public VisualElement createBtns;
                 public Button createGameBtn;
@@ -75,9 +75,9 @@ namespace Nianxie.Editor
             public CreateView createView;
 
             public VisualElement selectView;
-            public class ManagerView : EasyHierarchy<ManagerView>
+            public class ManagerView : EasyView<ManagerView>
             {
-                public class BundleLine : EasyHierarchy<BundleLine>
+                public class BundleLine : EasyView<BundleLine>
                 {
                     public TextField pathField;
                     public Button openFolder;
@@ -93,7 +93,7 @@ namespace Nianxie.Editor
                 public Button executePack;
                 public Button executeBuild;
                 public Button gotoUpload;
-                public class DetailView: EasyHierarchy<DetailView>
+                public class DetailView: EasyView<DetailView>
                 {
                     public Label miniName;
                     public VisualElement kindGame;
@@ -132,7 +132,7 @@ namespace Nianxie.Editor
                 {
                     var folder = pathList[i];
                     uxmlItemAsset.CloneTree(view.selectView, out int index, out _);
-                    var itemView = EasyHierarchy.CreateByQuery<ItemView>(view.selectView[index]);
+                    var itemView = EasyView.CreateByQuery<ItemView>(view.selectView[index]);
                     itemView.selectBtn.clicked+=()=>{
                         state.folder = folder;
                         Refresh();

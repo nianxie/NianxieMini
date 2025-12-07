@@ -37,7 +37,7 @@ namespace Nianxie.Editor
         [SerializeField]
         private VisualTreeAsset uxmlItemAsset = default;
 
-        public class ItemView:EasyHierarchy<ItemView>
+        public class ItemView:EasyView<ItemView>
         {
             public VisualElement kindGame;
             public VisualElement kindCraft;
@@ -47,9 +47,9 @@ namespace Nianxie.Editor
 
         public ItemView[] itemViews;
         
-        public class View : EasyHierarchy<View>
+        public class View : EasyView<View>
         {
-            public class SigninView : EasyHierarchy<SigninView>
+            public class SigninView : EasyView<SigninView>
             {
                 public Button qrCodeBtn;
                 public Button accountBtn;
@@ -59,9 +59,9 @@ namespace Nianxie.Editor
                 public VisualElement qrCodePanel;
             }
 
-            public class SignedView : EasyHierarchy<SignedView>
+            public class SignedView : EasyView<SignedView>
             {
-                public class UploadView: EasyHierarchy<UploadView>
+                public class UploadView: EasyView<UploadView>
                 {
                     public Button cancelBtn;
                     public TextField nameField;
@@ -75,7 +75,7 @@ namespace Nianxie.Editor
                 public Button signoutBtn;
                 public DropdownField folderDropdown;
 
-                public class ListView : EasyHierarchy<ListView>
+                public class ListView : EasyView<ListView>
                 {
                     public Button nextBtn;
                     public Button prevBtn;
@@ -115,7 +115,7 @@ namespace Nianxie.Editor
             }
             public bool signed => AccountController.signed;
 
-            public AccountMiniItemPagination page = new();
+            public AccountMiniPagination page = new();
         }
 
         protected override void Refresh()
@@ -127,7 +127,7 @@ namespace Nianxie.Editor
                 view.signedView.Apply((self) =>
                 {
                     self.uploadView.SetDisplay(state.showUpload);
-                    self.folderDropdown.choices = BuildMiniWindow.ListProjectFolders();
+                    self.folderDropdown.choices = ProjectWindow.ListProjectFolders();
                     if (string.IsNullOrEmpty(state.folder))
                     {
                         self.uploadView.SetDisplay(false);
@@ -171,7 +171,7 @@ namespace Nianxie.Editor
                         {
                             var mini = itemDatas[i];
                             uxmlItemAsset.CloneTree(listView.container, out int index, out _);
-                            var itemView = EasyHierarchy.CreateByQuery<ItemView>(listView.container[index]);
+                            var itemView = EasyView.CreateByQuery<ItemView>(listView.container[index]);
                             itemView.deleteBtn.clicked += () =>
                             {
                                 Delete(mini);

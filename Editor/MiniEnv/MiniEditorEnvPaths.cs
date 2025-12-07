@@ -67,7 +67,7 @@ namespace Nianxie.Editor
                     _config = null;
                     return ;
                 }
-                if (!_config.CheckScriptsMatch(luaAssetPaths) || !_config.CheckVersionMatch())
+                if (!_config.CheckScriptsAndInfoMatch(luaAssetPaths))
                 {
                     _config = new MiniProjectConfig(luaAssetPaths, _config.name, _config.craftable);
                     if (Directory.Exists(pathPrefix))
@@ -89,10 +89,7 @@ namespace Nianxie.Editor
 
         public void FlushName(string name)
         {
-            _config = new MiniProjectConfig(_config)
-            {
-                name = name,
-            };
+            _config.name = name;
             File.WriteAllBytes(miniProjectConfig, _config.ToJson());
             AssetDatabase.Refresh();
         }
