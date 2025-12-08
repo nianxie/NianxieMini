@@ -77,21 +77,18 @@ namespace Nianxie.Editor
             public VisualElement selectView;
             public class ManagerView : EasyView<ManagerView>
             {
-                public class BundleLine : EasyView<BundleLine>
-                {
-                    public TextField pathField;
-                    public Button openFolder;
-                }
 
                 public Button cancelBtn;
                 public Toggle iosBuild;
                 public Toggle androidBuild;
                 public Toggle webglBuild;
-                public BundleLine iosBundle;
-                public BundleLine androidBundle;
-                public BundleLine webglBundle;
+                public TextField bundleManifest;
+                public TextField iosBundle;
+                public TextField androidBundle;
+                public TextField webglBundle;
                 public Button executePack;
                 public Button executeBuild;
+                public Button openFolder;
                 public Button gotoUpload;
                 public class DetailView: EasyView<DetailView>
                 {
@@ -160,26 +157,30 @@ namespace Nianxie.Editor
                         self.miniName.text = envPaths.config.name;
                         self.folderField.value = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(envPaths.pathPrefix);
                     });
+                    if (File.Exists(envPaths.finalManifest))
+                    {
+                        managerView.bundleManifest.value = envPaths.finalManifest;
+                    }
+                    else
+                    {
+                        managerView.bundleManifest.value = "未构建";
+                    }
                     var tuple = new[]
                     {
                         (managerView.iosBundle, BuildTarget.iOS),
                         (managerView.androidBundle, BuildTarget.Android),
                         (managerView.webglBundle, BuildTarget.WebGL),
                     };
-                    foreach (var (bundleLine, buildTarget) in tuple)
+                    foreach (var (line, buildTarget) in tuple)
                     {
                         var path = envPaths.finalBundleDict[buildTarget];
                         if (File.Exists(path))
                         {
-                            bundleLine.pathField.value = path;
-                            bundleLine.pathField.style.color = Color.green;
-                            bundleLine.openFolder.SetEnabled(true);
+                            line.value = path;
                         }
                         else
                         {
-                            bundleLine.pathField.value = "未构建";
-                            bundleLine.pathField.style.color = Color.red;
-                            bundleLine.openFolder.SetEnabled(false);
+                            line.value = "未构建";
                         }
                     }
                 });
@@ -238,34 +239,41 @@ namespace Nianxie.Editor
                     state.folder = "";
                     Refresh();
                 };
-                foreach (var bundleLine in new[] {managerView.iosBundle, managerView.androidBundle, managerView.webglBundle})
+                foreach (var bundleLine in new[] {managerView.bundleManifest, managerView.iosBundle, managerView.androidBundle, managerView.webglBundle})
                 {
-                    bundleLine.pathField.SetEnabled(false);
-                    bundleLine.openFolder.clicked+=() =>
-                    {
-                        var path = bundleLine.pathField.value;
-                        if (File.Exists(path))
-                        {
-                            EditorUtility.RevealInFinder(path);
-                        }
-                        else
-                        {
-                            Debug.LogError($"文件{path}不存在");
-                        }
-                    };
+                    bundleLine.SetEnabled(false);
                 }
+                managerView.openFolder.clicked+=() =>
+                {
+                    var path = managerView.bundleManifest.value;
+                    if (File.Exists(path))
+                    {
+                        EditorUtility.RevealInFinder(path);
+                    }
+                    else
+                    {
+                        if (!Directory.Exists(NianxieConst.MiniBundlesOutput))
+                        {
+                            Directory.CreateDirectory(NianxieConst.MiniBundlesOutput);
+                        }
+                        EditorUtility.RevealInFinder(NianxieConst.MiniBundlesOutput);
+                        Debug.LogError($"项目未构建{path}");
+                    }
+                };
                 managerView.executeBuild.clicked+=()=>
                 {
-
-                    var arr = new[]
+                    if (EditorUtility.DisplayDialog("确认打包？", $"确认打包{state.folder}", "确认", "取消"))
                     {
-                        (managerView.iosBuild.value, BuildTarget.iOS),
-                        (managerView.androidBuild.value, BuildTarget.Android),
-                        (managerView.webglBuild.value, BuildTarget.WebGL),
-                    };
-                    var targets = arr.Where(x=>x.Item1).Select(x=>x.Item2).ToArray();
-                    ExecuteBuild(state.folder, targets);
-                    Refresh();
+                        var arr = new[]
+                        {
+                            (managerView.iosBuild.value, BuildTarget.iOS),
+                            (managerView.androidBuild.value, BuildTarget.Android),
+                            (managerView.webglBuild.value, BuildTarget.WebGL),
+                        };
+                        var targets = arr.Where(x=>x.Item1).Select(x=>x.Item2).ToArray();
+                        ExecuteBuild(state.folder, targets);
+                        Refresh();
+                    }
                 };
                 managerView.executePack.clicked+=()=>
                 {
@@ -277,30 +285,6 @@ namespace Nianxie.Editor
                 };
             });
             Refresh();
-        }
-        
-        /**
-         * 重命名, 通过一些hack重命名bundle，下个版本统一重构
-         */
-        public static void ExecuteRename(string folder, Guid targetGuid)
-        {
-            AssetBundle.UnloadAllAssetBundles(true);
-            var envPaths = MiniEditorEnvPaths.Get(folder);
-            UniTask.Create(async () =>
-            {
-                foreach (var (platform,path) in envPaths.finalBundleDict)
-                {
-                    // 解压->重命名->压缩
-                    var originPath = envPaths.finalBundleDict[BuildTarget.iOS];
-                    var uncompressPath = $"{envPaths.buildDir}/temp_{envPaths.folder}_uncompress.bundle";
-                    var finalPath = $"{envPaths.buildDir}/{envPaths.folder}_{platform}.bundle";
-                    await AssetBundle.RecompressAssetBundleAsync(originPath, uncompressPath, BuildCompression.Uncompressed).ToUniTask();
-                    var bundleBytes = await File.ReadAllBytesAsync(uncompressPath);
-                    MiniEditorEnvPaths.RenameMagicBundle(bundleBytes, targetGuid);
-                    await File.WriteAllBytesAsync(uncompressPath, bundleBytes);
-                    await AssetBundle.RecompressAssetBundleAsync(uncompressPath, finalPath, BuildCompression.LZ4Runtime).ToUniTask();
-                }
-            }).Forget();
         }
 
         private static void ExecuteBuild(string folder, BuildTarget[] targets)

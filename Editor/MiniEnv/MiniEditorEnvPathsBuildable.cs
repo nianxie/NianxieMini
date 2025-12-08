@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using Cysharp.Threading.Tasks;
 using Nianxie.Utils;
 using UnityEditor;
 using UnityEngine;
@@ -24,6 +25,8 @@ namespace Nianxie.Editor
         {
             return $"{buildDir}/{buildTarget}";
         }
+        
+        public string magicDir => $"{buildDir}/Magic";
         
         /// <summary>
         /// 获取内置构建管线的构建选项
@@ -60,6 +63,7 @@ namespace Nianxie.Editor
                 string platformOutputDir = GetPlatformBuildDir(buildTarget);
                 Directory.CreateDirectory(platformOutputDir);
             }
+            Directory.CreateDirectory(magicDir);
         }
 
         public void Build(BuildTarget[] targets)
@@ -134,10 +138,11 @@ namespace Nianxie.Editor
             }
             var miniManifest = new MiniProjectManifest(bundleInfos.ToArray(), config);
             File.WriteAllBytes(finalManifest, miniManifest.ToJson());
-            EditorUtility.RevealInFinder(buildDir);
+            EditorUtility.RevealInFinder(finalManifest);
         }
         
-        public static void RenameMagicBundle(byte[] bundleBytes, Guid targetGuid)
+        // 使用一些取巧的手段替换AssetBundle的name，必须是uncompress格式的。
+        private static void RenameMagicBundle(byte[] bundleBytes, string targetGuid)
         {
             string bundleName = null;
             {
@@ -145,7 +150,7 @@ namespace Nianxie.Editor
                 bundleName = bundle.name;
                 bundle.Unload(true);
             }
-            var targetNameBytes = Encoding.ASCII.GetBytes($"{AB_MAGIC}{targetGuid:N}");
+            var targetNameBytes = Encoding.ASCII.GetBytes($"{AB_MAGIC}{targetGuid}");
             if (!bundleName.StartsWith(AB_MAGIC) || bundleName.Length != targetNameBytes.Length)
             {
                 throw new Exception($"bundle is not a valid mini bundle, name={bundleName}");
@@ -179,10 +184,29 @@ namespace Nianxie.Editor
                 bundleBytes[name1Pos + i] = targetNameBytes[i];
                 bundleBytes[name2Pos + i] = targetNameBytes[i];
             }
-
-            /*var finalBundle = AssetBundle.LoadFromMemory(bundleBytes);
-            Debug.Log($"yesyesyes {finalBundle.name}");
-            finalBundle.Unload(true);*/
+        }
+        
+        /// <summary>
+        /// 为了避免AssetBundle的name冲突，根据服务器返回的guid对AssetBundle进行重命名
+        /// </summary>
+        /// <param name="targetGuid">从服务器获取的guid</param>
+        /// <param name="platform"></param>
+        /// <returns></returns>
+        public async UniTask<string> ExecuteRename(string targetGuid, BuildTarget platform)
+        {
+            UnityEngine.Assertions.Assert.IsTrue(targetGuid.Length == 32);
+            AssetBundle.UnloadAllAssetBundles(true);
+            var originPath = finalBundleDict[platform];
+            // 1. 解压
+            var targetPath = $"{magicDir}/{targetGuid}_{platform}.bundle";
+            await AssetBundle.RecompressAssetBundleAsync(originPath, targetPath, BuildCompression.Uncompressed, 0, ThreadPriority.High).ToUniTask();
+            var bundleBytes = await File.ReadAllBytesAsync(targetPath);
+            await File.WriteAllBytesAsync(targetPath, bundleBytes);
+            // 2. magic重命名
+            RenameMagicBundle(bundleBytes, targetGuid);
+            // 3. 压缩
+            await AssetBundle.RecompressAssetBundleAsync(targetPath, targetPath, BuildCompression.LZ4Runtime, 0, ThreadPriority.High).ToUniTask();
+            return targetPath;
         }
     }
 }

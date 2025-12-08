@@ -67,24 +67,29 @@ namespace Nianxie.Editor
             return JsonUtility.FromJson<MiniPaginationResponse>(data).itemList;
         }
 
-        public static async UniTask UploadBundle(Texture2D thumbnailTex, MiniEditorEnvPaths envPaths, Action<string, int, int> onFileProgress)
+        public static async UniTask UploadBundle(Texture2D thumbnailTex, MiniProjectConfig config, MiniEditorEnvPaths envPaths, Action<string, int, int> onFileProgress)
         {
-            var files = envPaths.finalBundleDict.Values.ToArray();
-            var maxFileSize = files.Select(e => new FileInfo(e).Length).Max();
+            //var files = envPaths.finalBundleDict.Values.ToArray();
+            //var maxFileSize = files.Select(e => new FileInfo(e).Length).Max();
+            //if (maxFileSize > beginResp.sizeLimit)
+            //{
+                //Debug.LogError("文件过大, TODO, 使用recompress之后的尺寸");
+                //return;
+            //}
+            Dictionary<BuildTarget, string> bundleDict = new();
 
             var beginResp = await Post<MiniBeginUploadResponse>($"{URL_BEGIN_UPLOAD}");
-            if (maxFileSize > beginResp.sizeLimit)
+            foreach (var buildTarget in envPaths.finalBundleDict.Keys)
             {
-                Debug.LogError("文件过大, TODO, 使用recompress之后的尺寸");
-                return;
+                bundleDict[buildTarget] = await envPaths.ExecuteRename(beginResp.miniId, buildTarget);
             }
 
             var postSign = AliyunOssPostSign.HardDecode(beginResp.postSign);
             var key_file_type= new List<(string, string, string)>
             {
-                (beginResp.iosFileKey, envPaths.finalBundleDict[BuildTarget.iOS], MIME_BIN),
-                (beginResp.androidFileKey, envPaths.finalBundleDict[BuildTarget.Android], MIME_BIN),
-                (beginResp.webglFileKey, envPaths.finalBundleDict[BuildTarget.Android], MIME_BIN),
+                (beginResp.iosFileKey, bundleDict[BuildTarget.iOS], MIME_BIN),
+                (beginResp.androidFileKey, bundleDict[BuildTarget.Android], MIME_BIN),
+                (beginResp.webglFileKey, bundleDict[BuildTarget.WebGL], MIME_BIN),
             };
             // var fileCount = key_file_type.Count;
             // TODO 如果有缩略图，则上传缩略图
@@ -97,7 +102,7 @@ namespace Nianxie.Editor
             for(int i=0;i<key_file_type.Count;i++)
             {
                 var (key, file, type) = key_file_type[i];
-                onFileProgress(key, i + 1, key_file_type.Count);
+                onFileProgress(file, i + 1, key_file_type.Count);
                 var fileBytes = await File.ReadAllBytesAsync(file);
                 var respMd5 = await postSign.PostFile(fileBytes, key, type);
                 var fileMd5 = new LargeBytes(fileBytes).Md5Base64();
@@ -114,11 +119,11 @@ namespace Nianxie.Editor
             await Post<string>($"{URL_END_UPLOAD}", JsonUtility.ToJson(new MiniEndUploadRequest
             {
                 session = beginResp.session,
-                name = envPaths.config.name,
-                craftable = envPaths.config.craftable,
+                name = config.name,
+                craftable = config.craftable,
                 thumbnailUploaded = false,
-                miniVersion = NianxieConst.MINI_VERSION,
-                unityVersion = Application.unityVersion,
+                miniVersion = config.miniVersion,
+                unityVersion = config.unityVersion,
             }));
             onFileProgress("", key_file_type.Count, key_file_type.Count);
         }

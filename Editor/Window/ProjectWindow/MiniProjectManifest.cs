@@ -31,6 +31,11 @@ namespace Nianxie.Editor
             var jsonStr = JsonUtility.ToJson(this, true);
             return Encoding.UTF8.GetBytes(jsonStr);
         }
+        public static MiniProjectManifest FromJson(byte[] jsonBytes)
+        {
+            var jsonStr = Encoding.UTF8.GetString(jsonBytes);
+            return JsonUtility.FromJson<MiniProjectManifest>(jsonStr);
+        }
     }
 }
 

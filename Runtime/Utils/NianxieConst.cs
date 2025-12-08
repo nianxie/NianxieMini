@@ -5,10 +5,7 @@ namespace Nianxie.Utils
 {
     public static class NianxieConst
     {
-        public const int MARJOR_VERSION = 0;
-        public const int MINOR_VERSION = 20251018;
         public const string MINI_VERSION = "0.0.1";
-        public const string PATCH_VERSION = "beta";
         public const string UNITY_VERSION = "2022.3.62f2c1";
         public static string StoragePath => Application.persistentDataPath + "/storage.db";
         public const string ShellResPath = "Assets/ShellRes";

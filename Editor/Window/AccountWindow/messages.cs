@@ -37,6 +37,7 @@ namespace Nianxie.Editor
     public class MiniBeginUploadResponse
     {
         public string session;
+        public string miniId;
         public int sizeLimit;
         public string thumbnailFileKey;
         public string androidFileKey;

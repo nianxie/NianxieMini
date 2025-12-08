@@ -29,8 +29,29 @@
             </ui:VisualElement>
             <ui:VisualElement name="uploadView" style="flex-grow: 0;">
                 <ui:Button text="取消" parse-escape-sequences="true" display-tooltip-when-elided="true" name="cancelBtn" style="font-size: 16px; padding-top: 4px; padding-right: 4px; padding-bottom: 4px; padding-left: 4px; align-self: flex-start; width: 120px; margin-left: 4px;" />
-                <ui:VisualElement style="flex-grow: 1; flex-direction: row; align-self: center; align-items: center; justify-content: space-between; padding-top: 5px; padding-right: 20px; padding-bottom: 5px; padding-left: 20px;">
-                    <ui:VisualElement style="flex-grow: 1; align-items: stretch;">
+                <ui:VisualElement style="flex-grow: 1; flex-direction: row; align-self: center; align-items: center; justify-content: center; padding-top: 5px; padding-right: 20px; padding-bottom: 5px; padding-left: 20px;">
+                    <ui:VisualElement style="flex-grow: 0; align-items: stretch; justify-content: flex-start;">
+                        <ui:VisualElement style="flex-grow: 0; flex-direction: row; align-self: auto; align-items: center; font-size: 16px; justify-content: flex-start;">
+                            <ui:Label tabindex="-1" text="名称：" parse-escape-sequences="true" display-tooltip-when-elided="true" style="width: 150px;" />
+                            <ui:TextField picking-mode="Ignore" name="nameField" style="align-self: auto; width: 400px;" />
+                        </ui:VisualElement>
+                        <ui:VisualElement style="flex-grow: 0; flex-direction: row; align-self: auto; align-items: center; font-size: 16px; justify-content: flex-start;">
+                            <ui:Label tabindex="-1" text="类别：" parse-escape-sequences="true" display-tooltip-when-elided="true" style="width: 150px;" />
+                            <ui:Label tabindex="-1" text="游戏" parse-escape-sequences="true" display-tooltip-when-elided="true" name="kindGame" style="flex-direction: row; justify-content: flex-end; width: 60px; font-size: 18px; align-self: center; align-items: center; padding-left: 4px; -unity-text-align: middle-left;">
+                                <ui:VisualElement style="flex-grow: 0; flex-direction: row; align-self: center; justify-content: space-between; align-items: stretch; width: 18px; height: 18px; flex-shrink: 0; background-image: url(&quot;project://database/Assets/NianxieMini/Editor%20Default%20Resources/game.png?fileID=2800000&amp;guid=48e31103f357aba49ae31f860015749c&amp;type=3#game&quot;);" />
+                            </ui:Label>
+                            <ui:Label tabindex="-1" text="模板" parse-escape-sequences="true" display-tooltip-when-elided="true" name="kindCraft" style="flex-direction: row; justify-content: flex-end; width: 60px; font-size: 18px; align-self: center; align-items: center; padding-left: 4px; -unity-text-align: middle-left;">
+                                <ui:VisualElement style="flex-grow: 0; flex-direction: row; align-self: center; justify-content: space-between; align-items: stretch; width: 18px; height: 18px; flex-shrink: 0; background-image: url(&quot;project://database/Assets/NianxieMini/Editor%20Default%20Resources/craft.png?fileID=2800000&amp;guid=66d9cee5318d39a4cb6bc45f62c2a7cb&amp;type=3#craft&quot;);" />
+                            </ui:Label>
+                        </ui:VisualElement>
+                        <ui:VisualElement style="flex-grow: 0; flex-direction: row; align-self: auto; align-items: center; font-size: 16px; justify-content: flex-start;">
+                            <ui:Label tabindex="-1" text="Mini版本：" parse-escape-sequences="true" display-tooltip-when-elided="true" style="width: 150px;" />
+                            <ui:TextField picking-mode="Ignore" name="miniVersion" style="align-self: auto; width: 400px;" />
+                        </ui:VisualElement>
+                        <ui:VisualElement style="flex-grow: 0; flex-direction: row; align-self: auto; align-items: center; font-size: 16px; justify-content: flex-start;">
+                            <ui:Label tabindex="-1" text="Unity版本：" parse-escape-sequences="true" display-tooltip-when-elided="true" style="width: 150px;" />
+                            <ui:TextField picking-mode="Ignore" name="unityVersion" style="align-self: auto; width: 400px;" />
+                        </ui:VisualElement>
                         <ui:VisualElement style="flex-grow: 0; flex-direction: row; align-self: auto; align-items: center; font-size: 16px; justify-content: flex-start;">
                             <ui:Label tabindex="-1" text="iOS Bundle:" parse-escape-sequences="true" display-tooltip-when-elided="true" style="width: 150px;" />
                             <ui:TextField picking-mode="Ignore" name="iosBundle" style="align-self: auto; width: 400px;" />
@@ -43,14 +64,13 @@
                             <ui:Label tabindex="-1" text="WebGL Bundle:" parse-escape-sequences="true" display-tooltip-when-elided="true" style="width: 150px;" />
                             <ui:TextField picking-mode="Ignore" name="webglBundle" style="align-self: auto; width: 400px;" />
                         </ui:VisualElement>
-                        <ui:VisualElement style="flex-grow: 0; flex-direction: row; align-self: auto; align-items: center; font-size: 16px; justify-content: flex-start;">
-                            <ui:Label tabindex="-1" text="名称：" parse-escape-sequences="true" display-tooltip-when-elided="true" style="width: 150px;" />
-                            <ui:TextField picking-mode="Ignore" name="nameField" style="align-self: auto; width: 400px;" />
-                        </ui:VisualElement>
                     </ui:VisualElement>
-                    <ui:Button text="选择封面" parse-escape-sequences="true" display-tooltip-when-elided="true" name="thumbnailBtn" style="width: 90px; height: 160px;" />
+                    <ui:Button text="选择封面" parse-escape-sequences="true" display-tooltip-when-elided="true" name="thumbnailBtn" style="width: 90px; height: 160px; font-size: 18px;" />
                 </ui:VisualElement>
-                <ui:Button text="上传" parse-escape-sequences="true" display-tooltip-when-elided="true" name="uploadBtn" style="align-self: center; width: 120px; padding-top: 6px; padding-right: 6px; padding-bottom: 6px; padding-left: 6px; font-size: 16px;" />
+                <ui:VisualElement style="flex-grow: 1; flex-direction: row; align-self: center;">
+                    <ui:Button text="查看" parse-escape-sequences="true" display-tooltip-when-elided="true" name="openFolder" style="align-self: center; width: 120px; padding-top: 6px; padding-right: 6px; padding-bottom: 6px; padding-left: 6px; font-size: 16px;" />
+                    <ui:Button text="上传" parse-escape-sequences="true" display-tooltip-when-elided="true" name="uploadBtn" style="align-self: center; width: 120px; padding-top: 6px; padding-right: 6px; padding-bottom: 6px; padding-left: 6px; font-size: 16px;" />
+                </ui:VisualElement>
             </ui:VisualElement>
             <ui:Button parse-escape-sequences="true" display-tooltip-when-elided="true" style="padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; height: 4px; min-height: 4px; max-height: 4px; background-color: rgb(255, 255, 255);" />
             <ui:VisualElement name="listView" style="flex-grow: 1; font-size: 16px; padding-top: 5px; padding-right: 5px; padding-bottom: 5px; padding-left: 5px;">

@@ -1,7 +1,9 @@
+using System;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Web.UI;
 using Cysharp.Threading.Tasks;
+using Nianxie.Utils;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -29,7 +31,7 @@ namespace Nianxie.Editor
             wnd.titleContent = new GUIContent(WND_NAME);
             wnd.minSize = new Vector2(500, 500);
             wnd.state.showUpload = true;
-            wnd.state.folder = folder;
+            wnd.state.selectFolder = folder;
             wnd.view.signedView.folderDropdown.SetValueWithoutNotify(folder);
             wnd.Refresh();
         }
@@ -65,11 +67,16 @@ namespace Nianxie.Editor
                 {
                     public Button cancelBtn;
                     public TextField nameField;
+                    public VisualElement kindGame;
+                    public VisualElement kindCraft;
+                    public TextField miniVersion;
+                    public TextField unityVersion;
                     public TextField iosBundle;
                     public TextField androidBundle;
                     public TextField webglBundle;
                     public Button thumbnailBtn;
                     public Button uploadBtn;
+                    public Button openFolder;
                 }
                 public UploadView uploadView;
                 public Button signoutBtn;
@@ -98,9 +105,41 @@ namespace Nianxie.Editor
 
             public LoginKind loginKind = LoginKind.Account;
             public bool showUpload = false;
-            public string folder = "";
+            // folder
+            private string _selectFolder = "";
+            public MiniProjectManifest selectManifest { get; private set; }
+            public MiniEditorEnvPaths envPaths { get; private set; }
+            public string selectFolder
+            {
+                get { return _selectFolder; }
+                set
+                {
+                    if (_selectFolder != value)
+                    {
+                        _selectFolder = value;
+                        envPaths = null;
+                        selectManifest = null;
+                        if (!string.IsNullOrEmpty(value))
+                        {
+                            envPaths = MiniEditorEnvPaths.Get(value);
+                            if (File.Exists(envPaths.finalManifest))
+                            {
+                                try
+                                {
+                                    var jsonBytes = File.ReadAllBytes(envPaths.finalManifest);
+                                    selectManifest = MiniProjectManifest.FromJson(jsonBytes);
+                                }
+                                catch (Exception e)
+                                {
+                                    Debug.LogError($"{envPaths.finalManifest}文件异常，请重新构建");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            // 缩略图
             private Texture2D _thumbnail;
-
             public Texture2D thumbnail
             {
                 get { return _thumbnail; }
@@ -128,20 +167,16 @@ namespace Nianxie.Editor
                 {
                     self.uploadView.SetDisplay(state.showUpload);
                     self.folderDropdown.choices = ProjectWindow.ListProjectFolders();
-                    if (string.IsNullOrEmpty(state.folder))
+                    if (string.IsNullOrEmpty(state.selectFolder))
                     {
                         self.uploadView.SetDisplay(false);
                     }
                     else
                     {
-                        var envPaths = MiniEditorEnvPaths.Get(state.folder);
                         self.uploadView.SetDisplay(true);
                         self.uploadView.Apply((uploadView) =>
                         {
-                            uploadView.thumbnailBtn.style.backgroundImage = new StyleBackground
-                            {
-                                value=Background.FromTexture2D(state.thumbnail)
-                            };
+                            bool okay = true;
                             var tuple = new[]
                             {
                                 (uploadView.iosBundle, BuildTarget.iOS),
@@ -150,7 +185,7 @@ namespace Nianxie.Editor
                             };
                             foreach (var (bundleField, buildTarget) in tuple)
                             {
-                                var path = envPaths.finalBundleDict[buildTarget];
+                                var path = state.envPaths.finalBundleDict[buildTarget];
                                 if (File.Exists(path))
                                 {
                                     bundleField.value = path;
@@ -158,8 +193,33 @@ namespace Nianxie.Editor
                                 else
                                 {
                                     bundleField.value = "未构建";
+                                    okay = false;
                                 }
                             }
+                            var config = state.selectManifest?.config;
+                            if (config != null)
+                            {
+                                uploadView.nameField.value = config.name;
+                                uploadView.kindCraft.SetDisplay(config.craftable);
+                                uploadView.kindGame.SetDisplay(!config.craftable);
+                                uploadView.miniVersion.value = config.miniVersion;
+                                uploadView.unityVersion.value = config.unityVersion;
+                                uploadView.uploadBtn.SetEnabled(okay);
+                            }
+                            else
+                            {
+                                uploadView.nameField.value = "";
+                                uploadView.kindCraft.SetDisplay(false);
+                                uploadView.kindGame.SetDisplay(false);
+                                uploadView.uploadBtn.SetEnabled(false);
+                                uploadView.miniVersion.value = "";
+                                uploadView.unityVersion.value = "";
+                            }
+
+                            uploadView.thumbnailBtn.style.backgroundImage = new StyleBackground
+                            {
+                                value=Background.FromTexture2D(state.thumbnail)
+                            };
                         });
                     }
                     self.listView.Apply((listView) =>
@@ -241,18 +301,20 @@ namespace Nianxie.Editor
                 };
                 self.folderDropdown.RegisterValueChangedCallback((e) =>
                 {
-                    state.folder = e.newValue;
+                    state.selectFolder = e.newValue;
                     state.thumbnail = null;
                     Refresh();
                 });
                 self.uploadView.Apply((uploadView) =>
                 {
+                    uploadView.miniVersion.SetEnabled(false);
+                    uploadView.unityVersion.SetEnabled(false);
                     uploadView.iosBundle.SetEnabled(false);
                     uploadView.androidBundle.SetEnabled(false);
                     uploadView.webglBundle.SetEnabled(false);
                     uploadView.cancelBtn.clicked+=()=>{
                         self.folderDropdown.SetValueWithoutNotify("");
-                        state.folder = "";
+                        state.selectFolder = "";
                         Refresh();
                     };
                     uploadView.thumbnailBtn.clicked += () =>
@@ -268,6 +330,23 @@ namespace Nianxie.Editor
                     {
                         Upload();
                     };
+                    uploadView.openFolder.clicked += () =>
+                    {
+                        var path = state.envPaths.finalManifest;
+                        if (File.Exists(path))
+                        {
+                            EditorUtility.RevealInFinder(path);
+                        }
+                        else
+                        {
+                            if (!Directory.Exists(NianxieConst.MiniBundlesOutput))
+                            {
+                                Directory.CreateDirectory(NianxieConst.MiniBundlesOutput);
+                            }
+                            EditorUtility.RevealInFinder(NianxieConst.MiniBundlesOutput);
+                            Debug.LogError($"项目未构建{path}");
+                        }
+                    };
                 });
             });
             Refresh();
@@ -276,16 +355,21 @@ namespace Nianxie.Editor
 
         private void Upload()
         {
-            if (EditorUtility.DisplayDialog("确认上传？", $"确认上传《{name}》", "确认", "取消"))
+            if (state.selectManifest == null)
+            {
+                Debug.LogError("上传异常，请重新构建");
+                return;
+            }
+            var message = $"确认上传《{view.signedView.uploadView.nameField.value}》?\n\n" + (state.thumbnail==null?"注意，未选择封面":"");
+            if (EditorUtility.DisplayDialog("确认上传？", message, "确认", "取消"))
             {
                 UniTask.Create(async () =>
                 {
                     try
                     {
-                        var envPaths = MiniEditorEnvPaths.Get(state.folder);
-                        await AccountController.UploadBundle(null, envPaths, (name, progress, total) =>
+                        await AccountController.UploadBundle(null, state.selectManifest.config, state.envPaths, (fileName, progress, total) =>
                         {
-                            EditorUtility.DisplayProgressBar("上传文件", $"{progress}/{total} {name}", (progress*1.0f)/total);
+                            EditorUtility.DisplayProgressBar("上传文件", $"{progress}/{total} {fileName}", (progress*1.0f)/total);
                         });
                     } finally {
                         EditorUtility.ClearProgressBar();
