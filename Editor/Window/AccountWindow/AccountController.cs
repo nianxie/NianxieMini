@@ -19,7 +19,7 @@ namespace Nianxie.Editor
         private const string MIME_JSON = "application/json";
         private const string MIME_JPEG = "image/jpeg";
         //private const string SERVER_URL = "http://127.0.0.1:5239";
-        private const string SERVER_URL = "http://192.168.1.5:10080";
+        private const string SERVER_URL = "http://39.107.44.97:11080";
 
         private static string URL_SIGNIN => $"{SERVER_URL}/api/account/sign/UnitySignin";
         private static string URL_LIST => $"{SERVER_URL}/api/mini/List";
