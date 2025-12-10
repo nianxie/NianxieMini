@@ -5,7 +5,7 @@ using Nianxie.Framework;
 namespace Nianxie.Editor
 {
     [Serializable]
-    public class DB_Mini
+    public class DB_NxMini
     {
         public string miniId;
         public string accountId;
@@ -20,9 +20,7 @@ namespace Nianxie.Editor
         public string iosUrl;
         public string webglUrl;
         public bool used;
-        public bool packageReady;
-        public string packageReadyTime;
-        public string packageUrl;
+        public string packageId;
     }
 
     [Serializable]
@@ -30,7 +28,7 @@ namespace Nianxie.Editor
     {
         public int pageNum;
         public int pageSize;
-        public DB_Mini[] itemList;
+        public DB_NxMini[] itemList;
     }
     
     [Serializable]

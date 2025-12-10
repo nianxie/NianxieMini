@@ -7,7 +7,9 @@ namespace Nianxie.Craft
 {
     public abstract class AbstractSlotCom:MonoBehaviour
     {
-        [NonSerialized] public CraftEdit craftEdit;
+        [BlackList] 
+        [HideInInspector]
+        public CraftEdit craftEdit;
         public abstract AbstractSlotJson PackToJson(AbstractPackContext packContext);
         public abstract void UnpackFromJson(CraftUnpackContext unpackContext, AbstractSlotJson slotJson);
         public abstract object ReadData();
@@ -16,6 +18,7 @@ namespace Nianxie.Craft
             var pos = transform.localPosition;
             transform.localPosition = new Vector3(pos.x, pos.y, -0.1f);
         }
+
 #if UNITY_EDITOR
         [BlackList]
         public virtual void ON_INSPECTOR_UPDATE(bool change)

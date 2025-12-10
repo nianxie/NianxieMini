@@ -10,7 +10,7 @@ namespace Nianxie.Editor
         public int pageNum { get; private set; } = 0;
         private int loadingPageNum = -1;
         public bool loading => loadingPageNum > 0;
-        public DB_Mini[] miniItems { get; private set; } = {};
+        public DB_NxMini[] miniItems { get; private set; } = {};
         public Dictionary<string, Texture2D> texDict = new();
 
         public void NavPage(int targetPageNum, Action callback)

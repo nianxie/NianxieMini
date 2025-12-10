@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Nianxie.Craft
 {
 	[RequireComponent(typeof(MiniBehaviour))]
-	public class BehavSlot : AbstractElementSlot
+	public class BehavSlot : AbstractSlotCom
 	{
 		private MiniBehaviour _behav;
 		public MiniBehaviour behav {

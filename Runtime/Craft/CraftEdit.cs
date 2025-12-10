@@ -13,25 +13,24 @@ namespace Nianxie.Craft
         public Camera editCamera => m_Camera;
         [SerializeField]
         private EditArea m_Area;
-        public EditArea area => m_Area;
+        public EditArea editArea => m_Area;
         [SerializeField]
         private Canvas m_Canvas;
-        public Canvas canvas => m_Canvas;
+        public Canvas editCanvas => m_Canvas;
 
-        public AbstractAssetSlot selectAssetSlot { get; private set; }
+        public AbstractNodeSlot selectNodeSlot { get; private set; }
         public PositionSlot selectPosSlot { get; private set; }
-
         public BehavSlot rootSlot { get; private set; }
 
         private void InitByLoading(LuafabLoading miniCraftLoading)
         {
-            var miniBehav = miniCraftLoading.RawFork(area.transform);
+            var miniBehav = miniCraftLoading.RawFork(editArea.transform);
             if (!miniBehav.TryGetComponent<BehavSlot>(out var behavSlot))
             {
                 throw new Exception("BehavSlot expected in root of MiniCraft");
             }
             rootSlot = behavSlot;
-            foreach (var slotCom in GetComponentsInChildren<AbstractSlotCom>())
+            foreach (var slotCom in GetComponentsInChildren<AbstractSlotCom>(true))
             {
                 slotCom.craftEdit = this;
             }
@@ -42,16 +41,16 @@ namespace Nianxie.Craft
             editArgs.refresh.Action();
         }
 
-        public void OnSelect(AbstractAssetSlot assetSlot)
+        public void OnSelect(AbstractNodeSlot assetSlot)
         {
             if (assetSlot == null)
             {
-                selectAssetSlot = null;
+                selectNodeSlot = null;
                 selectPosSlot = null;
             }
             else
             {
-                selectAssetSlot = assetSlot;
+                selectNodeSlot = assetSlot;
                 selectPosSlot = assetSlot.GetComponentInParent<PositionSlot>();
             }
             OnGizmosRefresh();
@@ -95,7 +94,7 @@ namespace Nianxie.Craft
         public void PlayMain(MiniPlayArgs args, LuafabLoading miniCraftLoading)
         {
             editCamera.gameObject.SetActive(false);
-            canvas.gameObject.SetActive(false);
+            editCanvas.gameObject.SetActive(false);
             if (miniCraftLoading != null)
             {
                 InitByLoading(miniCraftLoading);

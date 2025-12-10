@@ -129,41 +129,9 @@ namespace Nianxie.Craft
     }
     
     [ExecuteAlways]
-    [RequireComponent(typeof(BoxCollider2D))]
-    public abstract class AbstractAssetSlot : AbstractNodeSlot, IPointerDownHandler, IPointerClickHandler, IPointerUpHandler
+    public abstract class AbstractAssetSlot : AbstractNodeSlot
     {
-        [NonSerialized] BoxCollider2D m_collider2D;
-        public BoxCollider2D touchCollider2D
-        {
-            get
-            {
-                if (!m_collider2D)
-                {
-                    gameObject.TryGetComponent(out m_collider2D);
-                }
-                return m_collider2D;
-            }
-        }
-
         public abstract void WriteRawData(object rawData);
-
-        void IPointerDownHandler.OnPointerDown(PointerEventData eventData)
-        {
-            //craftModule.DispatchSlotPointer(this, nameof(IPointerDownHandler.OnPointerDown), eventData);
-        }
-
-        void IPointerClickHandler.OnPointerClick(PointerEventData eventData)
-        {
-            if (!TryGetComponent<PositionSlot>(out var posSlot) || !posSlot.dragging)
-            {
-                craftEdit.OnSelect(this);
-            }
-        }
-
-        void IPointerUpHandler.OnPointerUp(PointerEventData eventData)
-        {
-            //craftModule.DispatchSlotPointer(this, nameof(IPointerUpHandler.OnPointerUp), eventData);
-        }
     }
     
 }

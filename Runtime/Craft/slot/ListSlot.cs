@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Plastic.Antlr3.Runtime.Misc;
 using UnityEngine;
 
 namespace Nianxie.Craft
@@ -9,9 +10,9 @@ namespace Nianxie.Craft
         [SerializeField]
         private Vector2 delta = new Vector2(1, 1);
         [SerializeField]
-        private AbstractElementSlot template;
+        private AbstractSlotCom template;
         [SerializeField]
-        private List<AbstractElementSlot> list;
+        private List<AbstractSlotCom> list;
         public override AbstractSlotJson PackToJson(AbstractPackContext packContext)
         {
             throw new System.NotImplementedException();
@@ -27,10 +28,22 @@ namespace Nianxie.Craft
             throw new System.NotImplementedException();
         }
 
-        public void Append()
+        public void OperAppend()
         {
             var com = UnityEngine.Object.Instantiate(template, transform);
             list.Add(com);
+        }
+        public void OperRemoveElement(AbstractNodeSlot nodeSlot)
+        {
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i].gameObject == nodeSlot.gameObject)
+                {
+                    list.RemoveAt(i);
+                    UnityEngine.Object.Destroy(nodeSlot.gameObject);
+                    return;
+                }
+            }
         }
     }
 }

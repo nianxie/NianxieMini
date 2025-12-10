@@ -29,7 +29,7 @@ namespace Nianxie.Editor
 
         private static string token = "";
         public static bool signinRunning = false;
-        public static readonly List<DB_Mini> dbMiniDatas = new();
+        public static readonly List<DB_NxMini> dbMiniDatas = new();
         public static bool signed => !string.IsNullOrEmpty(token);
         
         static AccountController()
@@ -60,7 +60,7 @@ namespace Nianxie.Editor
             await Post<string>($"{URL_DELETE}/{miniId}");
         }
 
-        public static async UniTask<DB_Mini[]> List(int pageNum)
+        public static async UniTask<DB_NxMini[]> List(int pageNum)
         {
             var pageSize = 10;
             var data = await Get($"{URL_LIST}?pageNum={pageNum}&pageSize={pageSize}");

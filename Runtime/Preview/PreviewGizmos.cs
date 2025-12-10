@@ -1,5 +1,7 @@
 using Nianxie.Craft;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace Nianxie.Preview
 {
@@ -14,7 +16,7 @@ namespace Nianxie.Preview
         {
             var rectTransform = (RectTransform) transform;
             craftEdit = _craftEdit;
-            if (craftEdit == null || craftEdit.selectAssetSlot == null)
+            if (craftEdit == null || craftEdit.selectNodeSlot == null)
             {
                 gameObject.SetActive(false);
                 rectTransform.SetParent(previewManager.transform);
@@ -22,11 +24,11 @@ namespace Nianxie.Preview
             }
             else
             {
-                var selectTransform = craftEdit.selectAssetSlot.transform;
-                if (transform.parent != craftEdit.canvas.transform)
+                var selectTransform = craftEdit.selectNodeSlot.transform;
+                if (transform.parent != craftEdit.editCanvas.transform)
                 {
                     gameObject.SetActive(true);
-                    rectTransform.SetParent(craftEdit.canvas.transform);
+                    rectTransform.SetParent(craftEdit.editCanvas.transform);
                     rectTransform.localScale = Vector3.one;
                 }
 
@@ -37,7 +39,7 @@ namespace Nianxie.Preview
 
         public void OnEdit()
         {
-            if (craftEdit == null || craftEdit.selectAssetSlot == null)
+            if (craftEdit == null || craftEdit.selectNodeSlot == null)
             {
                 return;
             }
@@ -45,19 +47,27 @@ namespace Nianxie.Preview
         }
         public void OnAppend()
         {
-            if (craftEdit == null || craftEdit.selectAssetSlot == null)
+            if (craftEdit == null || craftEdit.selectNodeSlot == null)
             {
                 return;
             }
-            var slot = craftEdit.selectAssetSlot.GetComponent<ListSlot>();
-            slot.Append();
+
+            if (craftEdit.selectNodeSlot.TryGetComponent<ListSlot>(out var listSlot))
+            {
+                listSlot.OperAppend();
+            }
+            else
+            {
+                Debug.LogError("list slot");
+            }
         }
         public void OnRemove()
         {
-            if (craftEdit == null || craftEdit.selectAssetSlot == null)
+            if (craftEdit == null || craftEdit.selectNodeSlot == null)
             {
                 return;
             }
+            craftEdit.selectNodeSlot.OperRemoveSelf();
         }
     }
 }

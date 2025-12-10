@@ -379,7 +379,7 @@ namespace Nianxie.Editor
             }
         }
 
-        private void Delete(DB_Mini mini)
+        private void Delete(DB_NxMini mini)
         {
             if (EditorUtility.DisplayDialog("确认删除？", $"确认删除《{mini.name}》吗?", "确认", "取消"))
             {
