@@ -13,7 +13,7 @@ namespace Nianxie.Craft
 {
     public class CraftJson
     {
-        public BehavJson root;
+        public SlotBehavJson root;
         public Vector2Int atlasSize;
         public IntRectangle[] atlasRects;
         

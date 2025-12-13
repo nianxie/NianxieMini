@@ -9,10 +9,12 @@ namespace Nianxie.Craft
     [ExecuteAlways]
 	public class EntitySlot : AbstractNodeSlot
 	{
+		[Tooltip("选项array")]
 		[SerializeField]
-		private AbstractAssetSlot[] assetSlotList;
+		private AbstractAssetSlot[] optionSlotArray;
+		[Tooltip("选项list")]
 		[SerializeField]
-		private ListSlot listSlot;
+		private TableSlot optionTableSlot;
 		public override AbstractSlotJson PackToJson(AbstractPackContext context)
 		{
 			var entityJson = new EntityJson();

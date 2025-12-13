@@ -6,8 +6,8 @@ using UnityEngine;
 
 namespace Nianxie.Craft
 {
-    public class ListJson:AbstractSlotJson
+    public class TextureJson:AbstractSlotJson
     {
-        public List<AbstractSlotJson> list;
+        public int sprite;
     }
 }

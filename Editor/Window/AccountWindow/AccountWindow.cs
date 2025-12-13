@@ -375,7 +375,7 @@ namespace Nianxie.Editor
                         EditorUtility.ClearProgressBar();
                     }
                     state.page.NavPage(1, Refresh);
-                });
+                }).Forget();
             }
         }
 

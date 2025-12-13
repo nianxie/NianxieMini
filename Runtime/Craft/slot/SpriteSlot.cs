@@ -1,29 +1,17 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using Nianxie.Components;
-using Nianxie.Utils;
+using System.IO;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using XLua;
 
 namespace Nianxie.Craft
 {
     [RequireComponent(typeof(SpriteRenderer))]
-    public class SpriteSlot : AbstractAssetSlot<SpriteJson, Texture2D, Sprite>
+    public class SpriteSlot : AbstractAssetSlot
     {
-        [SerializeField]
-        private Vector2 m_Pivot;
-        [SerializeField]
-        private Vector2Int m_Size = new Vector2Int(512, 768);
-        [SerializeField]
-        private FitViewAxis m_FitViewAxis;
-        [SerializeField]
-        private int m_Resolution = 512;
-
         [NonSerialized] SpriteRenderer m_Renderer;
-        private SpriteRenderer drawRenderer
+        private SpriteRenderer spriteRenderer
         {
             get
             {
@@ -34,162 +22,85 @@ namespace Nianxie.Craft
                 return m_Renderer;
             }
         }
+        
+        [SerializeField]
+        private bool m_FitX;
+        
+        [SerializeField]
+        private bool m_FitY;
 
-        // 返回crop矩形
-        private IntRectangle CalcPackAndCrop(Texture2D tex, out Vector2Int packSize)
+        [SerializeField]
+        private Sprite m_DefaultSprite;
+        
+        [HideInInspector]
+        [SerializeField]
+        private Sprite m_UserSprite;
+        public override AbstractSlotJson PackToJson(AbstractPackContext packContext)
         {
-            if (m_FitViewAxis == FitViewAxis.Horizontal)
-            {
-                // 对于Horizontal的情况，确保缩放时，高度取整时总是小于等于对应宽高比的高度
-                var maxPackSize = m_Size.x >= m_Size.y
-                    ? new Vector2Int(m_Resolution, Mathf.FloorToInt(1.0f * m_Resolution * m_Size.y / m_Size.x))
-                    : new Vector2Int(Mathf.CeilToInt(1.0f * m_Resolution * m_Size.x / m_Size.y), m_Resolution);
-
-                int croppedHeight = tex.width * maxPackSize.y / maxPackSize.x;
-                if (croppedHeight >= tex.height) // 如果maxPackSize.y / maxPackSize.x > texture2D.height / texture2D.width，则不需要裁切高度
-                {
-                    // 如果原图尺寸比最大打包尺寸要小，则直接使用原图尺寸打包
-                    if (tex.width < maxPackSize.x)
-                    {
-                        packSize = new Vector2Int(tex.width, tex.height);
-                    }
-                    else
-                    {
-                        packSize = new Vector2Int(maxPackSize.x, maxPackSize.x * tex.height / tex.width);
-                    }
-
-                    return new IntRectangle(0, 0, tex.width, tex.height);
-                }
-                else // 如果需要裁剪
-                {
-                    if (tex.width < maxPackSize.x)
-                    {
-                        packSize = new Vector2Int(tex.width, croppedHeight);
-                    }
-                    else
-                    {
-                        packSize = maxPackSize;
-                    }
-                    return new IntRectangle(0, (tex.height - croppedHeight)/2, tex.width, croppedHeight);
-                }
-            }
-            else
-            {
-                // 对于Vertical的情况，确保缩放时，宽度取整时总是小于等于对应宽高比的宽度
-                var maxPackSize = m_Size.x <= m_Size.y
-                    ? new Vector2Int(Mathf.FloorToInt(1.0f * m_Resolution * m_Size.x / m_Size.y), m_Resolution)
-                    : new Vector2Int(m_Resolution, Mathf.CeilToInt(1.0f * m_Resolution * m_Size.y / m_Size.x));
-
-                int croppedWidth = tex.height * maxPackSize.x / maxPackSize.y;
-                if (croppedWidth >= tex.width) // 如果不裁切
-                {
-                    // 如果原图尺寸比最大打包尺寸要小，则直接使用原图尺寸打包
-                    if (tex.height < maxPackSize.y)
-                    {
-                        packSize = new Vector2Int(tex.width, tex.height);
-                    }
-                    else
-                    {
-                        packSize = new Vector2Int(maxPackSize.y * tex.width / tex.height, maxPackSize.y);
-                    }
-
-                    return new IntRectangle(0, 0, tex.width, tex.height);
-                }
-                else // 如果需要裁剪
-                {
-                    if (tex.height < maxPackSize.y)
-                    {
-                        packSize = new Vector2Int(croppedWidth, tex.height);
-                    }
-                    else
-                    {
-                        packSize = maxPackSize;
-                    }
-                    return new IntRectangle((tex.width - croppedWidth)/2, 0, croppedWidth, tex.height);
-                }
-            }
+            throw new System.NotImplementedException();
         }
 
-        protected override SpriteJson PackFromRawData(AbstractPackContext packContext, Texture2D tex)
+        public override void UnpackFromJson(CraftUnpackContext unpackContext, AbstractSlotJson slotJson)
         {
-            var cropRect = CalcPackAndCrop(tex, out var packSize);
-            var spriteIndex = packContext.AddSprite(tex, cropRect, packSize);
-            return new SpriteJson()
-            {
-                sprite = spriteIndex,
-            };
+            throw new System.NotImplementedException();
         }
 
-        protected override Sprite UnpackToFinalData(CraftUnpackContext unpackContext, SpriteJson spriteJson)
+        public Sprite ReadSprite()
         {
-            var spriteRect = unpackContext.GetAtlasRect(spriteJson.sprite);
-            var pixelsPerUnit = 100.0f;
-            if (m_FitViewAxis == FitViewAxis.Horizontal)
-            {
-                pixelsPerUnit = 100.0f * spriteRect.width / m_Size.x;
-            }
-            else
-            {
-                pixelsPerUnit = 100.0f * spriteRect.height / m_Size.y;
-            }
-            return unpackContext.GenSprite(spriteJson.sprite, m_Pivot, pixelsPerUnit);
+            return m_UserSprite==null?m_DefaultSprite:m_UserSprite;
         }
 
-        protected override void OnDataModify()
+        public void WriteSprite(Sprite writeSprite)
         {
-            drawRenderer.sprite = finalData;
+            // TODO 根据fitx和fity对sprite进行裁切。
+            slotCallback.Incref(this, writeSprite.texture);
+            if (m_UserSprite != null)
+            {
+                slotCallback.Decref(this, m_UserSprite.texture);
+            }
+            m_UserSprite = writeSprite;
+            spriteRenderer.sprite = m_UserSprite;
         }
-
-        protected override Sprite DataProcess(Texture2D tex)
+        
+        public override void PostDuplicate()
         {
-            if (tex != null)
+            if (m_UserSprite != null)
             {
-                var cropRect = CalcPackAndCrop(tex, out _);
-                var pixelsPerUnit = 100.0f;
-                if (m_FitViewAxis == FitViewAxis.Horizontal)
-                {
-                    pixelsPerUnit = 100.0f * tex.width / m_Size.x;
-                }
-                else
-                {
-                    pixelsPerUnit = 100.0f * tex.height / m_Size.y;
-                }
-                return Sprite.Create(tex, cropRect.ToUnityRect(), m_Pivot, pixelsPerUnit);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        protected override void DestroyFinalData(Sprite finalSprite)
-        {
-            if (PlatformUtility.UNITY_EDITOR)
-            {
-                DestroyImmediate(finalSprite);
-            }
-            else
-            {
-                Destroy(finalSprite);
+                slotCallback.Incref(this, m_UserSprite.texture);
             }
         }
 #if UNITY_EDITOR
         [BlackList]
         public override void ON_INSPECTOR_UPDATE(bool change)
         {
-            if (!change)
+            if (m_UserSprite != null)
             {
-                return;
+                m_UserSprite = null;
+                UnityEditor.EditorUtility.SetDirty(this);
             }
 
-            m_Size = new Vector2Int(Math.Max(1, m_Size.x), Math.Max(1, m_Size.y));
-            m_Resolution = Math.Clamp(m_Resolution, 1, 1024);
-            var boxSize = new Vector2(m_Size.x / 100.0f, m_Size.y / 100.0f);
-            touchCollider2D.size = boxSize;
-            touchCollider2D.offset = new Vector2(
-                boxSize.x * (0.5f - m_Pivot.x),
-                boxSize.y * (0.5f - m_Pivot.y)
-                );
+            if (m_DefaultSprite != null)
+            {
+                var size = m_DefaultSprite.rect.size / m_DefaultSprite.pixelsPerUnit;
+                var pivot = m_DefaultSprite.pivot / m_DefaultSprite.rect.size;
+                if (size != rectTransform.rect.size || pivot != rectTransform.pivot)
+                {
+                    rectTransform.sizeDelta = size;
+                    rectTransform.pivot = pivot;
+                }
+
+                if (spriteRenderer.sprite != m_DefaultSprite)
+                {
+                    spriteRenderer.sprite = m_DefaultSprite;
+                    UnityEditor.EditorUtility.SetDirty(spriteRenderer);
+                }
+            }
+            else
+            {
+                // TODO 应该考虑提供一张默认的Sprite，在未设置DefaultSprite的时候自动将DefaultSprite设置为默认的Sprite。
+                spriteRenderer.sprite = null;
+            }
+
             base.ON_INSPECTOR_UPDATE(change);
         }
 #endif

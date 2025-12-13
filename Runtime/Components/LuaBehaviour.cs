@@ -47,7 +47,10 @@ namespace Nianxie.Components
             _luaTable = null;
         }
 
-        protected abstract void OnCreateLuaTable(LuaTable luaSelf);
+        protected virtual void OnCreateLuaTable(LuaTable luaSelf)
+        {
+        }
+
         private void CreateLuaTable(out LuaTable outLuaTable)
         {
 	        if (_luaTable != null)

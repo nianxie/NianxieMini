@@ -5,14 +5,19 @@ using XLua;
 
 namespace Nianxie.Craft
 {
-    public abstract class AbstractSlotCom:MonoBehaviour
+    public abstract class AbstractSlotCom:MonoBehaviour, ISlot
     {
         [BlackList] 
         [HideInInspector]
-        public CraftEdit craftEdit;
+        public SlotCallback slotCallback;
         public abstract AbstractSlotJson PackToJson(AbstractPackContext packContext);
         public abstract void UnpackFromJson(CraftUnpackContext unpackContext, AbstractSlotJson slotJson);
-        public abstract object ReadData();
+
+        public virtual object ReadData()
+        {
+            throw new NotImplementedException();
+        }
+
         protected virtual void Awake()
         {
             var pos = transform.localPosition;

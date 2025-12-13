@@ -23,10 +23,15 @@ namespace XLua
             typeof(Nianxie.Framework.AsyncHelper),
             typeof(Nianxie.Components.LuaBehaviour),
             typeof(Nianxie.Components.MiniBehaviour),
+            
+            // craft
+            typeof(Nianxie.Craft.SlotBehaviour),
             typeof(Nianxie.Craft.AbstractAssetSlot),
+            typeof(Nianxie.Craft.AbstractNodeSlot),
             typeof(Nianxie.Craft.AbstractSlotCom),
             typeof(Nianxie.Craft.PositionSlot),
-            typeof(Nianxie.Craft.SpriteSlot),
+            typeof(Nianxie.Craft.EntitySlot),
+            typeof(Nianxie.Craft.TextureSlot),
             typeof(Nianxie.Craft.TextSlot),
             typeof(Nianxie.Craft.CraftJson),
             typeof(Nianxie.Craft.CraftEdit),

@@ -117,6 +117,7 @@ namespace Nianxie.Craft
         [BlackList]
         public override void ON_INSPECTOR_UPDATE(bool change)
         {
+            base.ON_INSPECTOR_UPDATE(change);
             if (!change) return;
             if (defaultFinalData != null)
             {
@@ -131,7 +132,10 @@ namespace Nianxie.Craft
     [ExecuteAlways]
     public abstract class AbstractAssetSlot : AbstractNodeSlot
     {
-        public abstract void WriteRawData(object rawData);
+        public virtual void WriteRawData(object rawData)
+        {
+            throw new NotImplementedException();
+        }
     }
     
 }

@@ -57,7 +57,8 @@ return setmetatable({
             {
                 var args = new MiniEditArgs
                 {
-                    refresh=selfWrap.Get<LuaFunction>(nameof(GizmosRefresh)),
+                    shellRefresh=selfWrap.Get<LuaFunction>(nameof(GizmosRefresh)),
+                    shellRelease=selfWrap.Get<LuaFunction>(nameof(GizmosRelease)),
                 };
                 craftEdit = await miniManager.EditMain(args);
             }
@@ -124,6 +125,10 @@ return setmetatable({
         public void GizmosRefresh()
         {
             gizmos.Refresh(craftEdit);
+        }
+        public void GizmosRelease(UnityEngine.Object resObj)
+        {
+            gizmos.Release(resObj);
         }
         private static byte[] EditorGetMiniBoot()
         {

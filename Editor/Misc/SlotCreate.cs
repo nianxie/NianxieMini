@@ -68,10 +68,10 @@ namespace Nianxie.Craft
             });
         }
         
-        [MenuItem("GameObject/NianxieCraft/"+nameof(SpriteSlot), false, 101)]
+        [MenuItem("GameObject/NianxieCraft/"+nameof(TextureSlot), false, 101)]
         public static void AddSpriteSlot(MenuCommand command)
         {
-            AddSlotCom<SpriteSlot>(command);
+            AddSlotCom<TextureSlot>(command);
         }
 
         private static void AddSlotCom<T>(MenuCommand command, Action<T> extraOper=null) where T : AbstractSlotCom

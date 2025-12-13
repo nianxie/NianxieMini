@@ -35,7 +35,8 @@ namespace Nianxie.Framework
                 miniCraftLoading = assetModule.AttachLuafabLoading(bridge.envPaths.miniCraftLuafabPath, false);
                 await miniCraftLoading.WaitTask;
             }
-            craftEdit.PlayMain(args, miniCraftLoading);
+
+            craftEdit.PlayMain(this, miniCraftLoading);
             await PrepareContextAndRoot();
             rootLuafabLoading.Fork(transform);
         }
@@ -79,7 +80,7 @@ namespace Nianxie.Framework
                 var craftSlot = craftEdit.rootSlot;
                 if (craftSlot != null)
                 {
-                    return craftSlot.behav.luaTable;
+                    return craftSlot.luaTable;
                 }
                 else
                 {

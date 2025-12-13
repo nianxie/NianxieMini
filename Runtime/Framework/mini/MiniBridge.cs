@@ -24,7 +24,8 @@ namespace Nianxie.Framework
     }
     public struct MiniEditArgs
     {
-        public LuaFunction refresh;
+        public LuaFunction shellRefresh;
+        public LuaFunction shellRelease;
     }
 
     public class MiniBridge: IAssetLoader

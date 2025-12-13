@@ -6,12 +6,10 @@ using XLua;
 namespace Nianxie.Craft
 {
     [DisallowMultipleComponent]
-    public class PositionSlot:AbstractSlotCom, IInitializePotentialDragHandler, IBeginDragHandler, IEndDragHandler, IDragHandler
+    public class PositionSlot:AbstractSlotCom
     {
         [SerializeField]
         private Vector2 m_DefaultPosition;
-
-        public bool dragging { get; private set; }
 
         [BlackList]
         public override AbstractSlotJson PackToJson(AbstractPackContext packContext)
@@ -39,45 +37,6 @@ namespace Nianxie.Craft
         {
             var posJson = (PositionJson)slotJson;
             transform.localPosition = new Vector3(posJson.x, posJson.y, -0.01f);
-        }
-        void IInitializePotentialDragHandler.OnInitializePotentialDrag(PointerEventData eventData)
-        {
-            if (craftEdit.selectPosSlot == this)
-            {
-                eventData.useDragThreshold = false;
-            }
-        }
-
-        void IBeginDragHandler.OnBeginDrag(PointerEventData eventData)
-        {
-            dragging = true;
-            if (craftEdit.selectPosSlot != this)
-            {
-                ExecuteEvents.ExecuteHierarchy(transform.parent.gameObject, eventData, ExecuteEvents.beginDragHandler);
-            }
-        }
-
-        void IEndDragHandler.OnEndDrag(PointerEventData eventData)
-        {
-            dragging = false;
-            if (craftEdit.selectPosSlot != this)
-            {
-                ExecuteEvents.ExecuteHierarchy(transform.parent.gameObject, eventData, ExecuteEvents.endDragHandler);
-            }
-            Debug.Log("position slot end drag");
-        }
-        void IDragHandler.OnDrag(PointerEventData eventData)
-        {
-            if (craftEdit.selectPosSlot != this)
-            {
-                ExecuteEvents.ExecuteHierarchy(transform.parent.gameObject, eventData, ExecuteEvents.dragHandler);
-            }
-            else
-            {
-                var delta = eventData.delta;
-                transform.position += craftEdit.editCamera.ScreenToWorldPoint(delta) - craftEdit.editCamera.ScreenToWorldPoint(Vector3.zero);
-                craftEdit.OnGizmosRefresh();
-            }
         }
 #if UNITY_EDITOR
         [BlackList]

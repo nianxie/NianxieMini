@@ -93,7 +93,7 @@ function Future.new(vSyncFn)
         self._thread = co
         local ok, err = coroutine.resume(co, vSyncFn)
         if not ok then
-            print("ERROR when task start:", err)
+            print("ERROR when future start:", err)
         end
     end
     return self
@@ -125,7 +125,7 @@ function Future.complete(self, ok, ret)
             local co = coList[i]
             local ok1, err = coroutine.resume(co, ok, ret)
             if not ok1 then
-                print("ERROR when task complete:", err)
+                print("ERROR when future complete trigger resume:", err, self._stack)
             end
         ::continue:: end
     end
@@ -134,9 +134,9 @@ function Future.complete(self, ok, ret)
     if cbList then
         for i=1,#cbList do
             local cb = cbList[i]
-            local ok1, err = pcall(cb, ok, ret)
+            local ok1, err = xpcall(cb, xerror, ok, ret)
             if not ok1 then
-                print("ERROR when task complete:", err)
+                print("ERROR when future complete trigger callback:", err)
             end
         ::continue:: end
     end
@@ -145,7 +145,7 @@ function Future.complete(self, ok, ret)
     end
 end
 
-function FutureVtbl:pwait()  
+function FutureVtbl:Pwait()  
     local co, ismain = coroutine.running()
     assert(not ismain, "can't wait in main coroutine")
     if self._state == PENDING then
@@ -170,8 +170,8 @@ function FutureVtbl:pwait()
     end
 end
 
-function FutureVtbl:wait()
-    local ok, ret = self:pwait()
+function FutureVtbl:Wait()
+    local ok, ret = self:Pwait()
     if ok then
         return ret
     else
@@ -293,22 +293,24 @@ end
 function Stream.sink(self, ok, ret)
 end
 
-function StreamVtbl:pnext();  
+function StreamVtbl:Pnext();  
     error("stream pnext TODO")
     return false, nil
 end
 
-function StreamVtbl:next();
+function StreamVtbl:Next();
     error("stream next TODO")
     return nil  
 end
 
-local next = function(stream)
-    return stream:next()
-end
 
-function StreamVtbl:iter()
-    return next, self
+   
+     
+
+
+
+function StreamVtbl:Iter()
+    return self.Next, self
 end
 
 return Stream
@@ -360,7 +362,7 @@ boot.NewFuture=Future.new
 boot.NewStream=Stream.new
 
 function boot.Sleep(asyncHelper, ms)
-	return asyncHelper:FutureSleep(ms):wait()
+	return asyncHelper:FutureSleep(ms):Wait()
 end
 
 boot.CompleteFuture = Future.complete
@@ -838,7 +840,6 @@ reflect.class = class
             
             
             
-            
     
        
              
@@ -867,6 +868,7 @@ end
 
 function reflect.MiniScript (vKeyToInjectionValue)
     local clsOpen = class   (MiniScript)
+    clsOpen.meta.__name = "MiniScript"
     reflect._saveInjections(clsOpen, vKeyToInjectionValue)
     ;
           
@@ -886,6 +888,7 @@ end
 
 function reflect.SlotScript (vKeyToInjectionValue)
     local clsOpen = class   (SlotScript)
+    clsOpen.meta.__name = "SlotScript"
     reflect._saveInjections(clsOpen, vKeyToInjectionValue)
     ;
           
@@ -894,17 +897,21 @@ function reflect.SlotScript (vKeyToInjectionValue)
                
             
              
+                
+              
+                
+            
         
     
     return clsOpen
 end
 
-function reflect.lazyLuafab(clsPath)
+function reflect.LazyLuafab(clsPath)
     local clsOpen = require(clsPath)
     return LuafabField.new (clsOpen, clsPath, true)
 end
 
-function reflect.readyLuafab(clsPath)
+function reflect.ReadyLuafab(clsPath)
     local clsOpen = require(clsPath)
     return LuafabField.new (clsOpen, clsPath, false)
 end
