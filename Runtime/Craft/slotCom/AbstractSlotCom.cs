@@ -5,11 +5,17 @@ using XLua;
 
 namespace Nianxie.Craft
 {
-    public abstract class AbstractSlotCom:MonoBehaviour, ISlot
+    public abstract class AbstractSlotCom:MonoBehaviour, IUnionSlot
     {
-        [BlackList] 
-        [HideInInspector]
-        public SlotCallback slotCallback;
+        public SlotCallback slotCallback => slotField.behav.slotCallback;
+
+        public SlotField slotField { get; private set; }
+
+        public void Init(SlotField field)
+        {
+            slotField = field;
+        }
+
         public abstract AbstractSlotJson PackToJson(AbstractPackContext packContext);
         public abstract void UnpackFromJson(CraftUnpackContext unpackContext, AbstractSlotJson slotJson);
 

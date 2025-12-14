@@ -1,0 +1,169 @@
+﻿using System.Collections.Generic;
+using Nianxie.Components;
+using UnityEngine;
+using XLua;
+
+namespace Nianxie.Craft
+{
+    public class SlotBehaviour:LuaBehaviour, IUnionSlot
+    {
+	    public class SlotList
+	    {
+		    private List<IUnionSlot> list;
+		    private SlotField slotField;
+		    public SlotList(SlotField slotField, List<IUnionSlot> list)
+		    {
+			    this.list = list;
+			    this.slotField = slotField;
+		    }
+			public void DuplicateElement(SlotSelectable slotSelect)
+			{
+				foreach (var child in list)
+				{
+					if (child.gameObject == slotSelect.gameObject)
+					{
+						var newSelect = Instantiate(slotSelect, slotSelect.transform.parent);
+						var newSlot = newSelect.GetComponent(child.GetType()) as IUnionSlot;
+						newSlot.Init(slotField);
+						/*foreach (var dupNodeSlot in newObj.GetComponentsInChildren<AbstractNodeSlot>())
+						{
+							dupNodeSlot.PostDuplicate();
+						}*/
+						list.Add(newSlot);
+						return;
+					}
+				}
+			}
+
+			public void DeleteElement(SlotSelectable slotSelect)
+			{
+				for (int i = 0; i < list.Count; i++)
+				{
+					if (list[i].gameObject == slotSelect.gameObject)
+					{
+						list.RemoveAt(i);
+						UnityEngine.Object.Destroy(slotSelect.gameObject);
+						return;
+					}
+				}
+			}
+	    }
+
+	    public SlotField slotField { get; private set; }
+
+	    public SlotCallback slotCallback { get; private set; }
+
+        private Dictionary<string, IUnionSlot> slotSingleDict = new();
+        private Dictionary<string, SlotList> slotListDict = new();
+
+        public void RootInit(CraftEdit edit)
+        {
+	        slotCallback = edit;
+	        (this as IUnionSlot).Init(null);
+        }
+
+        void IUnionSlot.Init(SlotField field)
+        {
+	        if (field != null)
+	        {
+				slotField = field;
+				slotCallback = field.behav.slotCallback;
+	        }
+			var reflectEnv = gameManager.reflectEnv;
+	        var reflectCls = reflectEnv.GetWarmedReflect(classPath, nestedKeys);
+            foreach (var injection in reflectCls.nodeInjections)
+            {
+	            if (injection.multipleKind == InjectionMultipleKind.Single)
+	            {
+					var obj = injection.ToNodeObject(this, injection.nodePath);
+					if (obj is IUnionSlot unionSlot)
+					{
+						unionSlot.Init(new SlotField(this, injection));
+						slotSingleDict[injection.key] = unionSlot;
+					}
+					else
+					{
+						Debug.LogError($"invalid injection {whichClass}:{injection.key}");
+					}
+	            }
+	            else
+	            {
+		            var list = new List<IUnionSlot>();
+		            var childSlotField = new SlotField(this, injection);
+					foreach (var path in injection.nodePathList)
+					{
+						var obj = injection.ToNodeObject(this, path);
+						if (obj is IUnionSlot unionSlot)
+						{
+							unionSlot.Init(childSlotField);
+							list.Add(unionSlot);
+						}
+						else
+						{
+							Debug.LogError($"invalid injection {whichClass}:{injection.key}");
+						}
+					}
+					slotListDict[injection.key] = new SlotList(childSlotField, list);
+	            }
+            }
+        }
+        
+        protected override void Awake()
+        {
+	        // do nothing
+        }
+
+        protected override void CreateLuaTable(ref LuaTable luaSelf)
+        {
+	        // do nothing
+        }
+        
+        public object ReadData()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public AbstractSlotJson PackToJson(AbstractPackContext packContext)
+        {
+			var behavJson = new SlotBehavJson();
+			var reflectEnv = gameManager.reflectEnv;
+			var reflectCls = reflectEnv.GetWarmedReflect(classPath, nestedKeys);
+			foreach (var injection in reflectCls.nodeInjections)
+			{
+				var injectObj = injection.ToNodeObject(this, injection.nodePath);
+				if (injectObj is IUnionSlot slotCom)
+				{
+					behavJson.slotDict[injection.key] = slotCom.PackToJson(packContext);
+				} else 
+				{
+					// do nothing
+				}
+			}
+			return behavJson;
+        }
+
+        public void UnpackFromJson(CraftUnpackContext unpackContext, AbstractSlotJson slotJson)
+        {
+			var slotBehavJson = (SlotBehavJson) slotJson;
+			var reflectEnv = gameManager.reflectEnv;
+	        var reflectCls = reflectEnv.GetWarmedReflect(classPath, nestedKeys);
+            foreach (var injection in reflectCls.nodeInjections)
+            {
+	            var injectObj = injection.ToNodeObject(this, injection.nodePath);
+	            var childJson = slotBehavJson.slotDict[injection.key];
+				if (injectObj is AbstractSlotCom slotCom)
+				{
+					slotCom.UnpackFromJson(unpackContext, childJson);
+				} else 
+				{
+					// do nothing
+				}
+            }
+        }
+
+        public SlotList GetSlotList(AbstractNodeInjection injection)
+        {
+            return slotListDict[injection.key];
+        }
+    }
+}

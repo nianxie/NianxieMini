@@ -1,14 +1,13 @@
-using System;
+﻿using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using XLua;
 
 namespace Nianxie.Craft
 {
-    [RequireComponent(typeof(RectTransform))]
     [RequireComponent(typeof(BoxCollider2D))]
-    [DisallowMultipleComponent]
-    public abstract class AbstractNodeSlot : AbstractSlotCom, IPointerDownHandler, IPointerClickHandler, IPointerUpHandler
+    [RequireComponent(typeof(RectTransform))]
+    public class SlotSelectable: MonoBehaviour, IPointerDownHandler, IPointerClickHandler, IPointerUpHandler
     {
         [NonSerialized] RectTransform m_RectTransform;
         public RectTransform rectTransform
@@ -22,7 +21,6 @@ namespace Nianxie.Craft
                 return m_RectTransform;
             }
         }
-
         
         [NonSerialized] BoxCollider2D m_Collider2D;
         public BoxCollider2D touchCollider2D
@@ -36,43 +34,52 @@ namespace Nianxie.Craft
                 return m_Collider2D;
             }
         }
-
-        public void DuplicateSelf()
+        private AbstractNodeSlot nodeSlot;
+        private SlotBehaviour slotBehav;
+        private IUnionSlot unionSlot => slotBehav != null ? slotBehav : nodeSlot;
+        private void Awake()
         {
-            if (transform.parent.TryGetComponent<TableSlot>(out var listSlot))
-            {
-                listSlot.DuplicateChild(this);
-            }
+            slotBehav = GetComponent<SlotBehaviour>();
+            nodeSlot = GetComponent<AbstractNodeSlot>();
+        }
+        
+        public bool IsList()
+        {
+            var slotField = unionSlot.slotField;
+            return slotField != null && slotField.injection.multipleKind == InjectionMultipleKind.List;
         }
 
-        public virtual void PostDuplicate()
-        {
-        }
-
-        public void DeleteSelf()
-        {
-            if (transform.parent.TryGetComponent<TableSlot>(out var listSlot))
-            {
-                listSlot.DeleteChild(this);
-            }
-        }
         void IPointerDownHandler.OnPointerDown(PointerEventData eventData)
         {
-            //craftModule.DispatchSlotPointer(this, nameof(IPointerDownHandler.OnPointerDown), eventData);
         }
 
         void IPointerClickHandler.OnPointerClick(PointerEventData eventData)
         {
-            slotCallback.OnSelect(this);
+            unionSlot.slotCallback.OnSelect(this);
         }
 
         void IPointerUpHandler.OnPointerUp(PointerEventData eventData)
         {
-            //craftModule.DispatchSlotPointer(this, nameof(IPointerUpHandler.OnPointerUp), eventData);
+        }
+        public void DuplicateSelf()
+        {
+            if (IsList())
+            {
+                var slotField = unionSlot.slotField;
+                slotField.behav.GetSlotList(slotField.injection).DuplicateElement(this);
+            }
+        }
+        public void DeleteSelf()
+        {
+            if (IsList())
+            {
+                var slotField = unionSlot.slotField;
+                slotField.behav.GetSlotList(slotField.injection).DeleteElement(this);
+            }
         }
 #if UNITY_EDITOR
         [BlackList]
-        public override void ON_INSPECTOR_UPDATE(bool change)
+        public void ON_INSPECTOR_UPDATE()
         {
             var selfRect = rectTransform.rect;
             var selfCollider2D = touchCollider2D;

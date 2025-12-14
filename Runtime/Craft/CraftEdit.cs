@@ -28,15 +28,15 @@ namespace Nianxie.Craft
 
         private void InitByLoading(LuafabLoading miniCraftLoading)
         {
-            var miniBehav = miniCraftLoading.RawFork(editArea.transform);
-            if (!miniBehav.TryGetComponent<SlotBehaviour>(out var behavSlot))
+            var behav = miniCraftLoading.RawFork(editArea.transform);
+            if (behav is SlotBehaviour slotBehav)
+            {
+                rootSlot = slotBehav;
+                rootSlot.RootInit(this);
+            }
+            else
             {
                 throw new Exception("BehavSlot expected in root of MiniCraft");
-            }
-            rootSlot = behavSlot;
-            foreach (var slotCom in GetComponentsInChildren<AbstractSlotCom>(true))
-            {
-                slotCom.slotCallback = this;
             }
         }
 
@@ -117,13 +117,13 @@ namespace Nianxie.Craft
         /// <summary>
         /// 获取nodeSlot在屏幕空间的矩形.
         /// </summary>
-        /// <param name="nodeSlot"></param>
+        /// <param name="selectable"></param>
         /// <returns></returns>
-        public Rect ToCanvasRect(AbstractNodeSlot nodeSlot)
+        public Rect ToCanvasRect(SlotSelectable selectable)
         {
             // 1. 获取RectTransform的四个角点（本地空间，顺序：左下、左上、右上、右下）
             Vector3[] corners = new Vector3[4];
-            nodeSlot.rectTransform.GetWorldCorners(corners);
+            selectable.rectTransform.GetWorldCorners(corners);
 
             // 2. 将四个角点转换为屏幕空间（像素坐标）
             for (int i = 0; i < 4; i++)

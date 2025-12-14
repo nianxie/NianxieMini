@@ -8,7 +8,7 @@ namespace Nianxie.Craft
     public abstract class SlotCallback:MonoBehaviour
     {
         private Dictionary<int, Dictionary<int, AbstractSlotCom>> resIdToComDict;
-        public AbstractNodeSlot selectNodeSlot { get; private set; }
+        public SlotSelectable slotSelect { get; private set; }
         public PositionSlot selectPosSlot { get; private set; }
         protected RuntimeReflectEnv reflectEnv;
         public LuaTable NewTable()
@@ -44,16 +44,16 @@ namespace Nianxie.Craft
                 }
             }
         }
-        public void OnSelect(AbstractNodeSlot assetSlot)
+        public void OnSelect(SlotSelectable assetSlot)
         {
             if (assetSlot == null)
             {
-                selectNodeSlot = null;
+                slotSelect = null;
                 selectPosSlot = null;
             }
             else
             {
-                selectNodeSlot = assetSlot;
+                slotSelect = assetSlot;
                 selectPosSlot = assetSlot.GetComponentInParent<PositionSlot>();
             }
             ShellRefresh();

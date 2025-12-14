@@ -24,7 +24,7 @@ namespace Nianxie.Preview
         {
             var rectTransform = (RectTransform) transform;
             craftEdit = _craftEdit;
-            if (craftEdit == null || craftEdit.selectNodeSlot == null)
+            if (craftEdit == null || craftEdit.slotSelect == null)
             {
                 gameObject.SetActive(false);
                 rectTransform.SetParent(previewManager.transform);
@@ -39,7 +39,7 @@ namespace Nianxie.Preview
                     rectTransform.localScale = Vector3.one;
                 }
 
-                var rect = craftEdit.ToCanvasRect(craftEdit.selectNodeSlot);
+                var rect = craftEdit.ToCanvasRect(craftEdit.slotSelect);
                 rectTransform.anchoredPosition = rect.min;
                 rectTransform.sizeDelta = rect.size;
             }
@@ -56,12 +56,12 @@ namespace Nianxie.Preview
 
         public void OnEdit()
         {
-            if (craftEdit == null || craftEdit.selectNodeSlot == null)
+            if (craftEdit == null || craftEdit.slotSelect == null)
             {
                 return;
             }
 
-            if (craftEdit.selectNodeSlot is SpriteSlot spriteSlot)
+            /*if (craftEdit.slotSelect is SpriteSlot spriteSlot)
             {
                 var imagePath = OpenImageFile();
                 var imageBytes = File.ReadAllBytes(imagePath);
@@ -70,29 +70,29 @@ namespace Nianxie.Preview
                 refObjDict[tex.GetInstanceID()] = tex;
                 var sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), spriteSlot.rectTransform.pivot);
                 spriteSlot.WriteSprite(sprite);
-            }
+            }*/
         }
         public void OnAppend()
         {
-            if (craftEdit == null || craftEdit.selectNodeSlot == null)
+            if (craftEdit == null || craftEdit.slotSelect == null)
             {
                 return;
             }
-            craftEdit.selectNodeSlot.DuplicateSelf();
+            craftEdit.slotSelect.DuplicateSelf();
         }
         public void OnRemove()
         {
-            if (craftEdit == null || craftEdit.selectNodeSlot == null)
+            if (craftEdit == null || craftEdit.slotSelect == null)
             {
                 return;
             }
-            craftEdit.selectNodeSlot.DeleteSelf();
+            craftEdit.slotSelect.DeleteSelf();
         }
 
         public string OpenImageFile()
         {
 #if UNITY_EDITOR
-            return UnityEditor.EditorUtility.OpenFilePanel("dosth", "./", "png,jpg,jpeg");
+            return UnityEditor.EditorUtility.OpenFilePanel("select image", "./", "png,jpg,jpeg");
 #else
             throw new NotImplementedException("not implement here");
 #endif
