@@ -83,6 +83,7 @@ namespace Nianxie.Craft
             {
                 var size = m_DefaultSprite.rect.size / m_DefaultSprite.pixelsPerUnit;
                 var pivot = m_DefaultSprite.pivot / m_DefaultSprite.rect.size;
+                var rectTransform = selectable.rectTransform;
                 if (size != rectTransform.rect.size || pivot != rectTransform.pivot)
                 {
                     rectTransform.sizeDelta = size;

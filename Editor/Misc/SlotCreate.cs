@@ -37,7 +37,8 @@ namespace Nianxie.Craft
         {
             AddSlotCom<TextSlot>(command, (com) =>
             {
-                var textMesh = com.GetComponent<TextMeshPro>();
+                throw new NotImplementedException("TextSlot TODO");
+                /*var textMesh = com.GetComponent<TextMeshPro>();
                 textMesh.enableAutoSizing = true;
                 textMesh.fontSizeMin = 0.1f;
                 textMesh.fontSizeMax = 72.0f;
@@ -63,8 +64,7 @@ namespace Nianxie.Craft
                 bgSprite.sortingOrder = 1;
                 bgSprite.sprite = LoadStandRes().sliced9;
                 bgSprite.size = defaultSize;
-                bgSprite.color = new Color(0,0,0, 0.8f);
-                com.background = bgSprite;
+                bgSprite.color = new Color(0,0,0, 0.8f);*/
             });
         }
         

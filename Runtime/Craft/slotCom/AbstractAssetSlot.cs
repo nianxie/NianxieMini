@@ -130,7 +130,7 @@ namespace Nianxie.Craft
     }
     
     [ExecuteAlways]
-    public abstract class AbstractAssetSlot : AbstractNodeSlot
+    public abstract class AbstractAssetSlot : AbstractRenderSlot
     {
         public virtual void WriteRawData(object rawData)
         {

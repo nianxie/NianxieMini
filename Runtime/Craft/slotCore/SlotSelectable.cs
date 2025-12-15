@@ -5,6 +5,7 @@ using XLua;
 
 namespace Nianxie.Craft
 {
+    [RequireComponent(typeof(SpriteRenderer))]
     [RequireComponent(typeof(BoxCollider2D))]
     [RequireComponent(typeof(RectTransform))]
     public class SlotSelectable: MonoBehaviour, IPointerDownHandler, IPointerClickHandler, IPointerUpHandler
@@ -16,7 +17,7 @@ namespace Nianxie.Craft
             {
                 if (!m_RectTransform)
                 {
-                    gameObject.TryGetComponent(out m_RectTransform);
+                    m_RectTransform = GetComponent<RectTransform>();
                 }
                 return m_RectTransform;
             }
@@ -29,18 +30,31 @@ namespace Nianxie.Craft
             {
                 if (!m_Collider2D)
                 {
-                    gameObject.TryGetComponent(out m_Collider2D);
+                    m_Collider2D = GetComponent<BoxCollider2D>();
                 }
                 return m_Collider2D;
             }
         }
-        private AbstractNodeSlot nodeSlot;
+        
+        [NonSerialized] SpriteRenderer m_SpriteRenderer;
+        public SpriteRenderer spriteRenderer
+        {
+            get
+            {
+                if (!m_SpriteRenderer)
+                {
+                    m_SpriteRenderer = GetComponent<SpriteRenderer>();
+                }
+                return m_SpriteRenderer;
+            }
+        }
+        private AbstractRenderSlot renderSlot;
         private SlotBehaviour slotBehav;
-        private IUnionSlot unionSlot => slotBehav != null ? slotBehav : nodeSlot;
+        private IUnionSlot unionSlot => slotBehav != null ? slotBehav : renderSlot;
         private void Awake()
         {
             slotBehav = GetComponent<SlotBehaviour>();
-            nodeSlot = GetComponent<AbstractNodeSlot>();
+            renderSlot = GetComponent<AbstractRenderSlot>();
         }
         
         public bool IsList()
@@ -88,6 +102,12 @@ namespace Nianxie.Craft
                 selfCollider2D.size = new Vector2(selfRect.width, selfRect.height);
                 selfCollider2D.offset = selfRect.center;
                 UnityEditor.EditorUtility.SetDirty(selfCollider2D);
+            }
+
+            if (spriteRenderer.drawMode == SpriteDrawMode.Sliced && spriteRenderer.size != selfRect.size)
+            {
+                spriteRenderer.size = selfRect.size;
+                UnityEditor.EditorUtility.SetDirty(spriteRenderer);
             }
         }
 #endif

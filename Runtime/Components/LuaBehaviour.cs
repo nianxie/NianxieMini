@@ -1,4 +1,6 @@
-﻿using System;
+﻿using System.Collections.Generic;
+using System.Text;
+using Nianxie.Craft;
 using Nianxie.Framework;
 using UnityEngine;
 using XLua;
@@ -49,5 +51,88 @@ namespace Nianxie.Components
         }
 
         protected abstract void CreateLuaTable(ref LuaTable luaSelf);
+        
+#if UNITY_EDITOR
+	    // 这部分代码用来刷新HierarchyWindow中的显示，运行时不需要。
+	    private HashSet<int> cacheSlotIds;
+	    private Dictionary<int, StringBuilder> cacheGoIdToKeys;
+	    [BlackList]
+        public void CacheRefresh(AbstractReflectEnv reflectEnv)
+        {
+	        cacheSlotIds ??= new HashSet<int>();
+	        cacheSlotIds.Clear();
+	        cacheGoIdToKeys ??= new Dictionary<int, StringBuilder>();
+	        cacheGoIdToKeys.Clear();
+			var nodeInjections = reflectEnv.GetWarmedReflect(classPath, nestedKeys).nodeInjections;
+			foreach(var injection in nodeInjections) {
+				foreach (var nodePath in injection.nodePathList)
+				{
+					GameObject go = null;
+					if (injection is GameObjectInjection goInjection)
+					{
+						go = goInjection.ToGameObject(this, nodePath);
+					}
+					else if(injection is ScriptInjection scriptInjection)
+					{
+						var childBehav = scriptInjection.ToLuaBehaviour(this, nodePath);
+						if (childBehav != null)
+						{
+							go = childBehav.gameObject;
+						}
+					}
+					else if(injection is ComponentInjection comInjection)
+					{
+						var com = comInjection.ToComponent(this, nodePath);
+						if (com != null)
+						{
+							go = com.gameObject;
+							if (com is AbstractSlotCom slotCom)
+							{
+								cacheSlotIds.Add(com.GetInstanceID());
+							}
+						}
+					}
+
+					if (go != null)
+					{
+						if (!cacheGoIdToKeys.TryGetValue(go.GetInstanceID(), out var sb))
+						{
+							sb = new StringBuilder();
+							cacheGoIdToKeys[go.GetInstanceID()] = sb;
+						}
+						sb.Append(injection.key);
+						sb.Append(",");
+					}
+				}
+			}
+        }
+        [BlackList]
+        public string CacheGetGoFields(AbstractReflectEnv reflectEnv, int goInstanceId)
+        {
+	        if (cacheGoIdToKeys == null)
+	        {
+		        CacheRefresh(reflectEnv);
+	        }
+
+	        if (cacheGoIdToKeys.TryGetValue(goInstanceId, out var sb))
+	        {
+		        return sb.ToString();
+	        }
+	        else
+	        {
+		        return null;
+	        }
+        }
+        [BlackList]
+        public bool CacheContainSlot(AbstractReflectEnv reflectEnv, int slotInstanceId)
+        {
+	        if (cacheSlotIds == null)
+	        {
+		        CacheRefresh(reflectEnv);
+	        }
+
+	        return cacheSlotIds.Contains(slotInstanceId);
+        }
+#endif
     }
 }

@@ -7,13 +7,13 @@ using XLua;
 
 namespace Nianxie.Editor
 {
-    [CustomEditor(typeof(AbstractNodeSlot), true)]
-    public class AbstractNodeSlotEditor: UnityEditor.Editor
+    [CustomEditor(typeof(AbstractRenderSlot), true)]
+    public class AbstractRenderSlotEditor: UnityEditor.Editor
     {
-        protected AbstractNodeSlot slotCom;
+        protected AbstractRenderSlot slotCom;
         protected void OnEnable()
         {
-            slotCom = (AbstractNodeSlot) target;
+            slotCom = (AbstractRenderSlot) target;
         }
         public override void OnInspectorGUI()
         {

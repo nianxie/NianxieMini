@@ -3,18 +3,16 @@ using System.Collections.Generic;
 using Nianxie.Components;
 using Nianxie.Craft;
 using UnityEngine;
+using XLua;
 
 namespace Nianxie.Craft
 {
     [ExecuteAlways]
-	public class EntitySlot : AbstractNodeSlot
+	public class EntitySlot : AbstractRenderSlot
 	{
 		[Tooltip("选项array")]
 		[SerializeField]
 		private AbstractAssetSlot[] optionSlotArray;
-		[Tooltip("选项list")]
-		[SerializeField]
-		private TableSlot optionTableSlot;
 		public override AbstractSlotJson PackToJson(AbstractPackContext context)
 		{
 			var entityJson = new EntityJson();
@@ -31,6 +29,7 @@ namespace Nianxie.Craft
 			return null;
 		}
 #if UNITY_EDITOR
+	    [BlackList]
         public override void ON_INSPECTOR_UPDATE(bool change)
         {
         }

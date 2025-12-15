@@ -7,18 +7,18 @@ namespace Nianxie.Craft
 {
     [RequireComponent(typeof(SlotSelectable))]
     [DisallowMultipleComponent]
-    public abstract class AbstractNodeSlot : AbstractSlotCom
+    public abstract class AbstractRenderSlot : AbstractSlotCom
     {
-        [NonSerialized] RectTransform m_RectTransform;
-        public RectTransform rectTransform
+        [NonSerialized] SlotSelectable m_SlotSelectable;
+        public SlotSelectable selectable
         {
             get
             {
-                if (!m_RectTransform)
+                if (!m_SlotSelectable)
                 {
-                    gameObject.TryGetComponent(out m_RectTransform);
+                    TryGetComponent(out m_SlotSelectable);
                 }
-                return m_RectTransform;
+                return m_SlotSelectable;
             }
         }
         

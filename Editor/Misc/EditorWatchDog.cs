@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Nianxie.Components;
+using Nianxie.Craft;
 using Nianxie.Framework;
 using Nianxie.Utils;
 using UnityEditor.SceneManagement;
@@ -37,8 +38,9 @@ namespace Nianxie.Editor
                 Debug.LogWarning("[EditorWatchDog] inconsistent minor ver.");
             return true;
         }
-        
-        
+
+
+        private static List<AbstractSlotCom> cacheSlotComList = new();
         // 场景树节点中显示lua script的属性和报错
         static void HierarchyItemCB(int instanceID, Rect selectionRect)
         {
@@ -80,7 +82,8 @@ namespace Nianxie.Editor
                 {
                     if (luaBehav.gameObject==go)
                     {
-                        // 显示prefab icon:是view还是entity还是scene
+                        luaBehav.CacheRefresh(envPaths.reflectEnv);
+                        // 显示特殊颜色的prefab icon
                         GUI.DrawTexture(iconRect, prefabIcon, ScaleMode.StretchToFill, true, 0, luaBehav.ToIconColor(), 0, 0);
                         // 检查lua object的属性中node值的异常，并将节点标记出来
                         var reflectInfo = envPaths.reflectEnv.GetWarmedReflect(luaBehav.classPath, luaBehav.nestedKeys);
@@ -111,24 +114,35 @@ namespace Nianxie.Editor
                     }
                     else
                     {
-                        // 显示lua object的属性
-                        var nodeInjections = envPaths.reflectEnv.GetWarmedReflect(luaBehav.classPath, luaBehav.nestedKeys).nodeInjections;
-                        foreach(var firstInjection in nodeInjections) {
-                            foreach (var nodePath in firstInjection.nodePathList)
+                        // 显示被lua层引用的属性
+                        var hello = luaBehav.CacheGetGoFields(envPaths.reflectEnv, go.GetInstanceID());
+                        var fieldRect = new Rect(selectionRect);
+                        fieldRect.x = fieldRect.xMax - 50;
+                        fieldRect.width = 50;
+                        GUI.Label(fieldRect, hello);
+                    }
+                    go.GetComponents(cacheSlotComList);
+                    if (cacheSlotComList.Count > 0)
+                    {
+                        //GUI.Label(iconRect, spriteIconContent);
+                        bool missingSlot = false;
+                        foreach (var slotCom in cacheSlotComList)
+                        {
+                            if (!luaBehav.CacheContainSlot(envPaths.reflectEnv, slotCom.GetInstanceID()))
                             {
-                                var node = firstInjection.ToNodeObject(luaBehav, nodePath);
-                                if (node != null)
-                                {
-                                    var com = node as Component;
-                                    if (com?.gameObject==go || node == go)
-                                    {
-                                        var fieldRect = new Rect(selectionRect);
-                                        fieldRect.x = fieldRect.xMax - 50;
-                                        fieldRect.width = 50;
-                                        GUI.Label(fieldRect, firstInjection.key);
-                                    }
-                                }
+                                missingSlot = true;
                             }
+                        }
+
+                        var fieldIconRect = new Rect(selectionRect);
+                        fieldIconRect.x = fieldIconRect.xMax - 50 - selectionRect.height;
+                        fieldIconRect.width = selectionRect.height;
+                        // TODO 之后改成针对不同的slot com做不同的显示。
+                        GUI.DrawTexture(fieldIconRect, spriteIconContent.image, ScaleMode.StretchToFill, true, 0, Color.white, 0, 0);
+                        if (missingSlot)
+                        {
+                            var fieldLabelRect = new Rect(fieldIconRect.x+fieldIconRect.height, fieldIconRect.y, 50, fieldIconRect.height);
+                            GUI.Label(fieldLabelRect, "???");
                         }
                     }
                 }
@@ -163,9 +177,11 @@ namespace Nianxie.Editor
             }
             folderIcon = EditorGUIUtility.FindTexture("folder icon");
             prefabIcon = EditorGUIUtility.FindTexture("prefab icon");
+            spriteIconContent = EditorGUIUtility.IconContent("Sprite Icon");
         }
-        static Texture2D folderIcon;
-        static Texture2D prefabIcon;
+        private static Texture2D folderIcon;
+        private static Texture2D prefabIcon;
+        private static GUIContent spriteIconContent;
 
         static Color ToIconColor(this LuaBehaviour luaBehav)
         {
