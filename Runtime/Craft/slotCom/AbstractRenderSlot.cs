@@ -1,7 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using XLua;
 
 namespace Nianxie.Craft
 {
@@ -16,7 +14,7 @@ namespace Nianxie.Craft
             {
                 if (!m_SlotSelectable)
                 {
-                    TryGetComponent(out m_SlotSelectable);
+                    m_SlotSelectable = GetComponent<SlotSelectable>();
                 }
                 return m_SlotSelectable;
             }

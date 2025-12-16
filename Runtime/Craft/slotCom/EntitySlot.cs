@@ -19,15 +19,13 @@ namespace Nianxie.Craft
 			return entityJson;
 		}
 
+		public override object slotValue { get; set; }
+
 		public override void UnpackFromJson(CraftUnpackContext unpackContext, AbstractSlotJson slotJson)
 		{
 			var entityJson = (EntityJson) slotJson;
 		}
 
-		public override object ReadData()
-		{
-			return null;
-		}
 #if UNITY_EDITOR
 	    [BlackList]
         public override void ON_INSPECTOR_UPDATE(bool change)

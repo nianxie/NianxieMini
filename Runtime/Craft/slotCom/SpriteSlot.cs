@@ -29,12 +29,10 @@ namespace Nianxie.Craft
         [SerializeField]
         private bool m_FitY;
 
+        [SlotValue]
         [SerializeField]
-        private Sprite m_DefaultSprite;
+        private SlotValue<Sprite> m_SlotValue;
         
-        [HideInInspector]
-        [SerializeField]
-        private Sprite m_UserSprite;
         public override AbstractSlotJson PackToJson(AbstractPackContext packContext)
         {
             throw new System.NotImplementedException();
@@ -45,44 +43,39 @@ namespace Nianxie.Craft
             throw new System.NotImplementedException();
         }
 
-        public Sprite ReadSprite()
-        {
-            return m_UserSprite==null?m_DefaultSprite:m_UserSprite;
+        public override object slotValue {
+            get => m_SlotValue.ReadValue();
+            set
+            {
+                // TODO 根据fitx和fity对sprite进行裁切。
+                var sprite = (Sprite) value;
+                slotCallback.Incref(this, sprite.texture);
+                if (m_SlotValue.assignedValue != null)
+                {
+                    slotCallback.Decref(this, m_SlotValue.assignedValue.texture);
+                }
+                m_SlotValue.AssignValue(sprite);
+                spriteRenderer.sprite = sprite;
+            }
         }
 
-        public void WriteSprite(Sprite writeSprite)
-        {
-            // TODO 根据fitx和fity对sprite进行裁切。
-            slotCallback.Incref(this, writeSprite.texture);
-            if (m_UserSprite != null)
-            {
-                slotCallback.Decref(this, m_UserSprite.texture);
-            }
-            m_UserSprite = writeSprite;
-            spriteRenderer.sprite = m_UserSprite;
-        }
-        
         public override void PostDuplicate()
         {
-            if (m_UserSprite != null)
+            if (m_SlotValue.assignedValue != null)
             {
-                slotCallback.Incref(this, m_UserSprite.texture);
+                slotCallback.Incref(this, m_SlotValue.assignedValue.texture);
             }
         }
 #if UNITY_EDITOR
         [BlackList]
         public override void ON_INSPECTOR_UPDATE(bool change)
         {
-            if (m_UserSprite != null)
-            {
-                m_UserSprite = null;
-                UnityEditor.EditorUtility.SetDirty(this);
-            }
 
-            if (m_DefaultSprite != null)
+            var defaultSprite = m_SlotValue.defaultValue;
+            if (defaultSprite != null)
             {
-                var size = m_DefaultSprite.rect.size / m_DefaultSprite.pixelsPerUnit;
-                var pivot = m_DefaultSprite.pivot / m_DefaultSprite.rect.size;
+                var size = defaultSprite.rect.size / defaultSprite.pixelsPerUnit;
+                var pivot = defaultSprite.pivot / defaultSprite.rect.size;
                 var rectTransform = selectable.rectTransform;
                 if (size != rectTransform.rect.size || pivot != rectTransform.pivot)
                 {
@@ -90,9 +83,9 @@ namespace Nianxie.Craft
                     rectTransform.pivot = pivot;
                 }
 
-                if (spriteRenderer.sprite != m_DefaultSprite)
+                if (spriteRenderer.sprite != defaultSprite)
                 {
-                    spriteRenderer.sprite = m_DefaultSprite;
+                    spriteRenderer.sprite = defaultSprite;
                     UnityEditor.EditorUtility.SetDirty(spriteRenderer);
                 }
             }

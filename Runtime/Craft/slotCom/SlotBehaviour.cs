@@ -10,11 +10,11 @@ namespace Nianxie.Craft
 	    public class SlotList
 	    {
 		    private List<IUnionSlot> list;
-		    private SlotField slotField;
-		    public SlotList(SlotField slotField, List<IUnionSlot> list)
+		    private SlotInjected slotInjected;
+		    public SlotList(SlotInjected slotInjected, List<IUnionSlot> list)
 		    {
 			    this.list = list;
-			    this.slotField = slotField;
+			    this.slotInjected = slotInjected;
 		    }
 			public void DuplicateElement(SlotSelectable slotSelect)
 			{
@@ -24,7 +24,7 @@ namespace Nianxie.Craft
 					{
 						var newSelect = Instantiate(slotSelect, slotSelect.transform.parent);
 						var newSlot = newSelect.GetComponent(child.GetType()) as IUnionSlot;
-						newSlot.Init(slotField);
+						newSlot.Init(slotInjected);
 						/*foreach (var dupNodeSlot in newObj.GetComponentsInChildren<AbstractNodeSlot>())
 						{
 							dupNodeSlot.PostDuplicate();
@@ -49,7 +49,7 @@ namespace Nianxie.Craft
 			}
 	    }
 
-	    public SlotField slotField { get; private set; }
+	    public SlotInjected slotInjected { get; private set; }
 
 	    public SlotCallback slotCallback { get; private set; }
 
@@ -62,12 +62,12 @@ namespace Nianxie.Craft
 	        (this as IUnionSlot).Init(null);
         }
 
-        void IUnionSlot.Init(SlotField field)
+        void IUnionSlot.Init(SlotInjected injected)
         {
-	        if (field != null)
+	        if (injected != null)
 	        {
-				slotField = field;
-				slotCallback = field.behav.slotCallback;
+				slotInjected = injected;
+				slotCallback = injected.behav.slotCallback;
 	        }
 			var reflectEnv = gameManager.reflectEnv;
 	        var reflectCls = reflectEnv.GetWarmedReflect(classPath, nestedKeys);
@@ -78,7 +78,7 @@ namespace Nianxie.Craft
 					var obj = injection.ToNodeObject(this, injection.nodePath);
 					if (obj is IUnionSlot unionSlot)
 					{
-						unionSlot.Init(new SlotField(this, injection));
+						unionSlot.Init(new SlotInjected(this, injection));
 						slotSingleDict[injection.key] = unionSlot;
 					}
 					else
@@ -89,7 +89,7 @@ namespace Nianxie.Craft
 	            else
 	            {
 		            var list = new List<IUnionSlot>();
-		            var childSlotField = new SlotField(this, injection);
+		            var childSlotField = new SlotInjected(this, injection);
 					foreach (var path in injection.nodePathList)
 					{
 						var obj = injection.ToNodeObject(this, path);

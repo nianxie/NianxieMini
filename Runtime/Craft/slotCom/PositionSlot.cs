@@ -8,8 +8,9 @@ namespace Nianxie.Craft
     [DisallowMultipleComponent]
     public class PositionSlot:AbstractSlotCom
     {
+        [SlotValue]
         [SerializeField]
-        private Vector2 m_DefaultPosition;
+        private SlotValue<Vector2> m_SlotValue;
 
         [BlackList]
         public override AbstractSlotJson PackToJson(AbstractPackContext packContext)
@@ -22,14 +23,9 @@ namespace Nianxie.Craft
             };
         }
 
-        public Vector2 ReadPosition()
-        {
-            return transform.localPosition;
-        }
-
-        public override object ReadData()
-        {
-            return ReadPosition();
+        public override object slotValue {
+            get => m_SlotValue.ReadValue();
+            set => m_SlotValue.AssignValue((Vector2)value);
         }
 
         [BlackList]
@@ -42,7 +38,7 @@ namespace Nianxie.Craft
         [BlackList]
         public override void ON_INSPECTOR_UPDATE(bool change)
         {
-            m_DefaultPosition = transform.localPosition;
+            m_SlotValue.defaultValue = transform.localPosition;
         }
 #endif
     }

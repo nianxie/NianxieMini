@@ -1,37 +1,15 @@
 ﻿using System;
 using Nianxie.Utils;
+using Nianxie.Craft;
 using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-namespace Nianxie.Craft
+namespace Nianxie.Editor
 {
     public class SlotCreate
     {
-        class StandardResource
-        {
-            public TMPModify_ShellFont shellFont;
-            public Sprite sliced9;
-        }
-
-        private static StandardResource standRes;
-
-        private static StandardResource LoadStandRes()
-        {
-            if (standRes == null)
-            {
-                standRes = new();
-                var guids = AssetDatabase.FindAssets($"t:{nameof(TMPModify_ShellFont)}", new[] {NianxieConst.MiniDefaultAssets});
-                if (guids.Length > 0)
-                {
-                    standRes.shellFont = AssetDatabase.LoadAssetAtPath<TMPModify_ShellFont>(AssetDatabase.AssetPathToGUID(guids[0]));
-                }
-                standRes.sliced9 = AssetDatabase.LoadAssetAtPath<Sprite>(NianxieConst.Sliced9Path);
-            }
-            return standRes;
-        }
-
         [MenuItem("GameObject/NianxieCraft/"+nameof(TextSlot), false, 100)]
         public static void AddTextSlot(MenuCommand command)
         {

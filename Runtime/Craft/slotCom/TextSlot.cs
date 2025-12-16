@@ -1,26 +1,30 @@
 using System;
+using Nianxie.Utils;
 using TMPro;
 using UnityEngine;
 using XLua;
 
 namespace Nianxie.Craft
 {
+
     [RequireComponent(typeof(SlotSelectable))]
     public class TextSlot : AbstractAssetSlot
     {
         [SerializeField]
         private TextMeshPro m_TextMeshPro;
 
-        [SerializeField]
-        private string m_DefaultText;
+        [SlotValue]
+        [SerializeField] 
+        private SlotValue<string> m_SlotValue;
         
-        [HideInInspector]
-        [SerializeField]
-        private string m_UserText;
-
-        public string ReadText()
-        {
-            return string.IsNullOrEmpty(m_UserText) ? m_DefaultText : m_UserText;
+        public override object slotValue {
+            get => m_SlotValue.ReadValue();
+            set
+            {
+                var text = (string) value;
+                m_SlotValue.AssignValue(text);
+                m_TextMeshPro.text = text;
+            }
         }
 
         public override AbstractSlotJson PackToJson(AbstractPackContext packContext)
@@ -59,7 +63,6 @@ namespace Nianxie.Craft
         [BlackList]
         public override void ON_INSPECTOR_UPDATE(bool change)
         {
-            base.ON_INSPECTOR_UPDATE(change);
             if (m_TextMeshPro == null)
             {
                 for (int i = 0; i < transform.childCount; i++)
@@ -82,16 +85,22 @@ namespace Nianxie.Craft
                 }
             }
             var linkName = MakeLinkName();
-            if (m_TextMeshPro.gameObject.name != linkName || m_TextMeshPro.text != ReadText())
+            // 更新textmeshpro的font、text、gameObject.name
+            m_TextMeshPro.GetFont(out var shellFont, out var _);
+            if (shellFont == null || m_TextMeshPro.gameObject.name != linkName || m_TextMeshPro.text != m_SlotValue.defaultValue)
             {
                 m_TextMeshPro.gameObject.name = linkName;
-                m_TextMeshPro.text = ReadText();
+                m_TextMeshPro.text = m_SlotValue.defaultValue;
+                m_TextMeshPro.SetFont(NianxieEditorConst.LoadStandRes().shellFont, null);
                 UnityEditor.EditorUtility.SetDirty(m_TextMeshPro.gameObject);
+                UnityEditor.EditorUtility.SetDirty(m_TextMeshPro);
             }
+            // 更新textmeshpro的index
             if (m_TextMeshPro.transform.GetSiblingIndex() != 0)
             {
                 m_TextMeshPro.transform.SetSiblingIndex(0);
             }
+            // 更新textmeshpro的rectTransform
             var textTrans = m_TextMeshPro.rectTransform;
             if (textTrans.anchorMin != Vector2.zero || textTrans.anchorMax != Vector2.one || textTrans.sizeDelta != Vector2.zero || textTrans.anchoredPosition != Vector2.zero)
             {
@@ -107,6 +116,12 @@ namespace Nianxie.Craft
             if (spriteRenderer.drawMode != SpriteDrawMode.Sliced)
             {
                 spriteRenderer.drawMode = SpriteDrawMode.Sliced;
+                UnityEditor.EditorUtility.SetDirty(spriteRenderer);
+            }
+
+            if (spriteRenderer.sprite == null)
+            {
+                spriteRenderer.sprite = NianxieEditorConst.LoadStandRes().sliced9;
                 UnityEditor.EditorUtility.SetDirty(spriteRenderer);
             }
         }

@@ -59,7 +59,7 @@ namespace Nianxie.Craft
         
         public bool IsList()
         {
-            var slotField = unionSlot.slotField;
+            var slotField = unionSlot.slotInjected;
             return slotField != null && slotField.injection.multipleKind == InjectionMultipleKind.List;
         }
 
@@ -79,7 +79,7 @@ namespace Nianxie.Craft
         {
             if (IsList())
             {
-                var slotField = unionSlot.slotField;
+                var slotField = unionSlot.slotInjected;
                 slotField.behav.GetSlotList(slotField.injection).DuplicateElement(this);
             }
         }
@@ -87,7 +87,7 @@ namespace Nianxie.Craft
         {
             if (IsList())
             {
-                var slotField = unionSlot.slotField;
+                var slotField = unionSlot.slotInjected;
                 slotField.behav.GetSlotList(slotField.injection).DeleteElement(this);
             }
         }

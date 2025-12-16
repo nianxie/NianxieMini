@@ -7,22 +7,19 @@ namespace Nianxie.Craft
 {
     public abstract class AbstractSlotCom:MonoBehaviour, IUnionSlot
     {
-        public SlotCallback slotCallback => slotField.behav.slotCallback;
+        public SlotCallback slotCallback => slotInjected.behav.slotCallback;
 
-        public SlotField slotField { get; private set; }
+        public SlotInjected slotInjected { get; private set; }
 
-        public void Init(SlotField field)
+        public void Init(SlotInjected injected)
         {
-            slotField = field;
+            slotInjected = injected;
         }
 
         public abstract AbstractSlotJson PackToJson(AbstractPackContext packContext);
         public abstract void UnpackFromJson(CraftUnpackContext unpackContext, AbstractSlotJson slotJson);
 
-        public virtual object ReadData()
-        {
-            throw new NotImplementedException();
-        }
+        public abstract object slotValue { get; set; }
 
         protected virtual void Awake()
         {

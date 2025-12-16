@@ -1,4 +1,5 @@
 ﻿using System;
+using TMPro;
 using UnityEngine;
 
 namespace Nianxie.Utils
@@ -58,6 +59,40 @@ namespace Nianxie.Utils
                 throw new Exception("no valid folder in AssetBundle");
             }
             return folder;
+        }
+    }
+    public static class NianxieEditorConst
+    {
+        public class StandardResource
+        {
+            public TMPModify_ShellFont shellFont;
+            public Sprite sliced9;
+        }
+
+        private static StandardResource standRes;
+
+        public static StandardResource LoadStandRes()
+        {
+#if UNITY_EDITOR
+            if (standRes == null)
+            {
+                standRes = new();
+                var guids = UnityEditor.AssetDatabase.FindAssets($"t:{nameof(TMPModify_ShellFont)}", new[] {NianxieConst.MiniDefaultAssets});
+                if (guids.Length > 0)
+                {
+                    standRes.shellFont = UnityEditor.AssetDatabase.LoadAssetAtPath<TMPModify_ShellFont>(UnityEditor.AssetDatabase.GUIDToAssetPath(guids[0]));
+                }
+                else
+                {
+                    Debug.LogError("shell font not found when load stand res");
+                }
+
+                standRes.sliced9 = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(NianxieConst.Sliced9Path);
+            }
+            return standRes;
+#else
+            throw new NotImplementedException();
+#endif
         }
     }
 }
