@@ -7,19 +7,21 @@ using XLua;
 
 namespace Nianxie.Craft
 {
-    [RequireComponent(typeof(SpriteRenderer))]
+    [RequireComponent(typeof(SlotSelectHead))]
     public class SpriteSlot : AbstractAssetSlot
     {
-        [NonSerialized] SpriteRenderer m_Renderer;
-        private SpriteRenderer spriteRenderer
+        private SpriteRenderer spriteRenderer => selectHead.selectBody.spriteRenderer;
+        
+        [NonSerialized] SlotSelectHead m_SlotSelectHead;
+        private SlotSelectHead selectHead
         {
             get
             {
-                if (!m_Renderer)
+                if (!m_SlotSelectHead)
                 {
-                    gameObject.TryGetComponent(out m_Renderer);
+                    m_SlotSelectHead = GetComponent<SlotSelectHead>();
                 }
-                return m_Renderer;
+                return m_SlotSelectHead;
             }
         }
         
@@ -70,32 +72,26 @@ namespace Nianxie.Craft
         [BlackList]
         public override void ON_INSPECTOR_UPDATE(bool change)
         {
-
-            var defaultSprite = m_SlotValue.defaultValue;
-            if (defaultSprite != null)
+            var selectBody = selectHead.selectBody;
+            if (selectBody != null)
             {
-                var size = defaultSprite.rect.size / defaultSprite.pixelsPerUnit;
-                var pivot = defaultSprite.pivot / defaultSprite.rect.size;
-                var rectTransform = selectable.rectTransform;
-                if (size != rectTransform.rect.size || pivot != rectTransform.pivot)
+                var render = selectBody.spriteRenderer;
+                var defaultSprite = m_SlotValue.defaultValue;
+                if (defaultSprite != null)
                 {
-                    rectTransform.sizeDelta = size;
-                    rectTransform.pivot = pivot;
+                    if (render.sprite != defaultSprite || render.drawMode != SpriteDrawMode.Simple)
+                    {
+                        render.sprite = defaultSprite;
+                        render.drawMode = SpriteDrawMode.Simple;
+                        UnityEditor.EditorUtility.SetDirty(render);
+                    }
                 }
-
-                if (spriteRenderer.sprite != defaultSprite)
+                else
                 {
-                    spriteRenderer.sprite = defaultSprite;
-                    UnityEditor.EditorUtility.SetDirty(spriteRenderer);
+                    // TODO 应该考虑提供一张默认的Sprite，在未设置DefaultSprite的时候自动将DefaultSprite设置为默认的Sprite。
+                    render.sprite = null;
                 }
             }
-            else
-            {
-                // TODO 应该考虑提供一张默认的Sprite，在未设置DefaultSprite的时候自动将DefaultSprite设置为默认的Sprite。
-                spriteRenderer.sprite = null;
-            }
-
-            base.ON_INSPECTOR_UPDATE(change);
         }
 #endif
     }

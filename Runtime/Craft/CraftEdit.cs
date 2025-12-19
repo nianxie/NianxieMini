@@ -117,26 +117,21 @@ namespace Nianxie.Craft
         /// <summary>
         /// 获取nodeSlot在屏幕空间的矩形.
         /// </summary>
-        /// <param name="selectable"></param>
+        /// <param name="selectHead"></param>
         /// <returns></returns>
-        public Rect ToCanvasRect(SlotSelectable selectable)
+        public Rect ToCanvasRect(SlotSelectHead selectHead)
         {
             // 1. 获取RectTransform的四个角点（本地空间，顺序：左下、左上、右上、右下）
-            Vector3[] corners = new Vector3[4];
-            selectable.rectTransform.GetWorldCorners(corners);
-
-            // 2. 将四个角点转换为屏幕空间（像素坐标）
-            for (int i = 0; i < 4; i++)
-            {
-                // RectTransform的世界坐标转屏幕坐标（Screen空间：原点左上，Y向下）
-                corners[i] = RectTransformUtility.WorldToScreenPoint(editCamera, corners[i]);
-            }
+            var bounds = selectHead.selectBody.spriteRenderer.bounds;
+            
+            var minPos = RectTransformUtility.WorldToScreenPoint(editCamera, bounds.min);
+            var maxPos = RectTransformUtility.WorldToScreenPoint(editCamera, bounds.max);
 
             // 3. 计算屏幕空间的Rect边界
-            float minX = Mathf.Min(corners[0].x, corners[1].x, corners[2].x, corners[3].x);
-            float maxX = Mathf.Max(corners[0].x, corners[1].x, corners[2].x, corners[3].x);
-            float minY = Mathf.Min(corners[0].y, corners[1].y, corners[2].y, corners[3].y);
-            float maxY = Mathf.Max(corners[0].y, corners[1].y, corners[2].y, corners[3].y);
+            float minX = Mathf.Min(minPos.x, maxPos.x);
+            float maxX = Mathf.Max(minPos.x, maxPos.x);
+            float minY = Mathf.Min(minPos.y, maxPos.y);
+            float maxY = Mathf.Max(minPos.y, maxPos.y);
 
             // 4. 构建屏幕空间的Rect（Screen空间Y轴向下，所以y取minY，height=maxY-minY）
             Rect screenRect = new Rect();

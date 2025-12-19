@@ -3,20 +3,20 @@ using UnityEngine;
 
 namespace Nianxie.Craft
 {
-    [RequireComponent(typeof(SlotSelectable))]
+    [RequireComponent(typeof(SlotSelectHead))]
     [DisallowMultipleComponent]
     public abstract class AbstractRenderSlot : AbstractSlotCom
     {
-        [NonSerialized] SlotSelectable m_SlotSelectable;
-        public SlotSelectable selectable
+        [NonSerialized] SlotSelectHead m_SlotSelectHead;
+        public SlotSelectHead selectHead
         {
             get
             {
-                if (!m_SlotSelectable)
+                if (!m_SlotSelectHead)
                 {
-                    m_SlotSelectable = GetComponent<SlotSelectable>();
+                    m_SlotSelectHead = GetComponent<SlotSelectHead>();
                 }
-                return m_SlotSelectable;
+                return m_SlotSelectHead;
             }
         }
         

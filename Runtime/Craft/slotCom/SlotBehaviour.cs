@@ -16,7 +16,7 @@ namespace Nianxie.Craft
 			    this.list = list;
 			    this.slotInjected = slotInjected;
 		    }
-			public void DuplicateElement(SlotSelectable slotSelect)
+			public void DuplicateElement(SlotSelectHead slotSelect)
 			{
 				foreach (var child in list)
 				{
@@ -35,7 +35,7 @@ namespace Nianxie.Craft
 				}
 			}
 
-			public void DeleteElement(SlotSelectable slotSelect)
+			public void DeleteElement(SlotSelectHead slotSelect)
 			{
 				for (int i = 0; i < list.Count; i++)
 				{

@@ -7,9 +7,10 @@ using XLua;
 namespace Nianxie.Craft
 {
 
-    [RequireComponent(typeof(SlotSelectable))]
+    [RequireComponent(typeof(SlotSelectHead))]
     public class TextSlot : AbstractAssetSlot
     {
+        private const string TEXT_NODE_NAME = "::text";
         [SerializeField]
         private TextMeshPro m_TextMeshPro;
 
@@ -55,14 +56,9 @@ namespace Nianxie.Craft
         }
 #if UNITY_EDITOR
         [BlackList]
-        public string MakeLinkName()
-        {
-            return $"@{gameObject.name}";
-        }
-
-        [BlackList]
         public override void ON_INSPECTOR_UPDATE(bool change)
         {
+            /*
             if (m_TextMeshPro == null)
             {
                 for (int i = 0; i < transform.childCount; i++)
@@ -78,27 +74,21 @@ namespace Nianxie.Craft
 
                 if (m_TextMeshPro == null)
                 {
-                    var newGo = new GameObject(MakeLinkName(), typeof(TextMeshPro), typeof(RectTransform));
+                    var newGo = new GameObject(TEXT_NODE_NAME, typeof(TextMeshPro), typeof(RectTransform));
                     newGo.GetComponent<RectTransform>().SetParent(transform);
                     m_TextMeshPro = newGo.GetComponent<TextMeshPro>();
                     UnityEditor.EditorUtility.SetDirty(this);
                 }
             }
-            var linkName = MakeLinkName();
             // 更新textmeshpro的font、text、gameObject.name
             m_TextMeshPro.GetFont(out var shellFont, out var _);
-            if (shellFont == null || m_TextMeshPro.gameObject.name != linkName || m_TextMeshPro.text != m_SlotValue.defaultValue)
+            if (shellFont == null || m_TextMeshPro.gameObject.name != TEXT_NODE_NAME || m_TextMeshPro.text != m_SlotValue.defaultValue)
             {
-                m_TextMeshPro.gameObject.name = linkName;
+                m_TextMeshPro.gameObject.name = TEXT_NODE_NAME;
                 m_TextMeshPro.text = m_SlotValue.defaultValue;
                 m_TextMeshPro.SetFont(NianxieEditorConst.LoadStandRes().shellFont, null);
                 UnityEditor.EditorUtility.SetDirty(m_TextMeshPro.gameObject);
                 UnityEditor.EditorUtility.SetDirty(m_TextMeshPro);
-            }
-            // 更新textmeshpro的index
-            if (m_TextMeshPro.transform.GetSiblingIndex() != 0)
-            {
-                m_TextMeshPro.transform.SetSiblingIndex(0);
             }
             // 更新textmeshpro的rectTransform
             var textTrans = m_TextMeshPro.rectTransform;
@@ -112,7 +102,7 @@ namespace Nianxie.Craft
             }
 
             base.ON_INSPECTOR_UPDATE(change);
-            var spriteRenderer = selectable.spriteRenderer;
+            var spriteRenderer = selectHead.spriteRenderer;
             if (spriteRenderer.drawMode != SpriteDrawMode.Sliced)
             {
                 spriteRenderer.drawMode = SpriteDrawMode.Sliced;
@@ -123,8 +113,37 @@ namespace Nianxie.Craft
             {
                 spriteRenderer.sprite = NianxieEditorConst.LoadStandRes().sliced9;
                 UnityEditor.EditorUtility.SetDirty(spriteRenderer);
+            }*/
+        }
+        private void Reset()
+        {
+            TextMeshPro textCom = null;
+            for (int i = 0; i < transform.childCount; i++)
+            {
+                var child = transform.GetChild(i);
+                if (child.TryGetComponent(out TextMeshPro tmp) && child.gameObject.name == TEXT_NODE_NAME)
+                {
+                    textCom = tmp;
+                    break;
+                }
+            }
+
+            if (textCom == null)
+            {
+                var bodyGo = new GameObject(TEXT_NODE_NAME, typeof(TextMeshPro));
+                bodyGo.transform.SetParent(transform, false);
+                UnityEditor.Undo.RegisterCreatedObjectUndo(bodyGo, "Create Child Object");
+                m_TextMeshPro = bodyGo.GetComponent<TextMeshPro>();
+                bodyGo.transform.localPosition = Vector3.zero;
+                bodyGo.transform.localRotation = Quaternion.identity;
+            }
+            else
+            {
+                m_TextMeshPro = textCom;
+                UnityEditor.EditorUtility.SetDirty(this);
             }
         }
+
 #endif
     }
 }
