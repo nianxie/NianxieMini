@@ -54,7 +54,7 @@ namespace Nianxie.Craft
         }
 #if UNITY_EDITOR
         [BlackList]
-        public override void ON_INSPECTOR_UPDATE()
+        public override void EditorInspectorUpdate()
         {
             SlotSelectBody body = null;
             for (int i = 0; i < transform.childCount; i++)
@@ -76,7 +76,7 @@ namespace Nianxie.Craft
 
             if (m_SlotSelectBody != null)
             {
-                m_SlotSelectBody.ON_INSPECTOR_UPDATE();
+                m_SlotSelectBody.EditorLocalUpdate();
             }
         }
 
@@ -110,10 +110,11 @@ namespace Nianxie.Craft
                 m_SlotSelectBody = body;
                 UnityEditor.EditorUtility.SetDirty(this);
             }
-            m_SlotSelectBody.ON_INSPECTOR_UPDATE();
+            m_SlotSelectBody.EditorInspectorUpdate();
         }
 
-        private void Reset()
+        [BlackList]
+        public void Reset()
         {
             EnsureSelectBodyInChild();
         }

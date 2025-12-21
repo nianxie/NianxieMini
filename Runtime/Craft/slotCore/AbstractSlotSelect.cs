@@ -9,7 +9,11 @@ namespace Nianxie.Craft
         protected const string SELECT_BODY_NAME = "::select";
 #if UNITY_EDITOR
         [BlackList]
-        public virtual void ON_INSPECTOR_UPDATE()
+        public virtual void EditorInspectorUpdate()
+        {
+        }
+        [BlackList]
+        public virtual void EditorLocalUpdate()
         {
         }
 #endif

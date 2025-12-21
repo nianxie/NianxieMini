@@ -1,13 +1,17 @@
 using System;
+using Cysharp.Threading.Tasks.Triggers;
 using Nianxie.Utils;
 using TMPro;
+using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.UI;
 using XLua;
 
 namespace Nianxie.Craft
 {
 
     [RequireComponent(typeof(SlotSelectHead))]
+    [ExecuteAlways]
     public class TextSlot : AbstractAssetSlot
     {
         private const string TEXT_NODE_NAME = "::text";
@@ -27,6 +31,26 @@ namespace Nianxie.Craft
                 m_TextMeshPro.text = text;
             }
         }
+        private DrivenRectTransformTracker m_RectTracker = new DrivenRectTransformTracker();
+        
+        private void OnEnable()
+        {
+            RefreshTrack();
+        }
+
+        private void RefreshTrack()
+        {
+            m_RectTracker.Clear();
+            if (m_TextMeshPro != null)
+            {
+                m_RectTracker.Add(selectHead, m_TextMeshPro.rectTransform, DrivenTransformProperties.All);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            m_RectTracker.Clear();
+        }
 
         public override AbstractSlotJson PackToJson(AbstractPackContext packContext)
         {
@@ -38,89 +62,110 @@ namespace Nianxie.Craft
             throw new NotImplementedException();
         }
         
-        private void SyncBackgroundSize()
-        {
-            /*if (background)
-            {
-                if (background.drawMode == SpriteDrawMode.Sliced)
-                {
-                    var rectTransform = GetComponent<RectTransform>();
-                    background.size = rectTransform.sizeDelta;
-                }
-            }*/
-        }
-        
-        void OnRectTransformDimensionsChange()
-        {
-            SyncBackgroundSize();
-        }
 #if UNITY_EDITOR
         [BlackList]
-        public override void ON_INSPECTOR_UPDATE(bool change)
+        public override void EditorInspectorUpdate(bool change)
         {
-            /*
             if (m_TextMeshPro == null)
             {
-                for (int i = 0; i < transform.childCount; i++)
-                {
-                    var childTrans = transform.GetChild(i);
-                    if (childTrans.gameObject.name.StartsWith("@") && childTrans.TryGetComponent<TextMeshPro>(out var textMeshPro))
-                    {
-                        m_TextMeshPro = textMeshPro;
-                        UnityEditor.EditorUtility.SetDirty(this);
-                        break;
-                    }
-                }
-
-                if (m_TextMeshPro == null)
-                {
-                    var newGo = new GameObject(TEXT_NODE_NAME, typeof(TextMeshPro), typeof(RectTransform));
-                    newGo.GetComponent<RectTransform>().SetParent(transform);
-                    m_TextMeshPro = newGo.GetComponent<TextMeshPro>();
-                    UnityEditor.EditorUtility.SetDirty(this);
-                }
+                return;
             }
             // 更新textmeshpro的font、text、gameObject.name
             m_TextMeshPro.GetFont(out var shellFont, out var _);
-            if (shellFont == null || m_TextMeshPro.gameObject.name != TEXT_NODE_NAME || m_TextMeshPro.text != m_SlotValue.defaultValue)
+            if (shellFont == null)
+            {
+                m_TextMeshPro.SetFont(NianxieEditorConst.LoadStandRes().shellFont, null);
+                UnityEditor.EditorUtility.SetDirty(m_TextMeshPro);
+            }
+
+            if (m_TextMeshPro.gameObject.name != TEXT_NODE_NAME || m_TextMeshPro.text != m_SlotValue.defaultValue)
             {
                 m_TextMeshPro.gameObject.name = TEXT_NODE_NAME;
                 m_TextMeshPro.text = m_SlotValue.defaultValue;
-                m_TextMeshPro.SetFont(NianxieEditorConst.LoadStandRes().shellFont, null);
                 UnityEditor.EditorUtility.SetDirty(m_TextMeshPro.gameObject);
                 UnityEditor.EditorUtility.SetDirty(m_TextMeshPro);
             }
-            // 更新textmeshpro的rectTransform
-            var textTrans = m_TextMeshPro.rectTransform;
-            if (textTrans.anchorMin != Vector2.zero || textTrans.anchorMax != Vector2.one || textTrans.sizeDelta != Vector2.zero || textTrans.anchoredPosition != Vector2.zero)
+
+            var selectBody = selectHead.selectBody;
+            if (selectBody == null)
             {
-                textTrans.anchorMin = Vector2.zero;
-                textTrans.anchorMax = Vector2.one;
-                textTrans.sizeDelta = Vector2.zero;
-                textTrans.anchoredPosition = Vector2.zero;
-                UnityEditor.EditorUtility.SetDirty(textTrans);
+                return;
             }
 
-            base.ON_INSPECTOR_UPDATE(change);
-            var spriteRenderer = selectHead.spriteRenderer;
+            var spriteRenderer = selectBody.spriteRenderer;
+            var modifyBackground = false;
             if (spriteRenderer.drawMode != SpriteDrawMode.Sliced)
             {
                 spriteRenderer.drawMode = SpriteDrawMode.Sliced;
-                UnityEditor.EditorUtility.SetDirty(spriteRenderer);
+                modifyBackground = true;
             }
-
             if (spriteRenderer.sprite == null)
             {
                 spriteRenderer.sprite = NianxieEditorConst.LoadStandRes().sliced9;
+                modifyBackground = true;
+            }
+            
+            if (m_TextMeshPro != null)
+            {
+                var rectTrans = m_TextMeshPro.rectTransform;
+                var half = 0.5f * Vector2.one;
+                if (rectTrans.pivot != half || rectTrans.anchorMax != half || rectTrans.anchorMin != half)
+                {
+                    rectTrans.pivot = 0.5f * Vector2.one;
+                    rectTrans.anchorMin = 0.5f * Vector2.one;
+                    rectTrans.anchorMax = 0.5f * Vector2.one;
+                    UnityEditor.EditorUtility.SetDirty(rectTrans);
+                }
+
+                if (rectTrans.localScale != Vector3.one)
+                {
+                    rectTrans.localScale = Vector3.one;
+                    UnityEditor.EditorUtility.SetDirty(rectTrans);
+                }
+
+                if (rectTrans.localRotation != Quaternion.identity)
+                {
+                    rectTrans.localRotation = Quaternion.identity;
+                    UnityEditor.EditorUtility.SetDirty(rectTrans);
+                }
+                
+                var pos = 0.1f * Vector3.back;
+                if (rectTrans.localPosition != pos)
+                {
+                    rectTrans.localPosition = pos;
+                    UnityEditor.EditorUtility.SetDirty(rectTrans);
+                }
+
+                if (rectTrans.sizeDelta != spriteRenderer.size)
+                {
+                    rectTrans.sizeDelta = spriteRenderer.size;
+                    UnityEditor.EditorUtility.SetDirty(rectTrans);
+                }
+            }
+
+            if (modifyBackground)
+            {
                 UnityEditor.EditorUtility.SetDirty(spriteRenderer);
-            }*/
+            }
         }
         private void Reset()
         {
-            TextMeshPro textCom = null;
-            for (int i = 0; i < transform.childCount; i++)
+            if (selectHead.selectBody == null)
             {
-                var child = transform.GetChild(i);
+                selectHead.Reset();
+            }
+
+            var selectBody = selectHead.selectBody;
+            if (selectBody == null)
+            {
+                Debug.LogError("SlotSelectBody create failed");
+                return;
+            }
+
+            TextMeshPro textCom = null;
+            for (int i = 0; i < selectBody.transform.childCount; i++)
+            {
+                var child = selectBody.transform.GetChild(i);
                 if (child.TryGetComponent(out TextMeshPro tmp) && child.gameObject.name == TEXT_NODE_NAME)
                 {
                     textCom = tmp;
@@ -131,9 +176,13 @@ namespace Nianxie.Craft
             if (textCom == null)
             {
                 var bodyGo = new GameObject(TEXT_NODE_NAME, typeof(TextMeshPro));
-                bodyGo.transform.SetParent(transform, false);
+                bodyGo.transform.SetParent(selectBody.transform, false);
                 UnityEditor.Undo.RegisterCreatedObjectUndo(bodyGo, "Create Child Object");
                 m_TextMeshPro = bodyGo.GetComponent<TextMeshPro>();
+                m_TextMeshPro.autoSizeTextContainer = true;
+                m_TextMeshPro.fontSize = 2;
+                m_TextMeshPro.fontSizeMin = 0.1f;
+                m_TextMeshPro.SetFont(NianxieEditorConst.LoadStandRes().shellFont, null);
                 bodyGo.transform.localPosition = Vector3.zero;
                 bodyGo.transform.localRotation = Quaternion.identity;
             }
@@ -142,6 +191,7 @@ namespace Nianxie.Craft
                 m_TextMeshPro = textCom;
                 UnityEditor.EditorUtility.SetDirty(this);
             }
+            RefreshTrack();
         }
 
 #endif

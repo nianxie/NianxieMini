@@ -29,7 +29,11 @@ namespace Nianxie.Craft
 
 #if UNITY_EDITOR
         [BlackList]
-        public virtual void ON_INSPECTOR_UPDATE(bool change)
+        public virtual void EditorInspectorUpdate(bool change)
+        {
+        }
+        [BlackList]
+        public virtual void EditorLocalUpdate()
         {
         }
 #endif

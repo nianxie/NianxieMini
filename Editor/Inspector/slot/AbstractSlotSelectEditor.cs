@@ -21,7 +21,7 @@ namespace Nianxie.Editor
             DrawDefaultInspector();
             if (!Application.isPlaying)
             {
-                slotSelect.ON_INSPECTOR_UPDATE();
+                slotSelect.EditorInspectorUpdate();
             }
             if (slotSelect is SlotSelectBody selectBody)
             {

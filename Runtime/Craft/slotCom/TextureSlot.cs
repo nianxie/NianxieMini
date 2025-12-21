@@ -111,9 +111,9 @@ namespace Nianxie.Craft
         }
 #if UNITY_EDITOR
         [BlackList]
-        public override void ON_INSPECTOR_UPDATE(bool change)
+        public override void EditorInspectorUpdate(bool change)
         {
-            base.ON_INSPECTOR_UPDATE(change);
+            base.EditorInspectorUpdate(change);
             if (!change) return;
             if (defaultFinalData != null)
             {
@@ -290,7 +290,7 @@ namespace Nianxie.Craft
         }
 #if UNITY_EDITOR
         [BlackList]
-        public override void ON_INSPECTOR_UPDATE(bool change)
+        public override void EditorInspectorUpdate(bool change)
         {
             if (!change)
             {
@@ -305,7 +305,7 @@ namespace Nianxie.Craft
                 boxSize.x * (0.5f - m_Pivot.x),
                 boxSize.y * (0.5f - m_Pivot.y)
                 );*/
-            base.ON_INSPECTOR_UPDATE(change);
+            base.EditorInspectorUpdate(change);
         }
 #endif
     }

@@ -41,7 +41,32 @@ namespace Nianxie.Craft
         }
 #if UNITY_EDITOR
         [BlackList]
-        public override void ON_INSPECTOR_UPDATE()
+        public override void EditorInspectorUpdate()
+        {
+            SlotSelectHead head = null;
+            var parent = transform.parent;
+            if (parent != null)
+            {
+                parent.TryGetComponent(out head);
+            }
+            if (m_SlotSelectHead != head)
+            {
+                m_SlotSelectHead = head;
+                UnityEditor.EditorUtility.SetDirty(this);
+                if (m_SlotSelectHead == null)
+                {
+                    Debug.LogError($"{nameof(SlotSelectBody)} require a {nameof(SlotSelectHead)} in parent");
+                }
+            }
+
+            if (m_SlotSelectHead != null)
+            {
+                m_SlotSelectHead.EditorLocalUpdate();
+            }
+            EditorLocalUpdate();
+        }
+        [BlackList]
+        public override void EditorLocalUpdate()
         {
             var col = touchCollider2D;
             var render = spriteRenderer;
@@ -61,23 +86,10 @@ namespace Nianxie.Craft
                 col.size = Vector2.one;
                 col.offset = Vector2.zero;
             }
-
-            SlotSelectHead head = null;
-            var parent = transform.parent;
-            if (parent != null)
+            if (gameObject.name != SELECT_BODY_NAME)
             {
-                parent.TryGetComponent(out head);
-            }
-            if (m_SlotSelectHead != head || gameObject.name != SELECT_BODY_NAME)
-            {
-                m_SlotSelectHead = head;
                 gameObject.name = SELECT_BODY_NAME;
-                UnityEditor.EditorUtility.SetDirty(this);
                 UnityEditor.EditorUtility.SetDirty(gameObject);
-                if (m_SlotSelectHead == null)
-                {
-                    Debug.LogError($"{nameof(SlotSelectBody)} require a {nameof(SlotSelectHead)} in parent");
-                }
             }
         }
 #endif

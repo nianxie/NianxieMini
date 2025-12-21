@@ -70,7 +70,7 @@ namespace Nianxie.Craft
         }
 #if UNITY_EDITOR
         [BlackList]
-        public override void ON_INSPECTOR_UPDATE(bool change)
+        public override void EditorInspectorUpdate(bool change)
         {
             var selectBody = selectHead.selectBody;
             if (selectBody != null)

@@ -121,26 +121,26 @@ namespace Nianxie.Craft
         /// <returns></returns>
         public Rect ToCanvasRect(SlotSelectHead selectHead)
         {
-            // 1. 获取RectTransform的四个角点（本地空间，顺序：左下、左上、右上、右下）
+            // 1. 获取bounds
             var bounds = selectHead.selectBody.spriteRenderer.bounds;
             
             var minPos = RectTransformUtility.WorldToScreenPoint(editCamera, bounds.min);
             var maxPos = RectTransformUtility.WorldToScreenPoint(editCamera, bounds.max);
 
-            // 3. 计算屏幕空间的Rect边界
+            // 2. 计算屏幕空间的bounds的边界
             float minX = Mathf.Min(minPos.x, maxPos.x);
             float maxX = Mathf.Max(minPos.x, maxPos.x);
             float minY = Mathf.Min(minPos.y, maxPos.y);
             float maxY = Mathf.Max(minPos.y, maxPos.y);
 
-            // 4. 构建屏幕空间的Rect（Screen空间Y轴向下，所以y取minY，height=maxY-minY）
+            // 3. 构建屏幕空间的Rect（Screen空间Y轴向下，所以y取minY，height=maxY-minY）
             Rect screenRect = new Rect();
             screenRect.x = minX;
             screenRect.y = minY;
             screenRect.width = maxX - minX;
             screenRect.height = maxY - minY;
 
-            // 5. 适配Canvas Scaler
+            // 4. 适配Canvas Scaler
             var scaleFactor = 1.0f;
             switch (m_CanvasScaler.uiScaleMode)
             {

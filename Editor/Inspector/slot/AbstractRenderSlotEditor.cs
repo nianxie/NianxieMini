@@ -34,7 +34,7 @@ namespace Nianxie.Editor
             EditorGUI.BeginChangeCheck();
             DrawDefaultInspector();
             var change = EditorGUI.EndChangeCheck();
-            slotCom.ON_INSPECTOR_UPDATE(change);
+            slotCom.EditorInspectorUpdate(change);
         }
     }
 }
