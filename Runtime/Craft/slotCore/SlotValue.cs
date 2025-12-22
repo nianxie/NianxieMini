@@ -23,9 +23,17 @@ namespace Nianxie.Craft
             isAssigned = true;
             assignedValue = value;
         }
-        public void Reset()
+
+        public T SafeCast(object o)
         {
-            isAssigned = false;
+            if (o is T t)
+            {
+                return t;
+            }
+            else
+            {
+                throw new InvalidCastException($"{typeof(T)} expected but get {o.GetType()}");
+            }
         }
     }
 }

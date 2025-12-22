@@ -45,20 +45,22 @@ namespace Nianxie.Craft
             throw new System.NotImplementedException();
         }
 
-        public override object slotValue {
-            get => m_SlotValue.ReadValue();
-            set
+        public override object GetValue()
+        {
+            return m_SlotValue.ReadValue();
+        }
+
+        public override void SetValue(object o)
+        {
+            // TODO 根据fitx和fity对sprite进行裁切。
+            var sprite = m_SlotValue.SafeCast(o);
+            slotCallback.Incref(this, sprite.texture);
+            if (m_SlotValue.assignedValue != null)
             {
-                // TODO 根据fitx和fity对sprite进行裁切。
-                var sprite = (Sprite) value;
-                slotCallback.Incref(this, sprite.texture);
-                if (m_SlotValue.assignedValue != null)
-                {
-                    slotCallback.Decref(this, m_SlotValue.assignedValue.texture);
-                }
-                m_SlotValue.AssignValue(sprite);
-                spriteRenderer.sprite = sprite;
+                slotCallback.Decref(this, m_SlotValue.assignedValue.texture);
             }
+            m_SlotValue.AssignValue(sprite);
+            spriteRenderer.sprite = sprite;
         }
 
         public override void PostDuplicate()
@@ -71,6 +73,11 @@ namespace Nianxie.Craft
 #if UNITY_EDITOR
         [BlackList]
         public override void EditorInspectorUpdate(bool change)
+        {
+            EditorLocalUpdate();
+        }
+        [BlackList]
+        public override void EditorLocalUpdate()
         {
             var selectBody = selectHead.selectBody;
             if (selectBody != null)

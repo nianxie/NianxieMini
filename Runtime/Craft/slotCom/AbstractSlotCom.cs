@@ -19,7 +19,15 @@ namespace Nianxie.Craft
         public abstract AbstractSlotJson PackToJson(AbstractPackContext packContext);
         public abstract void UnpackFromJson(CraftUnpackContext unpackContext, AbstractSlotJson slotJson);
 
-        public abstract object slotValue { get; set; }
+        public virtual object GetValue()
+        {
+            throw new NotImplementedException("TODO");
+        }
+
+        public virtual void SetValue(object o)
+        {
+            throw new NotImplementedException("TODO");
+        }
 
         protected virtual void Awake()
         {
@@ -34,6 +42,9 @@ namespace Nianxie.Craft
         }
         [BlackList]
         public virtual void EditorLocalUpdate()
+        {
+        }
+        protected virtual void OnValidate()
         {
         }
 #endif

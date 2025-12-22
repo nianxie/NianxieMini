@@ -78,6 +78,15 @@ namespace Nianxie.Craft
             {
                 m_SlotSelectBody.EditorLocalUpdate();
             }
+            if (TryGetComponent<AbstractRenderSlot>(out var renderSlot))
+            {
+                renderSlot.EditorLocalUpdate();
+            }
+        }
+
+        [BlackList]
+        public override void EditorLocalUpdate()
+        {
         }
 
         [BlackList]
@@ -103,6 +112,7 @@ namespace Nianxie.Craft
                 bodyGo.transform.parent = transform;
                 bodyGo.transform.localPosition = Vector3.zero;
                 bodyGo.transform.localRotation = Quaternion.identity;
+                bodyGo.transform.SetSiblingIndex(0);
                 UnityEditor.Undo.RegisterCreatedObjectUndo(bodyGo, "create select body");
             }
             else

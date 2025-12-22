@@ -62,6 +62,10 @@ namespace Nianxie.Craft
             if (m_SlotSelectHead != null)
             {
                 m_SlotSelectHead.EditorLocalUpdate();
+                if (m_SlotSelectHead.TryGetComponent<AbstractRenderSlot>(out var renderSlot))
+                {
+                    renderSlot.EditorLocalUpdate();
+                }
             }
             EditorLocalUpdate();
         }

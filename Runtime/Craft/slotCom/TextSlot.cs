@@ -2,6 +2,7 @@ using System;
 using Cysharp.Threading.Tasks.Triggers;
 using Nianxie.Utils;
 using TMPro;
+using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,16 +23,19 @@ namespace Nianxie.Craft
         [SerializeField] 
         private SlotValue<string> m_SlotValue;
         
-        public override object slotValue {
-            get => m_SlotValue.ReadValue();
-            set
-            {
-                var text = (string) value;
-                m_SlotValue.AssignValue(text);
-                m_TextMeshPro.text = text;
-            }
-        }
         private DrivenRectTransformTracker m_RectTracker = new DrivenRectTransformTracker();
+
+        public override object GetValue()
+        {
+            return m_SlotValue.ReadValue();
+        }
+        
+        public override void SetValue(object o)
+        {
+            var text = m_SlotValue.SafeCast(o);
+            m_SlotValue.AssignValue(text);
+            m_TextMeshPro.text = text;
+        }
         
         private void OnEnable()
         {
@@ -65,6 +69,18 @@ namespace Nianxie.Craft
 #if UNITY_EDITOR
         [BlackList]
         public override void EditorInspectorUpdate(bool change)
+        {
+            EditorLocalUpdate();
+            selectHead.EditorLocalUpdate();
+            var selectBody = selectHead.selectBody;
+            if (selectBody != null)
+            {
+                selectBody.EditorLocalUpdate();
+            }
+        }
+
+        [BlackList]
+        public override void EditorLocalUpdate()
         {
             if (m_TextMeshPro == null)
             {
@@ -148,6 +164,12 @@ namespace Nianxie.Craft
                 UnityEditor.EditorUtility.SetDirty(spriteRenderer);
             }
         }
+
+        private void OnValidate()
+        {
+            EditorLocalUpdate();
+        }
+
         private void Reset()
         {
             if (selectHead.selectBody == null)
@@ -179,9 +201,10 @@ namespace Nianxie.Craft
                 bodyGo.transform.SetParent(selectBody.transform, false);
                 UnityEditor.Undo.RegisterCreatedObjectUndo(bodyGo, "Create Child Object");
                 m_TextMeshPro = bodyGo.GetComponent<TextMeshPro>();
-                m_TextMeshPro.autoSizeTextContainer = true;
+                m_TextMeshPro.enableAutoSizing = true;
                 m_TextMeshPro.fontSize = 2;
                 m_TextMeshPro.fontSizeMin = 0.1f;
+                m_TextMeshPro.color = Color.black;
                 m_TextMeshPro.SetFont(NianxieEditorConst.LoadStandRes().shellFont, null);
                 bodyGo.transform.localPosition = Vector3.zero;
                 bodyGo.transform.localRotation = Quaternion.identity;
@@ -191,6 +214,7 @@ namespace Nianxie.Craft
                 m_TextMeshPro = textCom;
                 UnityEditor.EditorUtility.SetDirty(this);
             }
+            m_SlotValue.defaultValue = "Default Text";
             RefreshTrack();
         }
 

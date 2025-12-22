@@ -6,7 +6,7 @@ namespace Nianxie.Craft
     [DisallowMultipleComponent]
     public abstract class AbstractSlotSelect:MonoBehaviour
     {
-        protected const string SELECT_BODY_NAME = "::select";
+        protected const string SELECT_BODY_NAME = "::body";
 #if UNITY_EDITOR
         [BlackList]
         public virtual void EditorInspectorUpdate()

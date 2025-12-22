@@ -136,7 +136,6 @@ namespace Nianxie.Craft
         [SerializeField]
         private int m_Resolution = 512;
 
-		public override object slotValue { get; set; }
         [NonSerialized] SpriteRenderer m_Renderer;
         private SpriteRenderer drawRenderer
         {

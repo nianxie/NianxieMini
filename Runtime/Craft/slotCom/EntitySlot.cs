@@ -19,8 +19,6 @@ namespace Nianxie.Craft
 			return entityJson;
 		}
 
-		public override object slotValue { get; set; }
-
 		public override void UnpackFromJson(CraftUnpackContext unpackContext, AbstractSlotJson slotJson)
 		{
 			var entityJson = (EntityJson) slotJson;

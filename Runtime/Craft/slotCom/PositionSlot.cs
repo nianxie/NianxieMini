@@ -23,9 +23,15 @@ namespace Nianxie.Craft
             };
         }
 
-        public override object slotValue {
-            get => m_SlotValue.ReadValue();
-            set => m_SlotValue.AssignValue((Vector2)value);
+        public override object GetValue()
+        {
+            return m_SlotValue.ReadValue();
+        }
+        
+        public override void SetValue(object o)
+        {
+            var vec = m_SlotValue.SafeCast(o);
+            m_SlotValue.AssignValue(vec);
         }
 
         [BlackList]
