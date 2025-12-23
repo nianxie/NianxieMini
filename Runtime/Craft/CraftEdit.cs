@@ -25,6 +25,7 @@ namespace Nianxie.Craft
         private CanvasScaler m_CanvasScaler;
 
         public SlotBehaviour rootSlot { get; private set; }
+        public SlotSelectHead slotSelect { get; private set; }
 
         private void InitByLoading(LuafabLoading miniCraftLoading)
         {
@@ -55,6 +56,10 @@ namespace Nianxie.Craft
             //Debug.Log($"end drag {eventData.pointerId}");
         }
 
+        /// <summary>
+        /// 在EditArea中响应OnClick，用来实现选中取消，Drag的事件响应放到这一级，从而避免drag时也触发OnClick
+        /// </summary>
+        /// <param name="eventData"></param>
         public void OnDrag(PointerEventData eventData)
         {
             var delta = eventData.delta;
@@ -78,7 +83,6 @@ namespace Nianxie.Craft
         {
             editCamera.gameObject.SetActive(false);
             editCanvas.gameObject.SetActive(false);
-            reflectEnv = gameManager.reflectEnv;
             if (miniCraftLoading != null)
             {
                 InitByLoading(miniCraftLoading);
@@ -115,7 +119,7 @@ namespace Nianxie.Craft
         }
 
         /// <summary>
-        /// 获取nodeSlot在屏幕空间的矩形.
+        /// 获取slotSelect在屏幕空间的矩形.
         /// </summary>
         /// <param name="selectHead"></param>
         /// <returns></returns>
@@ -200,6 +204,20 @@ namespace Nianxie.Craft
                 screenRect.height / scaleFactor 
             );
             return screenRect;
+        }
+        
+        [BlackList]
+        public override void OnSelect(SlotSelectHead slot)
+        {
+            if (slot == null)
+            {
+                slotSelect = null;
+            }
+            else
+            {
+                slotSelect = slot;
+            }
+            ShellRefresh();
         }
 
         public (LargeBytes, byte[]) PackJsonPng()

@@ -7,56 +7,41 @@ namespace Nianxie.Craft
 {
     public abstract class SlotCallback:MonoBehaviour
     {
-        private Dictionary<int, Dictionary<int, AbstractSlotCom>> resIdToComDict;
-        public SlotSelectHead slotSelect { get; private set; }
-        public PositionSlot selectPosSlot { get; private set; }
-        protected RuntimeReflectEnv reflectEnv;
-        public LuaTable NewTable()
-        {
-            return reflectEnv.NewTable();
-        }
+        private Dictionary<int, Dictionary<int, AbstractSlotCom>> texIdToComDict = new();
         protected MiniEditArgs editArgs;
+        [BlackList]
         public void ShellRefresh()
         {
             editArgs.shellRefresh.Action();
         }
-        public void Incref(AbstractSlotCom com, UnityEngine.Object obj)
+        [BlackList]
+        public void Incref(AbstractSlotCom com, Texture2D tex)
         {
-            if (!resIdToComDict.TryGetValue(obj.GetInstanceID(), out var comDict))
+            if (!texIdToComDict.TryGetValue(tex.GetInstanceID(), out var comDict))
             {
                 comDict = new Dictionary<int, AbstractSlotCom>();
-                resIdToComDict[obj.GetInstanceID()] = comDict;
+                texIdToComDict[tex.GetInstanceID()] = comDict;
             }
             comDict[com.GetInstanceID()] = com;
         }
-        public void Decref(AbstractSlotCom com, UnityEngine.Object obj)
+        [BlackList]
+        public void Decref(AbstractSlotCom com, Texture2D tex)
         {
-            if (resIdToComDict.TryGetValue(obj.GetInstanceID(), out var comDict))
+            if (texIdToComDict.TryGetValue(tex.GetInstanceID(), out var comDict))
             {
                 if (comDict.ContainsKey(com.GetInstanceID()))
                 {
                     comDict.Remove(com.GetInstanceID());
                     if (comDict.Count <= 0)
                     {
-                        resIdToComDict.Remove(obj.GetInstanceID());
-                        editArgs.shellRelease.Action(obj);
+                        texIdToComDict.Remove(tex.GetInstanceID());
+                        editArgs.shellRelease.Action(tex);
                     }
                 }
             }
         }
-        public void OnSelect(SlotSelectHead assetSlot)
-        {
-            if (assetSlot == null)
-            {
-                slotSelect = null;
-                selectPosSlot = null;
-            }
-            else
-            {
-                slotSelect = assetSlot;
-                selectPosSlot = assetSlot.GetComponentInParent<PositionSlot>();
-            }
-            ShellRefresh();
-        }
+
+        [BlackList]
+        public abstract void OnSelect(SlotSelectHead slotSelect);
     }
 }

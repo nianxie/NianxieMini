@@ -1,17 +1,14 @@
 ﻿using System;
-using UnityEngine;
 
 namespace Nianxie.Craft
 {
-    public class SlotValueAttribute:PropertyAttribute
-    {
-    }
-
     [Serializable]
     public struct SlotValue<T>
     {
         public T defaultValue;
+        [NonEditable]
         public T assignedValue;
+        [NonEditable]
         public bool isAssigned;
 
         public T ReadValue()

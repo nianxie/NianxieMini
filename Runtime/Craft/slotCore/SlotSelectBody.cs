@@ -78,17 +78,26 @@ namespace Nianxie.Craft
             if (sprite != null)
             {
                 var bounds = render.localBounds;
-                if (col.size != bounds.size.ToVector2() || col.offset != bounds.center.ToVector2())
+                var boxSize = new Vector2(
+                    Math.Max(bounds.size.x, 1e-3f),
+                    Math.Max(bounds.size.y, 1e-3f)
+                    );
+                if (col.size != boxSize || col.offset != bounds.center.ToVector2())
                 {
-                    col.size = bounds.size;
+                    col.size = boxSize;
                     col.offset = bounds.center;
                     UnityEditor.EditorUtility.SetDirty(col);
                 }
             }
             else
             {
-                col.size = Vector2.one;
-                col.offset = Vector2.zero;
+                var boxSize = Vector2.one * 1e-3f;
+                if (col.size != boxSize || col.offset != Vector2.zero)
+                {
+                    col.size = boxSize;
+                    col.offset = Vector2.zero;
+                    UnityEditor.EditorUtility.SetDirty(col);
+                }
             }
             if (gameObject.name != SELECT_BODY_NAME)
             {

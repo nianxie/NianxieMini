@@ -1,11 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using Nianxie.Craft;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
-using Object = UnityEngine.Object;
 
 namespace Nianxie.Preview
 {
@@ -61,16 +58,17 @@ namespace Nianxie.Preview
                 return;
             }
 
-            /*if (craftEdit.slotSelect is SpriteSlot spriteSlot)
+            if (craftEdit.slotSelect.renderSlot is SpriteSlot spriteSlot)
             {
                 var imagePath = OpenImageFile();
                 var imageBytes = File.ReadAllBytes(imagePath);
                 var tex = new Texture2D(2,2);
                 tex.LoadImage(imageBytes);
                 refObjDict[tex.GetInstanceID()] = tex;
-                var sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), spriteSlot.rectTransform.pivot);
-                spriteSlot.WriteSprite(sprite);
-            }*/
+                var sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), Vector2.one*0.5f);
+                spriteSlot.SetValue(sprite);
+                UnityEngine.Object.Destroy(sprite);
+            }
         }
         public void OnAppend()
         {
@@ -110,10 +108,14 @@ namespace Nianxie.Preview
         }
         void IDragHandler.OnDrag(PointerEventData eventData)
         {
-            if (craftEdit.selectPosSlot != null)
+            if (craftEdit == null || craftEdit.slotSelect == null)
+            {
+                return;
+            }
+            if (craftEdit.slotSelect.posSlot != null)
             {
                 var delta = eventData.delta;
-                var selectTrans = craftEdit.selectPosSlot.transform;
+                var selectTrans = craftEdit.slotSelect.posSlot.transform;
                 selectTrans.position += craftEdit.editCamera.ScreenToWorldPoint(delta) - craftEdit.editCamera.ScreenToWorldPoint(Vector3.zero);
                 craftEdit.ShellRefresh();
             }

@@ -20,8 +20,5 @@ namespace Nianxie.Craft
             }
         }
         
-        public virtual void PostDuplicate()
-        {
-        }
     }
 }

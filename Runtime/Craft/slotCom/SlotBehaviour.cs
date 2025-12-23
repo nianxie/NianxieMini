@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using Nianxie.Components;
 using UnityEngine;
 using XLua;
@@ -7,11 +9,11 @@ namespace Nianxie.Craft
 {
     public class SlotBehaviour:LuaBehaviour, IUnionSlot
     {
-	    public class SlotList
+	    public class UnionSlotList:IReadOnlyList<IUnionSlot>
 	    {
 		    private List<IUnionSlot> list;
 		    private SlotInjected slotInjected;
-		    public SlotList(SlotInjected slotInjected, List<IUnionSlot> list)
+		    public UnionSlotList(SlotInjected slotInjected, List<IUnionSlot> list)
 		    {
 			    this.list = list;
 			    this.slotInjected = slotInjected;
@@ -47,19 +49,45 @@ namespace Nianxie.Craft
 					}
 				}
 			}
+
+			public IEnumerator<IUnionSlot> GetEnumerator()
+			{
+				return list.GetEnumerator();
+			}
+			IEnumerator IEnumerable.GetEnumerator()
+			{
+				return GetEnumerator();
+			}
+			public int Count => list.Count;
+			public IUnionSlot this[int index] => list[index];
 	    }
 
 	    public SlotInjected slotInjected { get; private set; }
-
 	    public SlotCallback slotCallback { get; private set; }
 
         private Dictionary<string, IUnionSlot> slotSingleDict = new();
-        private Dictionary<string, SlotList> slotListDict = new();
+        private Dictionary<string, UnionSlotList> slotListDict = new();
 
         public void RootInit(CraftEdit edit)
         {
 	        slotCallback = edit;
 	        (this as IUnionSlot).Init(null);
+        }
+
+        void IUnionSlot.PostDuplicate()
+        {
+	        foreach (var slot in slotSingleDict.Values)
+	        {
+		        slot.PostDuplicate();
+	        }
+
+	        foreach (var list in slotListDict.Values)
+	        {
+		        foreach (var slot in list)
+		        {
+			        slot.PostDuplicate();
+		        }
+	        }
         }
 
         void IUnionSlot.Init(SlotInjected injected)
@@ -103,7 +131,7 @@ namespace Nianxie.Craft
 							Debug.LogError($"invalid injection {whichClass}:{injection.key}");
 						}
 					}
-					slotListDict[injection.key] = new SlotList(childSlotField, list);
+					slotListDict[injection.key] = new UnionSlotList(childSlotField, list);
 	            }
             }
         }
@@ -118,13 +146,9 @@ namespace Nianxie.Craft
 	        // do nothing
         }
         
-        public object ReadData()
-        {
-            throw new System.NotImplementedException();
-        }
-
         public AbstractSlotJson PackToJson(AbstractPackContext packContext)
         {
+	        throw new NotImplementedException("TODO");
 			var behavJson = new SlotBehavJson();
 			var reflectEnv = gameManager.reflectEnv;
 			var reflectCls = reflectEnv.GetWarmedReflect(classPath, nestedKeys);
@@ -144,6 +168,7 @@ namespace Nianxie.Craft
 
         public void UnpackFromJson(CraftUnpackContext unpackContext, AbstractSlotJson slotJson)
         {
+	        throw new NotImplementedException("TODO");
 			var slotBehavJson = (SlotBehavJson) slotJson;
 			var reflectEnv = gameManager.reflectEnv;
 	        var reflectCls = reflectEnv.GetWarmedReflect(classPath, nestedKeys);
@@ -161,7 +186,8 @@ namespace Nianxie.Craft
             }
         }
 
-        public SlotList GetSlotList(AbstractNodeInjection injection)
+        [BlackList]
+        public UnionSlotList GetSlotList(AbstractNodeInjection injection)
         {
             return slotListDict[injection.key];
         }

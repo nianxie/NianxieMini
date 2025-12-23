@@ -19,7 +19,6 @@ namespace Nianxie.Craft
         [SerializeField]
         private TextMeshPro m_TextMeshPro;
 
-        [SlotValue]
         [SerializeField] 
         private SlotValue<string> m_SlotValue;
         
@@ -163,11 +162,6 @@ namespace Nianxie.Craft
             {
                 UnityEditor.EditorUtility.SetDirty(spriteRenderer);
             }
-        }
-
-        private void OnValidate()
-        {
-            EditorLocalUpdate();
         }
 
         private void Reset()

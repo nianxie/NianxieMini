@@ -19,6 +19,9 @@ namespace Nianxie.Craft
         public abstract AbstractSlotJson PackToJson(AbstractPackContext packContext);
         public abstract void UnpackFromJson(CraftUnpackContext unpackContext, AbstractSlotJson slotJson);
 
+        public virtual void PostDuplicate()
+        {
+        }
         public virtual object GetValue()
         {
             throw new NotImplementedException("TODO");

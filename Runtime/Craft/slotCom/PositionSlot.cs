@@ -5,10 +5,10 @@ using XLua;
 
 namespace Nianxie.Craft
 {
+    [RequireComponent(typeof(SlotSelectHead))]
     [DisallowMultipleComponent]
     public class PositionSlot:AbstractSlotCom
     {
-        [SlotValue]
         [SerializeField]
         private SlotValue<Vector2> m_SlotValue;
 

@@ -8,14 +8,18 @@ namespace Nianxie.Craft
     public class SlotSelectHead: AbstractSlotSelect, IPointerDownHandler, IPointerClickHandler, IPointerUpHandler
     {
         [SerializeField] private SlotSelectBody m_SlotSelectBody;
+        [BlackList]
         public SlotSelectBody selectBody => m_SlotSelectBody;
-        private AbstractRenderSlot renderSlot;
-        private SlotBehaviour slotBehav;
+
+        public AbstractRenderSlot renderSlot { get; private set; }
+        public SlotBehaviour slotBehav { get; private set; }
+        public PositionSlot posSlot { get; private set; }
         private IUnionSlot unionSlot => slotBehav != null ? slotBehav : renderSlot;
         private void Awake()
         {
             slotBehav = GetComponent<SlotBehaviour>();
             renderSlot = GetComponent<AbstractRenderSlot>();
+            posSlot = GetComponent<PositionSlot>();
         }
         
         public bool IsList()
