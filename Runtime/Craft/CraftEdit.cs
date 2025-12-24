@@ -126,7 +126,7 @@ namespace Nianxie.Craft
         public Rect ToCanvasRect(SlotSelectHead selectHead)
         {
             // 1. 获取bounds
-            var bounds = selectHead.selectBody.spriteRenderer.bounds;
+            var bounds = selectHead.selectBody.touchCollider2D.bounds;
             
             var minPos = RectTransformUtility.WorldToScreenPoint(editCamera, bounds.min);
             var maxPos = RectTransformUtility.WorldToScreenPoint(editCamera, bounds.max);

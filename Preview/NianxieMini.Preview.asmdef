@@ -1,0 +1,17 @@
+{
+    "name": "NianxieMini.Preview",
+    "rootNamespace": "",
+    "references": [
+        "GUID:9558edf117ab73147b241059b49b2734",
+        "GUID:f51ebe6a0ceec4240a699833d6309b23"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

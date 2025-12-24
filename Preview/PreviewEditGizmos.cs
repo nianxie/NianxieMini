@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using System.IO;
+using Cysharp.Threading.Tasks;
 using Nianxie.Craft;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
 namespace Nianxie.Preview
 {
-    public class PreviewGizmos : MonoBehaviour, IInitializePotentialDragHandler, IBeginDragHandler, IEndDragHandler, IDragHandler
+    public class PreviewEditGizmos : MonoBehaviour, IInitializePotentialDragHandler, IBeginDragHandler, IEndDragHandler, IDragHandler
     {
         [SerializeField]
         private PreviewManager previewManager;

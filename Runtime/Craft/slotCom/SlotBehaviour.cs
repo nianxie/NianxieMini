@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Nianxie.Components;
+using Nianxie.Utils;
 using UnityEngine;
 using XLua;
 
@@ -27,10 +28,8 @@ namespace Nianxie.Craft
 						var newSelect = Instantiate(slotSelect, slotSelect.transform.parent);
 						var newSlot = newSelect.GetComponent(child.GetType()) as IUnionSlot;
 						newSlot.Init(slotInjected);
-						/*foreach (var dupNodeSlot in newObj.GetComponentsInChildren<AbstractNodeSlot>())
-						{
-							dupNodeSlot.PostDuplicate();
-						}*/
+						newSlot.transform.localPosition += Vector3.right*slotSelect.selectBody.touchCollider2D.size.x;
+						newSlot.PostDuplicate();
 						list.Add(newSlot);
 						return;
 					}

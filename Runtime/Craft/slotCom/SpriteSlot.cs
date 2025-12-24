@@ -65,7 +65,7 @@ namespace Nianxie.Craft
         {
             // TODO 根据fitx和fity对sprite进行裁切。
             var inputSprite = m_SlotValue.SafeCast(o);
-            var sprite = Sprite.Create(inputSprite.texture, inputSprite.rect, inputSprite.pivot);
+            var sprite = Sprite.Create(inputSprite.texture, inputSprite.rect, Vector2.one*0.5f);
             slotCallback.Incref(this, sprite.texture);
             if (m_SlotValue.assignedValue != null)
             {
@@ -74,7 +74,6 @@ namespace Nianxie.Craft
             }
             m_SlotValue.AssignValue(sprite);
             spriteRenderer.sprite = sprite;
-            slotCallback.ShellRefresh();
         }
 
         public override void PostDuplicate()
@@ -84,12 +83,12 @@ namespace Nianxie.Craft
             {
                 var copySprite = Sprite.Create(originSprite.texture, originSprite.rect, originSprite.pivot);
                 slotCallback.Incref(this, originSprite.texture);
-                m_SlotValue.assignedValue = originSprite;
+                m_SlotValue.assignedValue = copySprite;
                 spriteRenderer.sprite = copySprite;
             }
             else
             {
-                spriteRenderer.sprite = null;
+                spriteRenderer.sprite = m_SlotValue.defaultValue;
             }
         }
 
