@@ -9,34 +9,28 @@ namespace Nianxie.Preview
 {
     public class PreviewEditGizmos : MonoBehaviour, IInitializePotentialDragHandler, IBeginDragHandler, IEndDragHandler, IDragHandler
     {
-        [SerializeField]
-        private PreviewManager previewManager;
-
         private CraftEdit craftEdit;
         /// <summary>
         /// 外部加载的Texture相关资源需要销毁，在这里记录
         /// </summary>
         private Dictionary<int, UnityEngine.Object> refObjDict = new();
 
-        public void Refresh(CraftEdit _craftEdit)
+        public void Main(CraftEdit craftEdit)
+        {
+            this.craftEdit = craftEdit;
+            Refresh();
+        }
+
+        public void Refresh()
         {
             var rectTransform = (RectTransform) transform;
-            craftEdit = _craftEdit;
-            if (craftEdit == null || craftEdit.slotSelect == null)
+            if (craftEdit.slotSelect == null)
             {
                 gameObject.SetActive(false);
-                rectTransform.SetParent(previewManager.transform);
-                rectTransform.localPosition = Vector3.zero;
             }
             else
             {
-                if (transform.parent != craftEdit.editCanvas.transform)
-                {
-                    gameObject.SetActive(true);
-                    rectTransform.SetParent(craftEdit.editCanvas.transform);
-                    rectTransform.localScale = Vector3.one;
-                }
-
+                gameObject.SetActive(true);
                 var rect = craftEdit.ToCanvasRect(craftEdit.slotSelect);
                 rectTransform.anchoredPosition = rect.min;
                 rectTransform.sizeDelta = rect.size;
@@ -54,7 +48,7 @@ namespace Nianxie.Preview
 
         public void OnEdit()
         {
-            if (craftEdit == null || craftEdit.slotSelect == null)
+            if (craftEdit.slotSelect == null)
             {
                 return;
             }
@@ -73,7 +67,7 @@ namespace Nianxie.Preview
         }
         public void OnAppend()
         {
-            if (craftEdit == null || craftEdit.slotSelect == null)
+            if (craftEdit.slotSelect == null)
             {
                 return;
             }
@@ -81,7 +75,7 @@ namespace Nianxie.Preview
         }
         public void OnRemove()
         {
-            if (craftEdit == null || craftEdit.slotSelect == null)
+            if (craftEdit.slotSelect == null)
             {
                 return;
             }
@@ -109,7 +103,7 @@ namespace Nianxie.Preview
         }
         void IDragHandler.OnDrag(PointerEventData eventData)
         {
-            if (craftEdit == null || craftEdit.slotSelect == null)
+            if (craftEdit.slotSelect == null)
             {
                 return;
             }

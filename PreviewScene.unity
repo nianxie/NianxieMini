@@ -1208,7 +1208,6 @@ GameObject:
   m_Component:
   - component: {fileID: 757530686}
   - component: {fileID: 757530687}
-  - component: {fileID: 757530688}
   m_Layer: 5
   m_Name: editCanvas
   m_TagString: Untagged
@@ -1228,8 +1227,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1143437320}
-  - {fileID: 2001027956}
+  - {fileID: 1597738228}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1260,19 +1258,6 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
---- !u!114 &757530688
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 757530685}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bb6a9c39bd4dc53439c7a51f5c509684, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  gizmos: {fileID: 0}
 --- !u!1 &853336299
 GameObject:
   m_ObjectHideFlags: 0
@@ -1456,8 +1441,7 @@ MonoBehaviour:
   backBtn: {fileID: 1830565548}
   videoPlayer: {fileID: 1283170558}
   craftToggle: {fileID: 1796801401}
-  previewGizmos: {fileID: 2001027959}
-  miniManager: {fileID: 0}
+  editView: {fileID: 1597738229}
 --- !u!1 &1035792466
 GameObject:
   m_ObjectHideFlags: 0
@@ -1730,7 +1714,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2123008362}
-  m_Father: {fileID: 757530686}
+  m_Father: {fileID: 1597738228}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
@@ -2322,6 +2306,58 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1471497177}
   m_CullTransparentMesh: 1
+--- !u!1 &1597738227
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1597738228}
+  - component: {fileID: 1597738229}
+  m_Layer: 5
+  m_Name: editViewPrefab
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1597738228
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1597738227}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1143437320}
+  - {fileID: 2001027956}
+  m_Father: {fileID: 757530686}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1597738229
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1597738227}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b5a4c5f6cd03bc478e8b417ffef89f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gizmos: {fileID: 2001027959}
+  craftEdit: {fileID: 0}
 --- !u!1 &1701088080
 GameObject:
   m_ObjectHideFlags: 0
@@ -3061,7 +3097,7 @@ RectTransform:
   - {fileID: 1388913161}
   - {fileID: 648248982}
   - {fileID: 1340211096}
-  m_Father: {fileID: 757530686}
+  m_Father: {fileID: 1597738228}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -3118,7 +3154,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f1c3eb550e19fc44ab3770446534830a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  previewManager: {fileID: 872981160}
+  editView: {fileID: 0}
 --- !u!1 &2123008361
 GameObject:
   m_ObjectHideFlags: 0

@@ -17,15 +17,15 @@ namespace Nianxie.Preview
         }
         public class EditGame:PreviewGame
         {
-            private PreviewEditGizmos gizmos;
-            private CraftEdit craftEdit;
-            public EditGame(PreviewEditGizmos previewGizmos, AssetBundle bundle) : base(EditorGetMiniBoot(), bundle.CheckMiniFolder(), bundle)
+            private PreviewEditView editView;
+            private Func<Transform, PreviewEditView> editViewMaker;
+            public EditGame(AssetBundle bundle, Func<Transform, PreviewEditView> makeEditView) : base(EditorGetMiniBoot(), bundle.CheckMiniFolder(), bundle)
             {
-                gizmos = previewGizmos;
+                editViewMaker = makeEditView;
             }
-            public EditGame(PreviewEditGizmos previewGizmos, string folder) : base(EditorGetMiniBoot(), folder, null)
+            public EditGame(string folder, Func<Transform, PreviewEditView> makeEditView) : base(EditorGetMiniBoot(), folder, null)
             {
-                gizmos = previewGizmos;
+                editViewMaker = makeEditView;
             }
             public override async UniTask Main()
             {
@@ -35,23 +35,19 @@ namespace Nianxie.Preview
                     shellRefresh=selfWrap.Get<LuaFunction>(nameof(GizmosRefresh)),
                     shellRelease=selfWrap.Get<LuaFunction>(nameof(GizmosRelease)),
                 };
-                craftEdit = await miniManager.EditMain(args);
+                var craftEdit = await miniManager.EditMain(args);
+                editView = editViewMaker(craftEdit.editCanvas.transform);
+                editView.Main(craftEdit);
             }
             public void GizmosRefresh()
             {
-                gizmos.Refresh(craftEdit);
+                if (editView == null) return;
+                editView.gizmos.Refresh();
             }
             public void GizmosRelease(UnityEngine.Object resObj)
             {
-                gizmos.Release(resObj);
-            }
-            public override void Unload()
-            {
-                if (gizmos != null)
-                {
-                    gizmos.Refresh(null);
-                }
-                base.Unload();
+                if (editView == null) return;
+                editView.gizmos.Release(resObj);
             }
         }
         public class PlayGame:PreviewGame
@@ -120,7 +116,7 @@ return setmetatable({
 
         public abstract UniTask Main();
 
-        public virtual void Unload()
+        public void Unload()
         {
             if (bundle != null)
             {

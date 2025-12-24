@@ -18,9 +18,8 @@ namespace Nianxie.Preview
         public VideoPlayer videoPlayer;
         public Toggle craftToggle;
 
-        public PreviewEditGizmos previewGizmos;
+        public PreviewEditView editView;
         public PreviewGame previewGame;
-        public MiniGameManager miniManager;
         public bool editCraft => craftToggle.isOn;
         public static List<string> ListProject()
         {
@@ -50,12 +49,12 @@ namespace Nianxie.Preview
             {
                 if (string.IsNullOrEmpty(bundlePath))
                 {
-                    previewGame = new PreviewGame.EditGame(previewGizmos, folder);
+                    previewGame = new PreviewGame.EditGame(folder, EditViewMaker);
                 }
                 else
                 {
                     var bundle = AssetBundle.LoadFromFile(bundlePath);
-                    previewGame = new PreviewGame.EditGame(previewGizmos, bundle);
+                    previewGame = new PreviewGame.EditGame(bundle, EditViewMaker);
                 }
                 UniTask.Create(async () =>
                 {
@@ -92,6 +91,11 @@ namespace Nianxie.Preview
             }
             videoPlayer.gameObject.SetActive(true);
             videoPlayer.Play();
+        }
+
+        private PreviewEditView EditViewMaker(Transform transform)
+        {
+            return Instantiate(editView, transform);
         }
 
         private void Unload()
