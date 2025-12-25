@@ -15,12 +15,12 @@ namespace XLua
 {
     public class EditorReflectEnv:AbstractReflectEnv
     {
-        public static EditorReflectEnv Create(EditorEnvPaths envPaths, byte[] miniBoot)
+        public static EditorReflectEnv Create(EditorEnvPaths envPaths, Func<byte[]> miniBootGetter)
         {
             var env = new EditorReflectEnv(envPaths);
             try
             {
-                env.Bootstrap(miniBoot);
+                env.Bootstrap(miniBootGetter?.Invoke());
                 env.Warmup();
             }
             catch (Exception e)

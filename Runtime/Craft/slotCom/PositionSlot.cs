@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Nianxie.Utils;
+using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using XLua;
@@ -42,7 +43,7 @@ namespace Nianxie.Craft
         }
 #if UNITY_EDITOR
         [BlackList]
-        public override void EditorInspectorUpdate(bool change)
+        public override void EditorInspectorUpdate(NianxieDefaultAssets defaultAssets)
         {
             m_SlotValue.defaultValue = transform.localPosition;
         }

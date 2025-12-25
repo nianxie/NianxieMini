@@ -46,6 +46,15 @@ namespace Nianxie.Preview
             }
         }
 
+        private void OnDestroy()
+        {
+            foreach (var v in refObjDict.Values)
+            {
+                UnityEngine.Object.Destroy(v);
+            }
+            refObjDict.Clear();
+        }
+
         public void OnEdit()
         {
             if (craftEdit.slotSelect == null)

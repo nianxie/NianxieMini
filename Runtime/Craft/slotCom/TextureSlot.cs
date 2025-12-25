@@ -111,16 +111,15 @@ namespace Nianxie.Craft
         }
 #if UNITY_EDITOR
         [BlackList]
-        public override void EditorInspectorUpdate(bool change)
+        public override void EditorInspectorUpdate(NianxieDefaultAssets defaultAssets)
         {
-            base.EditorInspectorUpdate(change);
-            if (!change) return;
-            if (defaultFinalData != null)
+            //base.EditorInspectorUpdate(defaultAssets);
+            /*if (defaultFinalData != null)
             {
                 DestroyFinalData(defaultFinalData);
             }
             defaultFinalData = DataProcess(defaultRawData);
-            OnDataModify();
+            OnDataModify();*/
         }
 #endif
     }
@@ -289,12 +288,12 @@ namespace Nianxie.Craft
         }
 #if UNITY_EDITOR
         [BlackList]
-        public override void EditorInspectorUpdate(bool change)
+        public override void EditorInspectorUpdate(NianxieDefaultAssets defaultAssets)
         {
-            if (!change)
+            /*if (!change)
             {
                 return;
-            }
+            }*/
 
             m_Size = new Vector2Int(Math.Max(1, m_Size.x), Math.Max(1, m_Size.y));
             m_Resolution = Math.Clamp(m_Resolution, 1, 1024);
@@ -304,7 +303,7 @@ namespace Nianxie.Craft
                 boxSize.x * (0.5f - m_Pivot.x),
                 boxSize.y * (0.5f - m_Pivot.y)
                 );*/
-            base.EditorInspectorUpdate(change);
+            //base.EditorInspectorUpdate(change);
         }
 #endif
     }

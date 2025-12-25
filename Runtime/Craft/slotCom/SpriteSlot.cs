@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
+using Nianxie.Utils;
 using UnityEngine;
 using XLua;
 
@@ -102,12 +100,12 @@ namespace Nianxie.Craft
         }
 #if UNITY_EDITOR
         [BlackList]
-        public override void EditorInspectorUpdate(bool change)
+        public override void EditorInspectorUpdate(NianxieDefaultAssets defaultAssets)
         {
-            EditorLocalUpdate();
+            EditorLocalUpdate(defaultAssets);
         }
         [BlackList]
-        public override void EditorLocalUpdate()
+        public override void EditorLocalUpdate(NianxieDefaultAssets defaultAssets)
         {
             var defaultSprite = m_SlotValue.defaultValue;
             if (defaultSprite != null)

@@ -1,4 +1,5 @@
 ﻿using System;
+using Nianxie.Utils;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using XLua;
@@ -58,7 +59,7 @@ namespace Nianxie.Craft
         }
 #if UNITY_EDITOR
         [BlackList]
-        public override void EditorInspectorUpdate()
+        public override void EditorInspectorUpdate(NianxieDefaultAssets defaultAssets)
         {
             SlotSelectBody body = null;
             for (int i = 0; i < transform.childCount; i++)
@@ -80,16 +81,16 @@ namespace Nianxie.Craft
 
             if (m_SlotSelectBody != null)
             {
-                m_SlotSelectBody.EditorLocalUpdate();
+                m_SlotSelectBody.EditorLocalUpdate(defaultAssets);
             }
             if (TryGetComponent<AbstractRenderSlot>(out var renderSlot))
             {
-                renderSlot.EditorLocalUpdate();
+                renderSlot.EditorLocalUpdate(defaultAssets);
             }
         }
 
         [BlackList]
-        public override void EditorLocalUpdate()
+        public override void EditorLocalUpdate(NianxieDefaultAssets defaultAssets)
         {
         }
 
@@ -124,7 +125,6 @@ namespace Nianxie.Craft
                 m_SlotSelectBody = body;
                 UnityEditor.EditorUtility.SetDirty(this);
             }
-            m_SlotSelectBody.EditorInspectorUpdate();
         }
 
         [BlackList]

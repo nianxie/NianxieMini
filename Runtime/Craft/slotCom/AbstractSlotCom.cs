@@ -1,5 +1,5 @@
 ﻿using System;
-using Cysharp.Threading.Tasks.Triggers;
+using Nianxie.Utils;
 using UnityEngine;
 using XLua;
 
@@ -40,11 +40,11 @@ namespace Nianxie.Craft
 
 #if UNITY_EDITOR
         [BlackList]
-        public virtual void EditorInspectorUpdate(bool change)
+        public virtual void EditorInspectorUpdate(NianxieDefaultAssets defaultAssets)
         {
         }
         [BlackList]
-        public virtual void EditorLocalUpdate()
+        public virtual void EditorLocalUpdate(NianxieDefaultAssets defaultAssets)
         {
         }
         protected virtual void OnValidate()

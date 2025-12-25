@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Nianxie.Utils;
+using UnityEngine;
 using XLua;
 
 namespace Nianxie.Craft
@@ -9,11 +10,11 @@ namespace Nianxie.Craft
         protected const string SELECT_BODY_NAME = "::body";
 #if UNITY_EDITOR
         [BlackList]
-        public virtual void EditorInspectorUpdate()
+        public virtual void EditorInspectorUpdate(NianxieDefaultAssets defaultAssets)
         {
         }
         [BlackList]
-        public virtual void EditorLocalUpdate()
+        public virtual void EditorLocalUpdate(NianxieDefaultAssets defaultAssets)
         {
         }
 #endif

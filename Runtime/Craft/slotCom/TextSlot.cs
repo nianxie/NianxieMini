@@ -67,19 +67,19 @@ namespace Nianxie.Craft
         
 #if UNITY_EDITOR
         [BlackList]
-        public override void EditorInspectorUpdate(bool change)
+        public override void EditorInspectorUpdate(NianxieDefaultAssets defaultAssets)
         {
-            EditorLocalUpdate();
-            selectHead.EditorLocalUpdate();
+            EditorLocalUpdate(defaultAssets);
+            selectHead.EditorLocalUpdate(defaultAssets);
             var selectBody = selectHead.selectBody;
             if (selectBody != null)
             {
-                selectBody.EditorLocalUpdate();
+                selectBody.EditorLocalUpdate(defaultAssets);
             }
         }
 
         [BlackList]
-        public override void EditorLocalUpdate()
+        public override void EditorLocalUpdate(NianxieDefaultAssets defaultAssets)
         {
             if (m_TextMeshPro == null)
             {
@@ -89,7 +89,7 @@ namespace Nianxie.Craft
             m_TextMeshPro.GetFont(out var shellFont, out var _);
             if (shellFont == null)
             {
-                m_TextMeshPro.SetFont(NianxieEditorConst.LoadStandRes().shellFont, null);
+                m_TextMeshPro.SetFont(defaultAssets.shellFont, null);
                 UnityEditor.EditorUtility.SetDirty(m_TextMeshPro);
             }
 
@@ -116,7 +116,7 @@ namespace Nianxie.Craft
             }
             if (spriteRenderer.sprite == null)
             {
-                spriteRenderer.sprite = NianxieEditorConst.LoadStandRes().sliced9;
+                spriteRenderer.sprite = defaultAssets.sliced9;
                 modifyBackground = true;
             }
             
@@ -199,7 +199,6 @@ namespace Nianxie.Craft
                 m_TextMeshPro.fontSize = 2;
                 m_TextMeshPro.fontSizeMin = 0.1f;
                 m_TextMeshPro.color = Color.black;
-                m_TextMeshPro.SetFont(NianxieEditorConst.LoadStandRes().shellFont, null);
                 bodyGo.transform.localPosition = Vector3.zero;
                 bodyGo.transform.localRotation = Quaternion.identity;
             }

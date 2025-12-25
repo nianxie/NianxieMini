@@ -41,7 +41,7 @@ namespace Nianxie.Craft
         }
 #if UNITY_EDITOR
         [BlackList]
-        public override void EditorInspectorUpdate()
+        public override void EditorInspectorUpdate(NianxieDefaultAssets defaultAssets)
         {
             SlotSelectHead head = null;
             var parent = transform.parent;
@@ -61,16 +61,16 @@ namespace Nianxie.Craft
 
             if (m_SlotSelectHead != null)
             {
-                m_SlotSelectHead.EditorLocalUpdate();
+                m_SlotSelectHead.EditorLocalUpdate(defaultAssets);
                 if (m_SlotSelectHead.TryGetComponent<AbstractRenderSlot>(out var renderSlot))
                 {
-                    renderSlot.EditorLocalUpdate();
+                    renderSlot.EditorLocalUpdate(defaultAssets);
                 }
             }
-            EditorLocalUpdate();
+            EditorLocalUpdate(defaultAssets);
         }
         [BlackList]
-        public override void EditorLocalUpdate()
+        public override void EditorLocalUpdate(NianxieDefaultAssets defaultAssets)
         {
             var col = touchCollider2D;
             var render = spriteRenderer;

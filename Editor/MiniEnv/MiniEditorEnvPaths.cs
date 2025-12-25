@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using Nianxie.Framework;
+using Nianxie.Preview;
 using Nianxie.Utils;
 using UnityEditor;
 using UnityEngine;
@@ -29,8 +30,7 @@ namespace Nianxie.Editor
         protected override EditorReflectEnv CreateReflectEnv()
         {
             Debug.Log($"mini refresh editor reflect env : {pathPrefix}");
-            var miniBootBytes = AssetDatabase.LoadAssetAtPath<TextAsset>(NianxieConst.MiniBootPath).bytes;
-            return EditorReflectEnv.Create(this, miniBootBytes);
+            return EditorReflectEnv.Create(this, ()=>PreviewAssets.instance.miniBoot.bytes);
         }
         
         

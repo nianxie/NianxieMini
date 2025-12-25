@@ -12,6 +12,7 @@ namespace Nianxie.Preview
 {
     public abstract class PreviewGame: MiniBridge
     {
+        private static byte[] miniBootBytes => PreviewAssets.instance.miniBoot.bytes;
         private PreviewGame(byte[] miniBoot, string folder, AssetBundle bundle) : base(miniBoot, folder, bundle)
         {
         }
@@ -19,11 +20,11 @@ namespace Nianxie.Preview
         {
             private PreviewEditView editView;
             private Func<Transform, PreviewEditView> editViewMaker;
-            public EditGame(AssetBundle bundle, Func<Transform, PreviewEditView> makeEditView) : base(EditorGetMiniBoot(), bundle.CheckMiniFolder(), bundle)
+            public EditGame(AssetBundle bundle, Func<Transform, PreviewEditView> makeEditView) : base(miniBootBytes, bundle.CheckMiniFolder(), bundle)
             {
                 editViewMaker = makeEditView;
             }
-            public EditGame(string folder, Func<Transform, PreviewEditView> makeEditView) : base(EditorGetMiniBoot(), folder, null)
+            public EditGame(string folder, Func<Transform, PreviewEditView> makeEditView) : base(miniBootBytes, folder, null)
             {
                 editViewMaker = makeEditView;
             }
@@ -57,11 +58,11 @@ namespace Nianxie.Preview
             {
                 this.playEnding = playEnding;
             }
-            public PlayGame(AssetBundle bundle, Action<string> playEnding) : base(EditorGetMiniBoot(), bundle.CheckMiniFolder(), bundle)
+            public PlayGame(AssetBundle bundle, Action<string> playEnding) : base(miniBootBytes, bundle.CheckMiniFolder(), bundle)
             {
                 this.playEnding = playEnding;
             }
-            public PlayGame(string folder, Action<string> playEnding) : base(EditorGetMiniBoot(), folder, null)
+            public PlayGame(string folder, Action<string> playEnding) : base(miniBootBytes, folder, null)
             {
                 this.playEnding = playEnding;
             }
@@ -145,14 +146,6 @@ return setmetatable({
             return (null, null);
 #else
             throw new System.NotImplementedException();
-#endif
-        }
-        private static byte[] EditorGetMiniBoot()
-        {
-#if UNITY_EDITOR
-            return UnityEditor.AssetDatabase.LoadAssetAtPath<TextAsset>(NianxieConst.MiniBootPath).bytes;
-#else
-            return null;
 #endif
         }
 #if UNITY_EDITOR

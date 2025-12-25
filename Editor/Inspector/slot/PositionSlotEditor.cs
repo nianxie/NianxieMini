@@ -2,6 +2,7 @@
 using UnityEditor;
 using System.IO;
 using Nianxie.Craft;
+using Nianxie.Preview;
 using UnityEditorInternal;
 using XLua;
 
@@ -26,7 +27,7 @@ namespace Nianxie.Editor
                 {
                     ComponentUtility.MoveComponentUp(posSlot);
                 }
-                posSlot.EditorInspectorUpdate(false);
+                posSlot.EditorInspectorUpdate(PreviewAssets.instance);
             }
         }
     }
