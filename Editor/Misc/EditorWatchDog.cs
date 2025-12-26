@@ -279,7 +279,7 @@ namespace Nianxie.Editor
             }
             // https://docs.unity3d.com/Manual/SpecialFolders.html
             var folderName = Path.GetFileNameWithoutExtension(path);
-            if (folderName == "Editor" || folderName == "Editor Default Resources" || folderName == "Gizmos")
+            if (folderName == "Editor")
             {
                 GUI.DrawTexture(iconRect, folderIcon, ScaleMode.StretchToFill, true, 0, Color.green, 0, 0);
                 return true;

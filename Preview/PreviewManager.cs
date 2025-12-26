@@ -1,10 +1,10 @@
-using System.Collections.Generic;
+using System;
 using System.IO;
 using System.Linq;
 using Cysharp.Threading.Tasks;
-using Nianxie.Framework;
 using Nianxie.Utils;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 using UnityEngine.Video;
 
@@ -12,39 +12,87 @@ namespace Nianxie.Preview
 {
     public class PreviewManager: MonoBehaviour
     {
-        public RectTransform menuRect;
-        public RectTransform btnTpl;
-        public Button backBtn;
-        public VideoPlayer videoPlayer;
+        [Serializable]
+        public class PlayCanvas
+        {
+            [SerializeField]
+            private GameObject playCanvasGo;
+            [SerializeField]
+            private Button backBtn;
+            [SerializeField]
+            private VideoPlayer videoPlayer;
+
+            public void RegisterOnBack(UnityAction onBack)
+            {
+                Debug.Log("hello");
+                backBtn.onClick.AddListener(onBack);
+            }
+
+            public void Enter()
+            {
+                playCanvasGo.SetActive(true);
+                videoPlayer.gameObject.SetActive(false);
+            }
+
+            public void PlayEnding(string previewVideoUrl)
+            {
+                if (string.IsNullOrEmpty(previewVideoUrl))
+                {
+                    Debug.Log("假装播放一下结束视频, 如果想预览一下结束视频，可以配置config.txt中的previewVideoUrl（注意，该值仅用于开发）");
+                }
+                else
+                {
+                    videoPlayer.url = previewVideoUrl;
+                }
+                videoPlayer.gameObject.SetActive(true);
+                videoPlayer.Play();
+            }
+
+            public void Leave()
+            {
+                playCanvasGo.SetActive(false);
+                videoPlayer.Stop();
+                videoPlayer.gameObject.SetActive(false);
+            }
+        }
+
+        [SerializeField]
+        private PlayCanvas playCanvas;
+        
+        [SerializeField]
+        private RectTransform menuRect;
+        
+        [SerializeField]
+        private PreviewMiniButtons miniBtnPrefab;
+        [SerializeField]
+        private PreviewEditView editViewPrefab;
+        
         public Toggle craftToggle;
 
-        public PreviewEditView editView;
         public PreviewGame previewGame;
         public bool editCraft => craftToggle.isOn;
-        public static List<string> ListProject()
+        public static PreviewMiniInfo[] ListMiniInfo()
         {
-            return Directory.EnumerateDirectories(NianxieConst.MiniPrefixPath).Select((e) => new DirectoryInfo(e).Name).ToList();
+            var folderList = Directory.EnumerateDirectories(NianxieConst.MiniPrefixPath).Select((e) => new DirectoryInfo(e).Name).ToList();
+            return folderList.Select(e => new PreviewMiniInfo(e)).ToArray();
         }
         void Awake()
         {
-            var projectList = ListProject();
-            backBtn.onClick.AddListener(Unload);
-            for (int i = 0; i < projectList.Count; i++)
+            var miniInfoList = ListMiniInfo();
+            for (int i = 0; i < miniInfoList.Length; i++)
             {
-                var newRect = UnityEngine.Object.Instantiate(btnTpl, menuRect);
-                var pos = newRect.anchoredPosition;
-                newRect.anchoredPosition = new Vector2(pos.x, pos.y-i*btnTpl.rect.height*2.2f);
-                newRect.gameObject.SetActive(true);
-                var project = projectList[i];
-                newRect.GetComponent<PreviewMiniButtons>().Main(LoadProject, project);
+                var newBtn = UnityEngine.Object.Instantiate(miniBtnPrefab, menuRect);
+                newBtn.gameObject.SetActive(true);
+                var miniInfo = miniInfoList[i];
+                newBtn.Main(LoadProject, miniInfo);
             }
+            playCanvas.RegisterOnBack(Unload);
         }
 
         private void LoadProject(string folder, string bundlePath)
         {
             menuRect.gameObject.SetActive(false);
-            backBtn.gameObject.SetActive(true);
-            videoPlayer.gameObject.SetActive(false);
+            playCanvas.Enter();
             if (editCraft)
             {
                 if (string.IsNullOrEmpty(bundlePath))
@@ -65,12 +113,12 @@ namespace Nianxie.Preview
             {
                 if (string.IsNullOrEmpty(bundlePath))
                 {
-                    previewGame = new PreviewGame.PlayGame(folder, PlayEnding);
+                    previewGame = new PreviewGame.PlayGame(folder, playCanvas.PlayEnding);
                 }
                 else
                 {
                     var bundle = AssetBundle.LoadFromFile(bundlePath);
-                    previewGame = new PreviewGame.PlayGame(bundle, PlayEnding);
+                    previewGame = new PreviewGame.PlayGame(bundle, playCanvas.PlayEnding);
                 }
                 UniTask.Create(async () =>
                 {
@@ -79,31 +127,15 @@ namespace Nianxie.Preview
             }
         }
 
-        private void PlayEnding(string previewVideoUrl)
-        {
-            if (string.IsNullOrEmpty(previewVideoUrl))
-            {
-                Debug.Log("假装播放一下结束视频, 如果想预览一下结束视频，可以配置config.txt中的previewVideoUrl（注意，该值仅用于开发）");
-            }
-            else
-            {
-                videoPlayer.url = previewVideoUrl;
-            }
-            videoPlayer.gameObject.SetActive(true);
-            videoPlayer.Play();
-        }
-
         private PreviewEditView EditViewMaker(Transform transform)
         {
-            return Instantiate(editView, transform);
+            return Instantiate(editViewPrefab, transform);
         }
 
         private void Unload()
         {
-            videoPlayer.Stop();
-            videoPlayer.gameObject.SetActive(false);
+            playCanvas.Leave();
             menuRect.gameObject.SetActive(true);
-            backBtn.gameObject.SetActive(false);
             if (previewGame != null)
             {
                 previewGame.Unload();

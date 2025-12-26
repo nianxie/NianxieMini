@@ -33,8 +33,7 @@ namespace Nianxie.Editor
             return EditorReflectEnv.Create(this, ()=>PreviewAssets.instance.miniBoot.bytes);
         }
         
-        
-        public readonly string buildDir;
+        private readonly string buildDir;
         public readonly string finalManifest;
         public Dictionary<BuildTarget, string> finalBundleDict { get; }
 
@@ -42,9 +41,9 @@ namespace Nianxie.Editor
         private MiniEditorEnvPaths(string folder):base(folder)
         {
             this.folder = folder;
-            buildDir = $"{NianxieConst.MiniBundlesOutput}/{folder}";
-            finalManifest = $"{buildDir}/{folder}.json";
-            finalBundleDict = BuildTargets.ToDictionary(t=>t, GetPlatformFinalBundle);
+            buildDir = MiniBundleManifest.GetFinalBuildDir(folder);
+            finalManifest = MiniBundleManifest.GetFinalManifestPath(folder);
+            finalBundleDict = BuildTargets.ToDictionary(t=>t, (t)=>MiniBundleManifest.GetFinalBundlePath(folder, t.ToString()));
         }
 
         private MiniProjectConfig _config;

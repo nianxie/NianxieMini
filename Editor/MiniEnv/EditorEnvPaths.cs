@@ -1,14 +1,6 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using Nianxie.Components;
 using Nianxie.Framework;
 using Nianxie.Utils;
-using UnityEditor;
-using UnityEngine;
 using XLua;
 
 namespace Nianxie.Editor

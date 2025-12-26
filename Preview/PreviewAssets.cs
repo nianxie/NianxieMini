@@ -9,15 +9,21 @@ namespace Nianxie.Preview
         [SerializeField]
         private TMPModify_ShellFont m_ShellFont;
         public TMPModify_ShellFont shellFont => m_ShellFont;
+        
+        [SerializeField]
+        private TextAsset m_MiniBoot;
+        public TextAsset miniBoot => m_MiniBoot;
 
         [SerializeField]
         private Sprite m_Sliced9;
         public Sprite sliced9 => m_Sliced9;
         
         [SerializeField]
-        private TextAsset m_MiniBoot;
-
-        public TextAsset miniBoot => m_MiniBoot;
+        private Sprite m_IconCraft;
+        public Sprite iconCraft => m_IconCraft;
+        [SerializeField]
+        private Sprite m_IconGame;
+        public Sprite iconGame => m_IconGame;
         
         private static PreviewAssets _instance;
 

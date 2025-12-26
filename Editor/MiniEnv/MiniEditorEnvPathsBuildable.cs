@@ -5,7 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using Cysharp.Threading.Tasks;
-using Nianxie.Utils;
+using Nianxie.Preview;
 using UnityEditor;
 using UnityEngine;
 
@@ -13,20 +13,14 @@ namespace Nianxie.Editor
 {
     public partial class MiniEditorEnvPaths
     {
-        private const string BUNDLE_EXT = "bundle";
         private static string AB_MAGIC = "_magic_20251015_";
         
-        private string GetPlatformFinalBundle(BuildTarget buildTarget)
-        {
-            return $"{buildDir}/{folder}_{buildTarget}.{BUNDLE_EXT}";
-        }
-
         private string GetPlatformBuildDir(BuildTarget buildTarget)
         {
             return $"{buildDir}/{buildTarget}";
         }
         
-        public string magicDir => $"{buildDir}/Magic";
+        private string magicDir => $"{buildDir}/Magic";
         
         /// <summary>
         /// 获取内置构建管线的构建选项
@@ -120,7 +114,7 @@ namespace Nianxie.Editor
             {
                 string platformOutputDir = GetPlatformBuildDir(buildTarget);
                 string srcMainName = $"{platformOutputDir}/{bundleBuild.assetBundleName}";
-                string dstMainName = GetPlatformFinalBundle(buildTarget);
+                string dstMainName = finalBundleDict[buildTarget];
                 File.Copy(srcMainName, dstMainName);
                 if (BuildPipeline.GetCRCForAssetBundle(srcMainName, out var crc))
                 {
@@ -136,7 +130,7 @@ namespace Nianxie.Editor
                     throw new Exception($"Get crc failed for {srcMainName}");
                 }
             }
-            var miniManifest = new MiniProjectManifest(bundleInfos.ToArray(), config);
+            var miniManifest = new MiniBundleManifest(bundleInfos.ToArray(), config);
             File.WriteAllBytes(finalManifest, miniManifest.ToJson());
             EditorUtility.RevealInFinder(finalManifest);
         }

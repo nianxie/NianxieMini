@@ -14,42 +14,32 @@ namespace Nianxie.Preview
         public Text mainText;
         public Button iosBtn;
         public Button androidBtn;
-        public void Main(Action<string, string> loadProjectOrBundle, string projectName)
+        public Image folderCraftable;
+        public Image bundleCraftable;
+        public void Main(Action<string, string> loadProjectOrBundle, PreviewMiniInfo miniInfo)
         {
-            var iosBundleName = $"{NianxieConst.MiniBundlesOutput}/{projectName}/{projectName}_iOS.bundle";
-            var androidBundleName = $"{NianxieConst.MiniBundlesOutput}/{projectName}/{projectName}_Android.bundle";
+            var folder = miniInfo.folder;
             mainBtn.onClick.AddListener(() => { 
-                loadProjectOrBundle(projectName, null);
+                loadProjectOrBundle(folder, null);
             });
-            mainText.text = projectName;
-            if (File.Exists(iosBundleName))
+            mainText.text = folder;
+            folderCraftable.sprite = miniInfo.config.craftable?PreviewAssets.instance.iconCraft:PreviewAssets.instance.iconGame;
+            if (miniInfo.bundleInfo != null)
             {
+                bundleCraftable.sprite = miniInfo.bundleInfo.config.craftable?PreviewAssets.instance.iconCraft:PreviewAssets.instance.iconGame;
                 iosBtn.onClick.AddListener(() => { 
-                    loadProjectOrBundle(projectName, iosBundleName);
+                    loadProjectOrBundle(folder, miniInfo.bundleInfo.iosBundle);
+                });
+                androidBtn.onClick.AddListener(() => { 
+                    loadProjectOrBundle(folder, miniInfo.bundleInfo.androidBundle);
                 });
             }
             else
             {
                 iosBtn.interactable = false;
-            }
-
-            if (File.Exists(androidBundleName))
-            {
-                androidBtn.onClick.AddListener(() => { 
-                    loadProjectOrBundle(projectName, androidBundleName);
-                });
-            }
-            else
-            {
                 androidBtn.interactable = false;
             }
             //newRect.GetComponentInChildren<Text>(true).text = project;
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-            
         }
     }
 }

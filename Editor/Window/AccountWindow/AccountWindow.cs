@@ -1,13 +1,12 @@
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Web.UI;
 using Cysharp.Threading.Tasks;
 using Nianxie.Utils;
+using Nianxie.Preview;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
-using UnityEngine.Networking;
 using UnityEngine.UIElements;
 using ZXing;
 using ZXing.QrCode;
@@ -107,7 +106,7 @@ namespace Nianxie.Editor
             public bool showUpload = false;
             // folder
             private string _selectFolder = "";
-            public MiniProjectManifest selectManifest { get; private set; }
+            public MiniBundleManifest selectManifest { get; private set; }
             public MiniEditorEnvPaths envPaths { get; private set; }
             public string selectFolder
             {
@@ -127,7 +126,7 @@ namespace Nianxie.Editor
                                 try
                                 {
                                     var jsonBytes = File.ReadAllBytes(envPaths.finalManifest);
-                                    selectManifest = MiniProjectManifest.FromJson(jsonBytes);
+                                    selectManifest = MiniBundleManifest.FromJson(jsonBytes);
                                 }
                                 catch (Exception e)
                                 {

@@ -13,5 +13,7 @@ MonoBehaviour:
   m_Name: PreviewAssets
   m_EditorClassIdentifier: 
   m_ShellFont: {fileID: 11400000, guid: 73dcdc575f24621409acc2d201a73ef9, type: 2}
-  m_Sliced9: {fileID: 21300000, guid: 5e20186c900bffb439ac9e83c40b0bda, type: 3}
   m_MiniBoot: {fileID: 4900000, guid: 8eed6df8df056754088be085db052059, type: 3}
+  m_Sliced9: {fileID: 21300000, guid: 5e20186c900bffb439ac9e83c40b0bda, type: 3}
+  m_IconCraft: {fileID: 21300000, guid: 66d9cee5318d39a4cb6bc45f62c2a7cb, type: 3}
+  m_IconGame: {fileID: 21300000, guid: 48e31103f357aba49ae31f860015749c, type: 3}
