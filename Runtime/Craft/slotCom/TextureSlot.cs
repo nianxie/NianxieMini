@@ -225,8 +225,21 @@ namespace Nianxie.Craft
 
         protected override TextureJson PackFromRawData(AbstractPackContext packContext, Texture2D tex)
         {
+            throw new NotImplementedException("to be removed");
             var cropRect = CalcPackAndCrop(tex, out var packSize);
-            var spriteIndex = packContext.AddSprite(tex, cropRect, packSize);
+            var spriteIndex = AddSprite(tex, cropRect, packSize);
+            int AddSprite(Texture2D source, IntRectangle cropRect, Vector2Int packSize)
+            {
+                /*var index = spriteList.Count;
+                spriteList.Add(new AtlasSprite
+                {
+                    atlasRect = new IntRectangle(0,0, packSize.x, packSize.y),
+                    cropRect = cropRect,
+                    sourceTex = source,
+                });
+                return index;*/
+                return 0;
+            }
             return new TextureJson()
             {
                 sprite = spriteIndex,

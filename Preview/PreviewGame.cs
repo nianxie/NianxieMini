@@ -19,16 +19,13 @@ namespace Nianxie.Preview
         public class EditGame:PreviewGame
         {
             private PreviewEditView editView;
-            private Func<Transform, PreviewEditView> editViewMaker;
-            public EditGame(AssetBundle bundle, Func<Transform, PreviewEditView> makeEditView) : base(miniBootBytes, bundle.CheckMiniFolder(), bundle)
+            public EditGame(AssetBundle bundle) : base(miniBootBytes, bundle.CheckMiniFolder(), bundle)
             {
-                editViewMaker = makeEditView;
             }
-            public EditGame(string folder, Func<Transform, PreviewEditView> makeEditView) : base(miniBootBytes, folder, null)
+            public EditGame(string folder) : base(miniBootBytes, folder, null)
             {
-                editViewMaker = makeEditView;
             }
-            public override async UniTask Main()
+            public async UniTask Main(Func<Transform, PreviewEditView> makeEditView, bool useCraftFile, Action<bool> reopen)
             {
                 var selfWrap = await InitFakeShell();
                 var args = new MiniEditArgs
@@ -37,8 +34,8 @@ namespace Nianxie.Preview
                     shellRelease=selfWrap.Get<LuaFunction>(nameof(GizmosRelease)),
                 };
                 var craftEdit = await miniManager.EditMain(args);
-                editView = editViewMaker(craftEdit.editCanvas.transform);
-                editView.Main(craftEdit);
+                editView = makeEditView(craftEdit.editCanvas.transform);
+                editView.Main(craftEdit, reopen);
             }
             public void GizmosRefresh()
             {
@@ -54,21 +51,19 @@ namespace Nianxie.Preview
         public class PlayGame:PreviewGame
         {
             private Action<string> playEnding;
-            public PlayGame(byte[] miniBoot, AssetBundle bundle, Action<string> playEnding) : base(miniBoot, bundle.CheckMiniFolder(), bundle)
+            public PlayGame(byte[] miniBoot, AssetBundle bundle) : base(miniBoot, bundle.CheckMiniFolder(), bundle)
             {
-                this.playEnding = playEnding;
             }
-            public PlayGame(AssetBundle bundle, Action<string> playEnding) : base(miniBootBytes, bundle.CheckMiniFolder(), bundle)
+            public PlayGame(AssetBundle bundle) : base(miniBootBytes, bundle.CheckMiniFolder(), bundle)
             {
-                this.playEnding = playEnding;
             }
-            public PlayGame(string folder, Action<string> playEnding) : base(miniBootBytes, folder, null)
+            public PlayGame(string folder) : base(miniBootBytes, folder, null)
             {
-                this.playEnding = playEnding;
             }
 
-            public override async UniTask Main()
+            public async UniTask Main(Action<string> playEnding)
             {
+                this.playEnding = playEnding;
                 var selfWrap = await InitFakeShell();
                 var args = new MiniPlayArgs
                 {
@@ -115,13 +110,11 @@ return setmetatable({
             return selfWrap;
         }
 
-        public abstract UniTask Main();
-
         public void Unload()
         {
             if (bundle != null)
             {
-                bundle.UnloadAsync(true);
+                bundle.Unload(true);
             }
             if (miniManager != null)
             {

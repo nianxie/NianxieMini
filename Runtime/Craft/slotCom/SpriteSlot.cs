@@ -46,7 +46,12 @@ namespace Nianxie.Craft
         
         public override AbstractSlotJson PackToJson(AbstractPackContext packContext)
         {
-            throw new System.NotImplementedException();
+            var index = packContext.AddSprite(m_SlotValue.ReadValue());
+            var json = new SpriteJson()
+            {
+                sprite=index,
+            };
+            return json;
         }
 
         public override void UnpackFromJson(CraftUnpackContext unpackContext, AbstractSlotJson slotJson)

@@ -144,24 +144,23 @@ namespace Nianxie.Craft
         {
 	        // do nothing
         }
-        
+
         public AbstractSlotJson PackToJson(AbstractPackContext packContext)
         {
-	        throw new NotImplementedException("TODO");
-			var behavJson = new SlotBehavJson();
-			var reflectEnv = gameManager.reflectEnv;
-			var reflectCls = reflectEnv.GetWarmedReflect(classPath, nestedKeys);
-			foreach (var injection in reflectCls.nodeInjections)
-			{
-				var injectObj = injection.ToNodeObject(this, injection.nodePath);
-				if (injectObj is IUnionSlot slotCom)
-				{
-					behavJson.slotDict[injection.key] = slotCom.PackToJson(packContext);
-				} else 
-				{
-					// do nothing
-				}
-			}
+	        var behavJson = new SlotBehavJson();
+	        foreach (var kv in slotSingleDict)
+	        {
+		        behavJson.singleDict[kv.Key] = kv.Value.PackToJson(packContext);
+	        }
+	        foreach (var kv in slotListDict)
+	        {
+		        var arr = new AbstractSlotJson[kv.Value.Count];
+		        behavJson.listDict[kv.Key] = arr;
+		        for (int i = 0; i < arr.Length; i++)
+		        {
+			        arr[i] = kv.Value[i].PackToJson(packContext);
+		        }
+	        }
 			return behavJson;
         }
 
@@ -174,7 +173,7 @@ namespace Nianxie.Craft
             foreach (var injection in reflectCls.nodeInjections)
             {
 	            var injectObj = injection.ToNodeObject(this, injection.nodePath);
-	            var childJson = slotBehavJson.slotDict[injection.key];
+	            var childJson = slotBehavJson.singleDict[injection.key];
 				if (injectObj is AbstractSlotCom slotCom)
 				{
 					slotCom.UnpackFromJson(unpackContext, childJson);

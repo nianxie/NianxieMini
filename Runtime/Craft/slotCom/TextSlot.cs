@@ -57,7 +57,11 @@ namespace Nianxie.Craft
 
         public override AbstractSlotJson PackToJson(AbstractPackContext packContext)
         {
-            throw new NotImplementedException();
+            var json = new TextJson()
+            {
+                text = m_SlotValue.defaultValue,
+            };
+            return json;
         }
 
         public override void UnpackFromJson(CraftUnpackContext unpackContext, AbstractSlotJson slotJson)

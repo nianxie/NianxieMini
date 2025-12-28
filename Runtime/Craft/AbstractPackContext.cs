@@ -12,21 +12,20 @@ namespace Nianxie.Craft
     {
         protected CraftJson craftJson = new();
         protected List<AtlasSprite> spriteList = new();
-        private bool finished = false;
+        protected bool finished = false;
         protected class AtlasSprite
         {
             public IntRectangle atlasRect;
-            public IntRectangle cropRect;
-            public Texture2D sourceTex;
+            public Sprite sprite;
         }
-        public int AddSprite(Texture2D source, IntRectangle cropRect, Vector2Int packSize)
+        public int AddSprite(Sprite sprite)
         {
             var index = spriteList.Count;
+            var rect = sprite.rect;
             spriteList.Add(new AtlasSprite
             {
-                atlasRect = new IntRectangle(0,0, packSize.x, packSize.y),
-                cropRect = cropRect,
-                sourceTex = source,
+                atlasRect = new IntRectangle(0, 0, (int)rect.width, (int)rect.height),
+                sprite = sprite,
             });
             return index;
         }

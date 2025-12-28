@@ -22,13 +22,12 @@ namespace Nianxie.Preview
             [SerializeField]
             private VideoPlayer videoPlayer;
 
-            public void RegisterOnBack(UnityAction onBack)
+            public void Init(UnityAction onBack)
             {
-                Debug.Log("hello");
                 backBtn.onClick.AddListener(onBack);
             }
 
-            public void Enter()
+            public void Show()
             {
                 playCanvasGo.SetActive(true);
                 videoPlayer.gameObject.SetActive(false);
@@ -48,7 +47,7 @@ namespace Nianxie.Preview
                 videoPlayer.Play();
             }
 
-            public void Leave()
+            public void Hide()
             {
                 playCanvasGo.SetActive(false);
                 videoPlayer.Stop();
@@ -56,75 +55,135 @@ namespace Nianxie.Preview
             }
         }
 
+        [Serializable]
+        public class MenuCanvas
+        {
+            [SerializeField]
+            private GameObject menuCanvasGo;
+            [SerializeField]
+            private RectTransform playMenu;
+            [SerializeField]
+            private RectTransform editMenu;
+            [SerializeField]
+            private PreviewMiniButtons miniBtnPrefab;
+            [SerializeField]
+            private Toggle craft;
+            private static PreviewMiniInfo[] ListMiniInfo()
+            {
+                var folderList = Directory.EnumerateDirectories(NianxieConst.MiniPrefixPath).Select((e) => new DirectoryInfo(e).Name).ToList();
+                return folderList.Select(e => new PreviewMiniInfo(e)).ToArray();
+            }
+            public void Init(Action<string, string> loadPlay, Action<string, string> loadEdit)
+            {
+                var miniInfoList = ListMiniInfo();
+                var playCount = miniInfoList.Length;
+                var editCount = miniInfoList.Count(e => e.config.craftable);
+                foreach (var miniInfo in miniInfoList)
+                {
+                    var playBtn = UnityEngine.Object.Instantiate(miniBtnPrefab, playMenu);
+                    playBtn.gameObject.SetActive(true);
+                    playBtn.Main(loadPlay, miniInfo);
+                    if (miniInfo.config.craftable)
+                    {
+                        var editBtn = UnityEngine.Object.Instantiate(miniBtnPrefab, editMenu);
+                        editBtn.gameObject.SetActive(true);
+                        editBtn.Main(loadEdit, miniInfo);
+                    }
+                }
+
+                playMenu.sizeDelta = new Vector2(0, playCount*200);
+                playMenu.gameObject.SetActive(true);
+                editMenu.sizeDelta = new Vector2(0, editCount*200);
+                editMenu.gameObject.SetActive(false);
+                craft.onValueChanged.AddListener((e) =>
+                {
+                    playMenu.gameObject.SetActive(!e);
+                    editMenu.gameObject.SetActive(e);
+                });
+            }
+            public void Show()
+            {
+                menuCanvasGo.SetActive(true);
+            }
+            public void Hide()
+            {
+                menuCanvasGo.SetActive(false);
+            }
+        }
+
         [SerializeField]
         private PlayCanvas playCanvas;
-        
         [SerializeField]
-        private RectTransform menuRect;
+        private MenuCanvas menuCanvas;
         
-        [SerializeField]
-        private PreviewMiniButtons miniBtnPrefab;
         [SerializeField]
         private PreviewEditView editViewPrefab;
-        
-        public Toggle craftToggle;
 
-        public PreviewGame previewGame;
-        public bool editCraft => craftToggle.isOn;
-        public static PreviewMiniInfo[] ListMiniInfo()
+        private PreviewGame previewGame;
+        private static PreviewMiniInfo[] ListMiniInfo()
         {
             var folderList = Directory.EnumerateDirectories(NianxieConst.MiniPrefixPath).Select((e) => new DirectoryInfo(e).Name).ToList();
             return folderList.Select(e => new PreviewMiniInfo(e)).ToArray();
         }
         void Awake()
         {
-            var miniInfoList = ListMiniInfo();
-            for (int i = 0; i < miniInfoList.Length; i++)
-            {
-                var newBtn = UnityEngine.Object.Instantiate(miniBtnPrefab, menuRect);
-                newBtn.gameObject.SetActive(true);
-                var miniInfo = miniInfoList[i];
-                newBtn.Main(LoadProject, miniInfo);
-            }
-            playCanvas.RegisterOnBack(Unload);
+            menuCanvas.Init(LoadPlay, LoadEdit);
+            menuCanvas.Show();
+            playCanvas.Init(Unload);
+            playCanvas.Hide();
         }
 
-        private void LoadProject(string folder, string bundlePath)
+        private void LoadPlay(string folder, string bundlePath)
         {
-            menuRect.gameObject.SetActive(false);
-            playCanvas.Enter();
-            if (editCraft)
+            UnityEngine.Assertions.Assert.IsNull(previewGame, "game is existed");
+            menuCanvas.Hide();
+            playCanvas.Show();
+            PreviewGame.PlayGame playGame;
+            if (string.IsNullOrEmpty(bundlePath))
             {
-                if (string.IsNullOrEmpty(bundlePath))
-                {
-                    previewGame = new PreviewGame.EditGame(folder, EditViewMaker);
-                }
-                else
-                {
-                    var bundle = AssetBundle.LoadFromFile(bundlePath);
-                    previewGame = new PreviewGame.EditGame(bundle, EditViewMaker);
-                }
-                UniTask.Create(async () =>
-                {
-                    await previewGame.Main();
-                }).Forget();
+                playGame = new PreviewGame.PlayGame(folder);
             }
             else
             {
+                var bundle = AssetBundle.LoadFromFile(bundlePath);
+                playGame = new PreviewGame.PlayGame(bundle);
+            }
+            previewGame = playGame;
+            UniTask.Create(async () =>
+            {
+                await playGame.Main(playCanvas.PlayEnding);
+            }).Forget();
+        }
+        private void LoadEdit(string folder, string bundlePath)
+        {
+            UnityEngine.Assertions.Assert.IsNull(previewGame, "game is existed");
+            menuCanvas.Hide();
+            playCanvas.Show();
+
+            void Load(bool useCraftFile)
+            {
+                PreviewGame.EditGame editGame;
                 if (string.IsNullOrEmpty(bundlePath))
                 {
-                    previewGame = new PreviewGame.PlayGame(folder, playCanvas.PlayEnding);
+                    editGame = new PreviewGame.EditGame(folder);
                 }
                 else
                 {
                     var bundle = AssetBundle.LoadFromFile(bundlePath);
-                    previewGame = new PreviewGame.PlayGame(bundle, playCanvas.PlayEnding);
+                    editGame = new PreviewGame.EditGame(bundle);
                 }
+                previewGame = editGame;
                 UniTask.Create(async () =>
                 {
-                    await previewGame.Main();
+                    await editGame.Main(EditViewMaker, useCraftFile, (use) =>
+                    {
+                        previewGame.Unload();
+                        previewGame = null;
+                        Load(use);
+                    });
                 }).Forget();
             }
+            Load(false);
         }
 
         private PreviewEditView EditViewMaker(Transform transform)
@@ -134,8 +193,8 @@ namespace Nianxie.Preview
 
         private void Unload()
         {
-            playCanvas.Leave();
-            menuRect.gameObject.SetActive(true);
+            menuCanvas.Show();
+            playCanvas.Hide();
             if (previewGame != null)
             {
                 previewGame.Unload();

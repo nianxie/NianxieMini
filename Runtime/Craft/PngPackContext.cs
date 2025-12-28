@@ -12,6 +12,7 @@ namespace Nianxie.Craft
     {
         public (LargeBytes, byte[]) DumpJsonPng()
         {
+            UnityEngine.Assertions.Assert.IsTrue(finished, $"call {nameof(PackRoot)} first");
             var altasSize = craftJson.atlasSize;
             RenderTexture tempRT = new RenderTexture(altasSize.x, altasSize.y, 0, RenderTextureFormat.ARGB32);
             RenderTexture previousRT = RenderTexture.active;
@@ -25,12 +26,14 @@ namespace Nianxie.Craft
             for (int i = 0; i < spriteList.Count; i++)
             {
                 var spriteInfo = spriteList[i];
-            
-                // 绘制纹理到指定位置和大小
+                var spriteRect = spriteInfo.sprite.rect;
+                var tex = spriteInfo.sprite.texture;
                 var packRect = spriteInfo.atlasRect;
-                var cropRect = spriteInfo.cropRect;
-                var tex = spriteInfo.sourceTex;
-                Graphics.DrawTexture(new Rect(packRect.x, altasSize.y-packRect.y-packRect.height, packRect.width, packRect.height), tex, new Rect(1.0f*cropRect.x/tex.width,1.0f*cropRect.y/tex.height, 1.0f*cropRect.width/tex.width,1.0f*cropRect.height/tex.height),0,0,0,0);
+                Graphics.DrawTexture(new Rect(packRect.x, altasSize.y-packRect.y-packRect.height, packRect.width, packRect.height), tex, new Rect(1.0f*spriteRect.x/tex.width,1.0f*spriteRect.y/tex.height, 1.0f*spriteRect.width/tex.width,1.0f*spriteRect.height/tex.height),0,0,0,0);
+                // 绘制纹理到指定位置和大小
+                //var packRect = spriteInfo.atlasRect;
+                //var tex = spriteInfo.sourceTex;
+                //Graphics.DrawTexture(new Rect(packRect.x, altasSize.y-packRect.y-packRect.height, packRect.width, packRect.height), tex, new Rect(1.0f*cropRect.x/tex.width,1.0f*cropRect.y/tex.height, 1.0f*cropRect.width/tex.width,1.0f*cropRect.height/tex.height),0,0,0,0);
             }
             GL.PopMatrix();
         

@@ -1,9 +1,6 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using Nianxie.Framework;
 using Nianxie.Utils;
-using UnityEditor;
-using UnityEngine;
 
 namespace Nianxie.Preview
 {
@@ -39,7 +36,7 @@ namespace Nianxie.Preview
                 bundleInfo = new BundleInfo(folder, manifest);
             }
             var configFile = $"{NianxieConst.MiniPrefixPath}/{folder}/{NianxieConst.ConfigTxt}";
-            var configBytes = AssetDatabase.LoadAssetAtPath<TextAsset>(configFile).bytes;
+            var configBytes = File.ReadAllBytes(configFile);
             config = MiniProjectConfig.FromJson(configBytes);
         }
     }

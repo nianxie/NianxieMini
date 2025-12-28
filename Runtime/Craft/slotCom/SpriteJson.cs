@@ -4,7 +4,8 @@ using UnityEngine;
 
 namespace Nianxie.Craft
 {
-    public class SpriteJson
+    public class SpriteJson:AbstractSlotJson
     {
+        public int sprite;
     }
 }
