@@ -46,12 +46,6 @@ namespace Nianxie.Editor
             });
         }
         
-        [MenuItem("GameObject/NianxieCraft/"+nameof(TextureSlot), false, 101)]
-        public static void AddSpriteSlot(MenuCommand command)
-        {
-            AddSlotCom<TextureSlot>(command);
-        }
-
         private static void AddSlotCom<T>(MenuCommand command, Action<T> extraOper=null) where T : AbstractSlotCom
         {
             var comName = typeof(T).Name;

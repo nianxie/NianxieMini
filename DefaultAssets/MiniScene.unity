@@ -173,7 +173,6 @@ MonoBehaviour:
   m_Area: {fileID: 1663768192}
   m_Canvas: {fileID: 1795361716}
   m_CanvasScaler: {fileID: 1795361715}
-  m_WhiteDot: {fileID: 2800000, guid: ad15b0264d42cd840812d795f0a3b5e9, type: 3}
 --- !u!1 &647652546
 GameObject:
   m_ObjectHideFlags: 0
@@ -536,7 +535,7 @@ MonoBehaviour:
   m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 1200}
+  m_ReferenceResolution: {x: 1080, y: 1920}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3

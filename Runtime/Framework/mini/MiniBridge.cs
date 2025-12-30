@@ -26,6 +26,8 @@ namespace Nianxie.Framework
     {
         public LuaFunction shellRefresh;
         public LuaFunction shellRelease;
+        public CraftJson craftJson;
+        public Texture2D atlasTex;
     }
 
     public class MiniBridge: IAssetLoader

@@ -30,7 +30,6 @@ namespace XLua
             typeof(Nianxie.Craft.AbstractRenderSlot),
             typeof(Nianxie.Craft.AbstractSlotCom),
             typeof(Nianxie.Craft.PositionSlot),
-            typeof(Nianxie.Craft.TextureSlot),
             typeof(Nianxie.Craft.TextSlot),
             typeof(Nianxie.Craft.CraftJson),
             typeof(Nianxie.Craft.CraftEdit),

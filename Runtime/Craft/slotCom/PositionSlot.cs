@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using System;
 using XLua;
 
 namespace Nianxie.Craft
@@ -14,7 +15,7 @@ namespace Nianxie.Craft
         private SlotValue<Vector2> m_SlotValue;
 
         [BlackList]
-        public override AbstractSlotJson PackToJson(AbstractPackContext packContext)
+        public override AbstractSlotJson PackToJson(IPutAsset putAsset)
         {
             var pos = transform.localPosition;
             return new PositionJson()
@@ -36,7 +37,7 @@ namespace Nianxie.Craft
         }
 
         [BlackList]
-        public override void UnpackFromJson(CraftUnpackContext unpackContext, AbstractSlotJson slotJson)
+        public override void UnpackFromJson(IGetAsset getAsset, AbstractSlotJson slotJson)
         {
             var posJson = (PositionJson)slotJson;
             transform.localPosition = new Vector3(posJson.x, posJson.y, -0.01f);

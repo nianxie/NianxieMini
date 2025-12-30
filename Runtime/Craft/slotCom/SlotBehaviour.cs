@@ -19,16 +19,17 @@ namespace Nianxie.Craft
 			    this.list = list;
 			    this.slotInjected = slotInjected;
 		    }
-			public void DuplicateElement(SlotSelectHead slotSelect)
+
+		    public void DuplicateElement(GameObject go)
 			{
 				foreach (var child in list)
 				{
-					if (child.gameObject == slotSelect.gameObject)
+					if (child.gameObject == go)
 					{
-						var newSelect = Instantiate(slotSelect, slotSelect.transform.parent);
-						var newSlot = newSelect.GetComponent(child.GetType()) as IUnionSlot;
+						var newGo = Instantiate(child.gameObject, child.transform.parent);
+						var newSlot = newGo.GetComponent(child.GetType()) as IUnionSlot;
 						newSlot.Init(slotInjected);
-						newSlot.transform.localPosition += Vector3.right*slotSelect.selectBody.touchCollider2D.size.x;
+						newSlot.transform.localPosition += Vector3.right*go.GetComponent<AbstractRenderSlot>().selectHead.selectBody.touchCollider2D.size.x;
 						newSlot.PostDuplicate();
 						list.Add(newSlot);
 						return;
@@ -36,16 +37,33 @@ namespace Nianxie.Craft
 				}
 			}
 
-			public void DeleteElement(SlotSelectHead slotSelect)
+			public void DeleteElement(GameObject go)
 			{
 				for (int i = 0; i < list.Count; i++)
 				{
-					if (list[i].gameObject == slotSelect.gameObject)
+					if (list[i].gameObject == go)
 					{
 						list.RemoveAt(i);
-						UnityEngine.Object.Destroy(slotSelect.gameObject);
+						UnityEngine.Object.Destroy(go);
 						return;
 					}
+				}
+			}
+
+			public void UnpackFromJsonList(IGetAsset getAsset, AbstractSlotJson[] slotJsonArr)
+			{
+				for (int i = list.Count; i < slotJsonArr.Length; i++)
+				{
+					DuplicateElement(list[i].gameObject);
+				}
+				for (int i = list.Count-1; i >= slotJsonArr.Length; i--)
+				{
+					DeleteElement(list[i].gameObject);
+				}
+
+				for (int i = 0; i < slotJsonArr.Length; i++)
+				{
+					list[i].UnpackFromJson(getAsset, slotJsonArr[i]);
 				}
 			}
 
@@ -145,12 +163,12 @@ namespace Nianxie.Craft
 	        // do nothing
         }
 
-        public AbstractSlotJson PackToJson(AbstractPackContext packContext)
+        public AbstractSlotJson PackToJson(IPutAsset putAsset)
         {
 	        var behavJson = new SlotBehavJson();
 	        foreach (var kv in slotSingleDict)
 	        {
-		        behavJson.singleDict[kv.Key] = kv.Value.PackToJson(packContext);
+		        behavJson.singleDict[kv.Key] = kv.Value.PackToJson(putAsset);
 	        }
 	        foreach (var kv in slotListDict)
 	        {
@@ -158,30 +176,23 @@ namespace Nianxie.Craft
 		        behavJson.listDict[kv.Key] = arr;
 		        for (int i = 0; i < arr.Length; i++)
 		        {
-			        arr[i] = kv.Value[i].PackToJson(packContext);
+			        arr[i] = kv.Value[i].PackToJson(putAsset);
 		        }
 	        }
 			return behavJson;
         }
 
-        public void UnpackFromJson(CraftUnpackContext unpackContext, AbstractSlotJson slotJson)
+        public void UnpackFromJson(IGetAsset getAsset, AbstractSlotJson slotJson)
         {
-	        throw new NotImplementedException("TODO");
-			var slotBehavJson = (SlotBehavJson) slotJson;
-			var reflectEnv = gameManager.reflectEnv;
-	        var reflectCls = reflectEnv.GetWarmedReflect(classPath, nestedKeys);
-            foreach (var injection in reflectCls.nodeInjections)
-            {
-	            var injectObj = injection.ToNodeObject(this, injection.nodePath);
-	            var childJson = slotBehavJson.singleDict[injection.key];
-				if (injectObj is AbstractSlotCom slotCom)
-				{
-					slotCom.UnpackFromJson(unpackContext, childJson);
-				} else 
-				{
-					// do nothing
-				}
-            }
+	        var behavJson = (SlotBehavJson)slotJson;
+	        foreach (var kv in slotSingleDict)
+	        {
+		        kv.Value.UnpackFromJson(getAsset, behavJson.singleDict[kv.Key]);
+	        }
+	        foreach (var kv in slotListDict)
+	        {
+		        kv.Value.UnpackFromJsonList(getAsset, behavJson.listDict[kv.Key]);
+	        }
         }
 
         [BlackList]

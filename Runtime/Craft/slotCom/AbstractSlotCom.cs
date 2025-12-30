@@ -16,8 +16,8 @@ namespace Nianxie.Craft
             slotInjected = injected;
         }
 
-        public abstract AbstractSlotJson PackToJson(AbstractPackContext packContext);
-        public abstract void UnpackFromJson(CraftUnpackContext unpackContext, AbstractSlotJson slotJson);
+        public abstract AbstractSlotJson PackToJson(IPutAsset putAsset);
+        public abstract void UnpackFromJson(IGetAsset getAsset, AbstractSlotJson slotJson);
 
         public virtual void PostDuplicate()
         {

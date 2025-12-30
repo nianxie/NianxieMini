@@ -7,6 +7,7 @@ using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.UI;
 using XLua;
+using Object = UnityEngine.Object;
 
 namespace Nianxie.Craft
 {
@@ -55,18 +56,20 @@ namespace Nianxie.Craft
             m_RectTracker.Clear();
         }
 
-        public override AbstractSlotJson PackToJson(AbstractPackContext packContext)
+        public override AbstractSlotJson PackToJson(IPutAsset putAsset)
         {
             var json = new TextJson()
             {
-                text = m_SlotValue.defaultValue,
+                text = m_SlotValue.ReadValue(),
             };
             return json;
         }
 
-        public override void UnpackFromJson(CraftUnpackContext unpackContext, AbstractSlotJson slotJson)
+        public override void UnpackFromJson(IGetAsset getAsset, AbstractSlotJson slotJson)
         {
-            throw new NotImplementedException();
+            var textJson = (TextJson) slotJson;
+            m_SlotValue.defaultValue = textJson.text;
+            m_TextMeshPro.text = textJson.text;
         }
         
 #if UNITY_EDITOR

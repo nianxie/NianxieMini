@@ -2,6 +2,7 @@ using System;
 using Nianxie.Utils;
 using UnityEngine;
 using XLua;
+using Object = UnityEngine.Object;
 
 namespace Nianxie.Craft
 {
@@ -44,9 +45,9 @@ namespace Nianxie.Craft
         [SerializeField]
         private SlotValue<Sprite> m_SlotValue;
         
-        public override AbstractSlotJson PackToJson(AbstractPackContext packContext)
+        public override AbstractSlotJson PackToJson(IPutAsset putAsset)
         {
-            var index = packContext.AddSprite(m_SlotValue.ReadValue());
+            var index = putAsset.PutSprite(m_SlotValue.ReadValue());
             var json = new SpriteJson()
             {
                 sprite=index,
@@ -54,9 +55,12 @@ namespace Nianxie.Craft
             return json;
         }
 
-        public override void UnpackFromJson(CraftUnpackContext unpackContext, AbstractSlotJson slotJson)
+        public override void UnpackFromJson(IGetAsset getAsset, AbstractSlotJson slotJson)
         {
-            throw new System.NotImplementedException();
+            var spriteJson = (SpriteJson) slotJson;
+            var sprite = getAsset.GetSprite(spriteJson.sprite);
+            m_SlotValue.defaultValue = sprite;
+            spriteRenderer.sprite = sprite;
         }
 
         public override object GetValue()

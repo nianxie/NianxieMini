@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace Nianxie.Craft
 {
@@ -11,7 +12,7 @@ namespace Nianxie.Craft
         public void PostDuplicate();
         public SlotInjected slotInjected { get; }
         public SlotCallback slotCallback { get; }
-        public AbstractSlotJson PackToJson(AbstractPackContext packContext);
-        public void UnpackFromJson(CraftUnpackContext unpackContext, AbstractSlotJson slotJson);
+        public AbstractSlotJson PackToJson(IPutAsset putAsset);
+        public void UnpackFromJson(IGetAsset getAsset, AbstractSlotJson slotJson);
     }
 }

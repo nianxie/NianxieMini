@@ -47,6 +47,21 @@ namespace Nianxie.Craft
      * Class used to pack rectangles within container rectangle with close to optimal solution.
      */
     public class RectanglePacker {
+	    public static void PackFromVec2s(Vector2Int[] vec2Ints, out IntRectangle[] rectArr, out Vector2Int packSize)
+	    {
+		    var indexItems = vec2Ints.Select((vec2, index) =>
+		    new {
+			    index=index,
+			    rect=new IntRectangle(0, 0, vec2.x, vec2.y),
+		    }).OrderByDescending(a=>a.rect.width*a.rect.height).ToArray();
+		    packSize = PackRectsInplace(indexItems.Select(a => a.rect).ToArray());
+		    rectArr = new IntRectangle[vec2Ints.Length];
+		    foreach (var indexItem in indexItems)
+		    {
+			    rectArr[indexItem.index] = indexItem.rect;
+		    }
+	    }
+	    
 	    /// <summary>
 	    /// 将固定width、height的rect打包，得到结果的IntRectangle，并返回finalSize
 	    /// </summary>

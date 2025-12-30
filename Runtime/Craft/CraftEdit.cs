@@ -41,17 +41,17 @@ namespace Nianxie.Craft
             }
         }
 
-        public void OnInitializePotentialDrag(PointerEventData eventData)
+        void IInitializePotentialDragHandler.OnInitializePotentialDrag(PointerEventData eventData)
         {
             //Debug.Log($"initialize {eventData.pointerId}");
         }
 
-        public void OnBeginDrag(PointerEventData eventData)
+        void IBeginDragHandler.OnBeginDrag(PointerEventData eventData)
         {
             //Debug.Log($"begin drag {eventData.pointerId}");
         }
 
-        public void OnEndDrag(PointerEventData eventData)
+        void IEndDragHandler.OnEndDrag(PointerEventData eventData)
         {
             //Debug.Log($"end drag {eventData.pointerId}");
         }
@@ -60,14 +60,14 @@ namespace Nianxie.Craft
         /// 在EditArea中响应OnClick，用来实现选中取消，Drag的事件响应放到这一级，从而避免drag时也触发OnClick
         /// </summary>
         /// <param name="eventData"></param>
-        public void OnDrag(PointerEventData eventData)
+        void IDragHandler.OnDrag(PointerEventData eventData)
         {
             var delta = eventData.delta;
             editCamera.transform.position -= editCamera.ScreenToWorldPoint(delta) - editCamera.ScreenToWorldPoint(Vector3.zero);
             ShellRefresh();
         }
 
-        public void OnScroll(PointerEventData eventData)
+        void IScrollHandler.OnScroll(PointerEventData eventData)
         {
             var center = eventData.position;
             var deltaY = eventData.scrollDelta.y;
@@ -81,6 +81,7 @@ namespace Nianxie.Craft
         [BlackList]
         public void PlayMain(MiniGameManager gameManager, LuafabLoading miniCraftLoading)
         {
+            Debug.Log("craft unpack TODO");
             editCamera.gameObject.SetActive(false);
             editCanvas.gameObject.SetActive(false);
             if (miniCraftLoading != null)
@@ -90,8 +91,8 @@ namespace Nianxie.Craft
                 var atlasTex = gameManager.playArgs.atlasTex;
                 if (craftJson != null)
                 {
-                    var unpackContext = new CraftUnpackContext(craftJson, atlasTex);
-                    unpackContext.UnpackRoot(rootSlot);
+                    //var unpackContext = new CraftUnpackContext(craftJson, atlasTex);
+                    //unpackContext.UnpackRoot(rootSlot);
                 }
             }
             foreach (var childRenderer in gameObject.GetComponentsInChildren<Renderer>())
@@ -116,6 +117,13 @@ namespace Nianxie.Craft
             editArgs = args;
             editCamera.gameObject.SetActive(true);
             InitByLoading(miniCraftLoading);
+            var craftJson = args.craftJson;
+            var atlasTex = args.atlasTex;
+            if (craftJson != null)
+            {
+                //var unpackContext = new CraftUnpackContext(craftJson, atlasTex);
+                //unpackContext.UnpackRoot(rootSlot);
+            }
         }
 
         /// <summary>
@@ -218,27 +226,6 @@ namespace Nianxie.Craft
                 slotSelect = slot;
             }
             ShellRefresh();
-        }
-
-        public (LargeBytes, byte[]) PackJsonPng()
-        {
-            var packContext = new PngPackContext();
-            packContext.PackRoot(rootSlot);
-            return packContext.DumpJsonPng();
-        }
-
-        private Texture2D editorTex;
-        public void UnpackJsonPng(LargeBytes jsonBytes, byte[] pngData)
-        {
-            if (editorTex != null)
-            {
-                DestroyImmediate(editorTex);
-            }
-            var json = CraftJson.FromLargeBytes(jsonBytes);
-            editorTex = new Texture2D(2,2);
-            editorTex.LoadImage(pngData);
-            var context = new CraftUnpackContext(json, editorTex);
-            context.UnpackRoot(rootSlot);
         }
     }
 }

@@ -160,7 +160,7 @@ namespace Nianxie.Preview
             menuCanvas.Hide();
             playCanvas.Show();
 
-            void Load(bool useCraftFile)
+            void Open(PreviewGame.EditReopenArgs args)
             {
                 PreviewGame.EditGame editGame;
                 if (string.IsNullOrEmpty(bundlePath))
@@ -175,15 +175,15 @@ namespace Nianxie.Preview
                 previewGame = editGame;
                 UniTask.Create(async () =>
                 {
-                    await editGame.Main(EditViewMaker, useCraftFile, (use) =>
+                    await editGame.Main(EditViewMaker, args, (reopenArgs) =>
                     {
                         previewGame.Unload();
                         previewGame = null;
-                        Load(use);
+                        Open(reopenArgs);
                     });
                 }).Forget();
             }
-            Load(false);
+            Open(null);
         }
 
         private PreviewEditView EditViewMaker(Transform transform)

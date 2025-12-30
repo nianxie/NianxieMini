@@ -5,6 +5,7 @@ using Nianxie.Craft;
 using Nianxie.Framework;
 using Nianxie.Utils;
 using UnityEngine;
+using WebP;
 using XLua;
 using Object = UnityEngine.Object;
 
@@ -16,6 +17,14 @@ namespace Nianxie.Preview
         private PreviewGame(byte[] miniBoot, string folder, AssetBundle bundle) : base(miniBoot, folder, bundle)
         {
         }
+
+        public class EditReopenArgs
+        {
+            public PreviewEditView.ReopenKind kind;
+            public CraftJson craftJson;
+            public Texture2D atlasTex;
+        }
+
         public class EditGame:PreviewGame
         {
             private PreviewEditView editView;
@@ -25,17 +34,51 @@ namespace Nianxie.Preview
             public EditGame(string folder) : base(miniBootBytes, folder, null)
             {
             }
-            public async UniTask Main(Func<Transform, PreviewEditView> makeEditView, bool useCraftFile, Action<bool> reopen)
+            public async UniTask Main(Func<Transform, PreviewEditView> makeEditView, EditReopenArgs reopenArgs, Action<EditReopenArgs> reopen)
             {
                 var selfWrap = await InitFakeShell();
+                if (reopenArgs!=null)
+                {
+                    if (reopenArgs.kind == PreviewEditView.ReopenKind.LOAD)
+                    {
+                        (craftJson, atlasTex) = OpenPanelLoadCraftFiles();
+                    }
+                    else
+                    {
+                        craftJson = reopenArgs.craftJson;
+                        atlasTex = reopenArgs.atlasTex;
+                    }
+                }
                 var args = new MiniEditArgs
                 {
                     shellRefresh=selfWrap.Get<LuaFunction>(nameof(GizmosRefresh)),
                     shellRelease=selfWrap.Get<LuaFunction>(nameof(GizmosRelease)),
+                    craftJson=craftJson,
+                    atlasTex=atlasTex,
                 };
                 var craftEdit = await miniManager.EditMain(args);
                 editView = makeEditView(craftEdit.editCanvas.transform);
-                editView.Main(craftEdit, reopen);
+                editView.Main(craftEdit, (reopenKind) =>
+                {
+                    if (reopenKind == PreviewEditView.ReopenKind.RESET)
+                    {
+                        var reserveTex = atlasTex;
+                        atlasTex = null;
+                        reopen(new EditReopenArgs()
+                        {
+                            kind = reopenKind,
+                            craftJson = craftJson,
+                            atlasTex = reserveTex,
+                        });
+                    }
+                    else
+                    {
+                        reopen(new EditReopenArgs()
+                        {
+                            kind = reopenKind,
+                        });
+                    }
+                });
             }
             public void GizmosRefresh()
             {
@@ -71,7 +114,7 @@ namespace Nianxie.Preview
                 };
                 if (miniConfig.craftable)
                 {
-                    var (craftJson, atlasTex) = OpenPanel();
+                    var (craftJson, atlasTex) = OpenPanelLoadCraftFiles();
                     args.craftJson = craftJson;
                     args.atlasTex = atlasTex;
                 }
@@ -90,6 +133,8 @@ namespace Nianxie.Preview
         private LuaEnv luaEnv;
         private LuaFunction bridgeWrapFn;
         private MiniGameManager miniManager;
+        private CraftJson craftJson;
+        private Texture2D atlasTex;
 
         private async UniTask<LuaTable> InitFakeShell()
         {
@@ -116,6 +161,13 @@ return setmetatable({
             {
                 bundle.Unload(true);
             }
+
+            if (atlasTex != null)
+            {
+                UnityEngine.Object.Destroy(atlasTex);
+                atlasTex = null;
+            }
+
             if (miniManager != null)
             {
                 UnityEngine.Object.Destroy(miniManager);
@@ -123,17 +175,21 @@ return setmetatable({
             }
         }
 
-        private (CraftJson, Texture2D) OpenPanel()
+        private static (CraftJson, Texture2D) OpenPanelLoadCraftFiles()
         {
 #if UNITY_EDITOR
             var selectPath = UnityEditor.EditorUtility.OpenFilePanel("Open Craft Game", Path.Combine(Application.dataPath, ".."), "json,png");
             if (!string.IsNullOrEmpty(selectPath))
             {
                 var jsonPath = $"{Path.GetDirectoryName(selectPath)}/{Path.GetFileNameWithoutExtension(selectPath)}.json";
-                var pngPath = $"{Path.GetDirectoryName(selectPath)}/{Path.GetFileNameWithoutExtension(selectPath)}.png";
+                var webpPath = $"{Path.GetDirectoryName(selectPath)}/{Path.GetFileNameWithoutExtension(selectPath)}.webp";
                 var craftJson = CraftJson.FromLargeBytes(new LargeBytes(File.ReadAllBytes(jsonPath)));
-                var atlasTex = new Texture2D(1, 1);
-                atlasTex.LoadImage(File.ReadAllBytes(pngPath));
+                var atlasTex = Texture2DExt.CreateTexture2DFromWebP(File.ReadAllBytes(webpPath), false, false, out var err);
+                if (err != Error.Success)
+                {
+                    throw new Exception($"webp load error {err.ToString()}");
+                }
+
                 return (craftJson, atlasTex);
             }
             return (null, null);
