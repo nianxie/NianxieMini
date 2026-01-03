@@ -87,9 +87,9 @@ namespace Nianxie.Craft
             if (miniCraftLoading != null)
             {
                 InitByLoading(miniCraftLoading);
-                var craftJson = gameManager.playArgs.craftJson;
-                var atlasTex = gameManager.playArgs.atlasTex;
-                if (craftJson != null)
+                //var craftJson = gameManager.playArgs.craftJson;
+                //var atlasTex = gameManager.playArgs.atlasTex;
+                //if (craftJson != null)
                 {
                     //var unpackContext = new CraftUnpackContext(craftJson, atlasTex);
                     //unpackContext.UnpackRoot(rootSlot);
@@ -117,9 +117,9 @@ namespace Nianxie.Craft
             editArgs = args;
             editCamera.gameObject.SetActive(true);
             InitByLoading(miniCraftLoading);
-            var craftJson = args.craftJson;
+            //var craftJson = args.craftJson;
             var atlasTex = args.atlasTex;
-            if (craftJson != null)
+            //if (craftJson != null)
             {
                 //var unpackContext = new CraftUnpackContext(craftJson, atlasTex);
                 //unpackContext.UnpackRoot(rootSlot);

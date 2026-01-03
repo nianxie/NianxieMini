@@ -6,7 +6,6 @@ using Nianxie.Framework;
 using Nianxie.Utils;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
 using XLua;
 
 namespace Nianxie.Craft

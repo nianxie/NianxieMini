@@ -200,5 +200,16 @@ namespace Nianxie.Craft
         {
             return slotListDict[injection.key];
         }
+#if UNITY_EDITOR
+	    [BlackList]
+	    protected override void CachePutSlot(Component com)
+	    {
+		    // implement in SlotBehaviour
+		    if (com is AbstractSlotCom slotCom)
+		    {
+			    cacheSlotIds.Add(com.GetInstanceID());
+		    }
+	    }
+#endif
     }
 }
