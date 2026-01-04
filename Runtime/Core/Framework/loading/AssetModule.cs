@@ -28,12 +28,9 @@ namespace Nianxie.Framework
         private readonly Dictionary<string, Dictionary<System.Type, AssetLoading>> assetLoadingDictDict = new ();
         private readonly Dictionary<string, SubAssetsLoading> subAssetsLoadingDict = new ();
         private IAssetLoader assetLoader;
-        public void PreInit(IAssetLoader assetLoader)
-        {
-            this.assetLoader = assetLoader;
-        }
         public override async UniTask Init()
         {
+            assetLoader = gameManager.GetAssetLoader();
             var dict = await assetLoader.LoadScriptAssetsAsync();
             foreach (var kv in dict)
             {

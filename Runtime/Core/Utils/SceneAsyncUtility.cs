@@ -2,7 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using Nianxie.Framework;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.SceneManagement;
 using XLua;
 
@@ -12,6 +14,7 @@ namespace Nianxie.Utils
     {
         // unity中，scene的异步加载不返回scene的对象，需要单独GetSceneAt获取，以异步的方式调用两次时或可能导致拿到的scene不一致，所以这里使用lock强行保护一下
         private static bool sceneLocked = false;
+        [BlackList]
         public static async UniTask<Scene> LoadSceneAsync(string sceneName)
         {
             if (sceneLocked)
@@ -25,6 +28,7 @@ namespace Nianxie.Utils
             }
             catch (Exception)
             {
+                Debug.LogError($"load scene '{sceneName}' failed");
                 sceneLocked = false;
                 throw;
             }
@@ -49,6 +53,30 @@ namespace Nianxie.Utils
                 sceneLocked = false;
             }
             sceneLocked = false;
+        }
+
+        [BlackList]
+        public static async UniTask<MiniGameManager> CreateMiniGameAsync(MiniBridge miniBridge)
+        {
+            MiniGameManager mini = null;
+            try
+            {
+                var scene = await SceneAsyncUtility.LoadSceneAsync(NianxieConst.MiniSceneName);
+                var objList = scene.GetRootGameObjects();
+                mini = objList[0].GetComponent<MiniGameManager>();
+                SceneManager.SetActiveScene(scene);
+                Assert.IsTrue(objList.Length == 1, "mini scene's root object is not one and only one");
+                await mini.Init(miniBridge);
+            }
+            catch (Exception e)
+            {
+                if(mini!=null) {
+                    UnityEngine.Object.Destroy(mini);
+                    Debug.LogError($"create mini failed");
+                }
+                throw;
+            }
+            return mini;
         }
     }
 }

@@ -30,7 +30,7 @@ namespace Nianxie.Preview
             public EditGame(AssetBundle bundle)
             {
                 this.bundle = bundle;
-                bridge = new MiniBridge(miniBootBytes, bundle.CheckMiniFolder(), bundle);
+                bridge = new MiniBridge(miniBootBytes, bundle.CheckMiniFolder(), bundle, null);
             }
             public EditGame(string folder)
             {
@@ -58,7 +58,7 @@ namespace Nianxie.Preview
                     //craftJson=craftJson,
                     //atlasTex=atlasTex,
                 };
-                miniManager = await bridge.LoadMini(null);
+                miniManager = await SceneAsyncUtility.CreateMiniGameAsync(bridge);
                 await miniManager.entry.EditMain(args);
                 var craftEdit = (miniManager.entry as CraftEntryModule)!.craftEdit;
                 editView = makeEditView(craftEdit.editCanvas.transform);
@@ -101,12 +101,12 @@ namespace Nianxie.Preview
             public PlayGame(byte[] miniBoot, AssetBundle bundle)
             {
                 this.bundle = bundle;
-                bridge = new MiniBridge(miniBoot, bundle.CheckMiniFolder(), bundle);
+                bridge = new MiniBridge(miniBoot, bundle.CheckMiniFolder(), bundle, null);
             }
             public PlayGame(AssetBundle bundle)
             {
                 this.bundle = bundle;
-                bridge = new MiniBridge(miniBootBytes, bundle.CheckMiniFolder(), bundle);
+                bridge = new MiniBridge(miniBootBytes, bundle.CheckMiniFolder(), bundle, null);
             }
             public PlayGame(string folder)
             {
@@ -121,7 +121,7 @@ namespace Nianxie.Preview
                 {
                     playEnding=selfWrap.Get<LuaFunction>(nameof(PlayEnding)),
                 };
-                miniManager = await bridge.LoadMini(null);
+                miniManager = await SceneAsyncUtility.CreateMiniGameAsync(bridge);
                 if (bridge.miniConfig.craftable)
                 {
                     var (craftJson, atlasTex) = OpenPanelLoadCraftFiles();
@@ -208,7 +208,7 @@ return setmetatable({
 
         private class EditorBridge: MiniBridge
         {
-            public EditorBridge(string folder) : base(miniBootBytes, folder, null)
+            public EditorBridge(string folder) : base(miniBootBytes, folder, null, null)
             {
             }
             

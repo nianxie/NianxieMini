@@ -50,8 +50,35 @@ namespace Nianxie.Components
             }
         }
 
-        protected abstract void CreateLuaTable(ref LuaTable luaSelf);
-        
+        protected virtual void CreateLuaTable(ref LuaTable luaSelf)
+        {
+	        if (luaSelf != null)
+	        {
+		        throw new System.Exception("lua table create more than once");
+	        }
+	        if (gameObject == null)
+	        {
+		        throw new System.Exception("game object is destroy but try to create lua table");
+	        }
+
+	        var reflectEnv = gameManager.reflectEnv;
+	        var luaReflect = reflectEnv.GetWarmedReflect(classPath, nestedKeys);
+	        // 在这里提前赋值luaTable以保证子节点能正确拿到父节点的luaTable
+	        luaSelf = reflectEnv.NewTable();
+
+            // Init variables.
+            luaSelf.Set("this", this);
+            luaSelf.Set("gameObject", gameObject);
+            luaSelf.Set("transform", gameObject.transform);
+            luaSelf.Set("context", gameManager.context);
+            foreach (var injection in luaReflect.injections)
+            {
+	            injection.ConstructTable(gameManager, this, luaSelf);
+            }
+            reflectEnv.BindMeta(luaSelf, luaReflect);
+        }
+
+
 #if UNITY_EDITOR
 	    // 这部分代码用来刷新HierarchyWindow中的显示，运行时不需要。
 	    protected HashSet<int> cacheSlotIds;

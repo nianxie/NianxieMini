@@ -13,24 +13,18 @@ namespace Nianxie.Framework
     public class MiniGameManager : AbstractGameManager
     {
         private bool stopped = false;
-
-        private MiniBridge bridge;
+        public MiniBridge bridge { get; private set; }
         public AbstractEntryModule entry { get; private set; }
 
-        public RiffBundle riffBundle { get; private set; }
-
-        public async UniTask PreInit(MiniBridge _bridge, RiffBundle _riffBundle)
+        public async UniTask Init(MiniBridge _bridge)
         {
             Assert.IsNull(bridge, "MiniGame is running");
             bridge = _bridge;
-            riffBundle = _riffBundle;
-            GetComponent<AssetModule>().PreInit(_bridge);
             entry = GetComponent<AbstractEntryModule>();
-            entry.PreInit(_bridge, EntryPlay);
             await InitGameModule();
         }
 
-        private async UniTask EntryPlay()
+        public async UniTask EntryPlay()
         {
             await PrepareContextAndRoot();
             rootLuafabLoading.Fork(transform);
@@ -39,6 +33,10 @@ namespace Nianxie.Framework
         protected override RuntimeReflectEnv CreateReflectEnv()
         {
             return RuntimeReflectEnv.Create(this, bridge.envPaths, bridge.miniBoot);
+        }
+        public override IAssetLoader GetAssetLoader()
+        {
+            return bridge;
         }
 
         void OnDestroy()

@@ -10,33 +10,32 @@ namespace Nianxie.Craft
         [SerializeField]
         private AssetModule assetModule;
         public CraftEdit craftEdit;
-        
+
+        private MiniGameManager miniGameManager => (MiniGameManager) gameManager;
         public MiniPlayArgs playArgs { get; protected set; }
         public override async UniTask PlayMain(MiniPlayArgs args)
         {
-            Assert.IsNotNull(bridge, "MiniGame is not PreInit");
             playArgs = args;
             LuafabLoading miniCraftLoading = null;
-            if (bridge.miniConfig.craftable)
+            if (miniGameManager.bridge.miniConfig.craftable)
             {
-                miniCraftLoading = assetModule.AttachLuafabLoading(bridge.envPaths.miniCraftLuafabPath, false);
+                miniCraftLoading = assetModule.AttachLuafabLoading(miniGameManager.bridge.envPaths.miniCraftLuafabPath, false);
                 await miniCraftLoading.WaitTask;
             }
 
             //craftEdit.PlayMain(this, miniCraftLoading);
-            await playFn();
+            await miniGameManager.EntryPlay();
         }
         public override async UniTask EditMain(MiniEditArgs args)
         {
-            Assert.IsNotNull(bridge, "MiniGame is not PreInit");
-            var miniCraftLoading = assetModule.AttachLuafabLoading(bridge.envPaths.miniCraftLuafabPath, false);
+            var miniCraftLoading = assetModule.AttachLuafabLoading(miniGameManager.bridge.envPaths.miniCraftLuafabPath, false);
             await miniCraftLoading.WaitTask;
             craftEdit.EditMain(args, miniCraftLoading);
         }
 
         public override void PlayEnding()
         {
-            playArgs.PlayEnding((MiniGameManager)gameManager);
+            playArgs.PlayEnding(miniGameManager);
         }
     }
 }

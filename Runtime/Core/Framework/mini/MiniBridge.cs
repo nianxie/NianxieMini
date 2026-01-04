@@ -30,27 +30,17 @@ namespace Nianxie.Framework
 
     public class MiniBridge: IAssetLoader
     {
-        protected readonly AssetBundle assetBundle;
+        private readonly AssetBundle assetBundle;
+        private readonly RiffPackage riffPackage;
         public readonly EnvPaths envPaths;
         public readonly byte[] miniBoot;
         public MiniProjectConfig miniConfig { get; private set; }
-        public MiniBridge(byte[] miniBoot, string folder, AssetBundle assetBundle)
+        public MiniBridge(byte[] miniBoot, string folder, AssetBundle assetBundle, RiffPackage riffPackage)
         {
             this.assetBundle = assetBundle;
+            this.riffPackage = riffPackage;
             this.miniBoot = miniBoot;
             envPaths = EnvPaths.MiniEnvPaths(folder);
-        }
-
-        public async UniTask<MiniGameManager> LoadMini(RiffBundle riffBundle)
-        {
-            var scene = await SceneAsyncUtility.LoadSceneAsync(NianxieConst.MiniSceneName);
-            var objList = scene.GetRootGameObjects();
-            var miniManager = objList[0].GetComponent<MiniGameManager>();
-            SceneManager.SetActiveScene(scene);
-            Assert.IsTrue(objList.Length == 1, "mini scene's root object is not one and only one");
-            await miniManager.PreInit(this, riffBundle);
-            // TODO, 这里需要注意一下加载的时序问题，可能在加载中，玩家返回了。
-            return miniManager;
         }
 
         #region // 以下是AssetLoader的相关函数

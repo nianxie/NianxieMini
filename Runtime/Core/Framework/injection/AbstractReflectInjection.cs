@@ -22,13 +22,14 @@ namespace XLua
         {
 	        // TODO 是否考虑改成虚函数的实现方式？
 	        var reflectEnv = gameManager.reflectEnv;
+	        var assetModule = reflectEnv.assetModule;
 	        var injection = this;
 			if (injection is HelperInjection)
 			{
 				gameManager.OnInjectGameHelper(luaSelf, injection.key, injection.csharpType);
 			} else if (injection is LuafabInjection luafabInjection)
 			{
-				var luafabLoading = gameManager.assetModule.AttachLuafabLoading(luafabInjection.assetPath, true);
+				var luafabLoading = assetModule.AttachLuafabLoading(luafabInjection.assetPath, true);
 				luaSelf.Set(injection.key, luafabLoading);
 				if (!luafabInjection.lazy)
 				{
@@ -41,7 +42,7 @@ namespace XLua
 			{
 				if (assetInjection.multipleKind == InjectionMultipleKind.Single)
 				{
-					var obj = gameManager.assetModule.GetTypedAsset(assetInjection.assetPath, assetInjection.csharpType);
+					var obj = assetModule.GetTypedAsset(assetInjection.assetPath, assetInjection.csharpType);
 					luaSelf.Set(injection.key, obj);
 				}
 				else if(assetInjection.multipleKind == InjectionMultipleKind.List)
@@ -49,7 +50,7 @@ namespace XLua
 					var t = reflectEnv.NewTable();
 					for (int i = 0; i < assetInjection.assetPathList.Length; i++)
 					{
-						var obj = gameManager.assetModule.GetTypedAsset(assetInjection.assetPathList[i], assetInjection.csharpType);
+						var obj = assetModule.GetTypedAsset(assetInjection.assetPathList[i], assetInjection.csharpType);
 						t.Set(i + 1, obj);
 					}
 					luaSelf.Set(injection.key, t);
@@ -57,7 +58,7 @@ namespace XLua
 			} else if (injection is SubAssetInjection subAssetInjection) {
 				if (subAssetInjection.collectionKind == InjectionMultipleKind.Single)
 				{
-					var obj = gameManager.assetModule.GetSubAsset(subAssetInjection.assetPath, subAssetInjection.subName);
+					var obj = assetModule.GetSubAsset(subAssetInjection.assetPath, subAssetInjection.subName);
 					luaSelf.Set(injection.key, obj);
 				}
 				else if(subAssetInjection.collectionKind == InjectionMultipleKind.List)
@@ -65,7 +66,7 @@ namespace XLua
 					var t = reflectEnv.NewTable();
 					for (int i = 0; i < subAssetInjection.subNameList.Length; i++)
 					{
-						var obj = gameManager.assetModule.GetSubAsset(subAssetInjection.assetPath, subAssetInjection.subNameList[i]);
+						var obj = assetModule.GetSubAsset(subAssetInjection.assetPath, subAssetInjection.subNameList[i]);
 						t.Set(i, obj);
 					}
 					luaSelf.Set(injection.key, t);

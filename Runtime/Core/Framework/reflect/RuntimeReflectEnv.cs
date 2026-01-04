@@ -17,13 +17,13 @@ namespace XLua
             return env;
         }
 
-        private readonly AssetModule assetModule;
-        private readonly AsyncHelper asyncHelper;
+        public readonly AssetModule assetModule;
+        public readonly AsyncHelper asyncHelper;
 
         private RuntimeReflectEnv(AbstractGameManager gameManager, EnvPaths vEnvPaths) : base(vEnvPaths)
         {
-            assetModule = gameManager.assetModule;
-            asyncHelper = gameManager.baseHelper;
+            assetModule = gameManager.GetComponent<AssetModule>();
+            asyncHelper = gameManager.GetComponent<AsyncHelper>();
         }
 
         protected override void Bootstrap(byte[] miniBoot)

@@ -64,17 +64,25 @@ namespace XLua
             return "Truth --[[ error fallback]]";
         }
 
-        public HintReturnAttribute(string retLuaHint, bool useTask=false)
+        // 一些用C#的Type表达起来比较麻烦的情况，直接用string
+        public HintReturnAttribute(string retLuaHint, bool useFuture=false)
         {
             this.retLuaHint = retLuaHint;
-            hintKind = useTask?HintKind.RetFuture:HintKind.Normal;
+            hintKind = useFuture?HintKind.RetFuture:HintKind.Normal;
         }
 
-        public HintReturnAttribute(Type retType, bool useTask=false)
+        // TODO 这些是旧的基于WrapTask的，Task开头的后续考虑都用下面的重构掉，一些特定的在C#层创建Future的用法可以保留
+        public HintReturnAttribute(Type retType, bool useFuture=false)
         {
             this.retType = retType;
-            hintKind = useTask?HintKind.RetFuture:HintKind.Normal;
+            hintKind = useFuture?HintKind.RetFuture:HintKind.Normal;
         }
+        
+        /// <summary>
+        /// lua_CSFunction形式的异步函数用这个修饰，因为无法获取par，需要自己填入parType。
+        /// </summary>
+        /// <param name="parTypes"></param>
+        /// <param name="retType"></param>
         public HintReturnAttribute(Type[] parTypes, Type retType=null)
         {
             this.parTypes = parTypes;

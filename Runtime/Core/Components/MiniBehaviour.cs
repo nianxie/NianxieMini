@@ -58,32 +58,5 @@ namespace Nianxie.Components
                 base.OnDestroy();
             }
         }
-        protected override void CreateLuaTable(ref LuaTable luaSelf)
-        {
-	        if (luaSelf != null)
-	        {
-		        throw new Exception("lua table create more than once");
-	        }
-	        if (gameObject == null)
-	        {
-		        throw new Exception("game object is destroy but try to create lua table");
-	        }
-
-	        var reflectEnv = gameManager.reflectEnv;
-	        var luaReflect = reflectEnv.GetWarmedReflect(classPath, nestedKeys);
-	        // 在这里提前赋值luaTable以保证子节点能正确拿到父节点的luaTable
-	        luaSelf = reflectEnv.NewTable();
-
-            // Init variables.
-            luaSelf.Set("this", this);
-            luaSelf.Set("gameObject", gameObject);
-            luaSelf.Set("transform", gameObject.transform);
-            luaSelf.Set("context", gameManager.context);
-            foreach (var injection in luaReflect.injections)
-            {
-	            injection.ConstructTable(gameManager, this, luaSelf);
-            }
-            reflectEnv.BindMeta(luaSelf, luaReflect);
-        }
     }
 }
