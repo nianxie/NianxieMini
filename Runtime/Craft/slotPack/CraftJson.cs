@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Nianxie.Craft
 {
-    public class CraftJson:ArchiveJson
+    public class CraftJson:CustomJson
     {
         public class SpriteInfo
         {
@@ -25,12 +25,7 @@ namespace Nianxie.Craft
         
         #region // static items
 
-        private static JsonCodec<CraftJson, AbstractSlotJson> jsonCodec;
-        static CraftJson()
-        {
-            // 使用反射获取AbstractCraftJson同命名空间、同程序集的派生类
-            jsonCodec = new();
-        }
+        private static JsonCodec<CraftJson, AbstractSlotJson> jsonCodec = new();
 
         public LargeBytes ToLargeBytes()
         {
@@ -42,6 +37,11 @@ namespace Nianxie.Craft
             return jsonCodec.Deserialize(jsonBytes.ToUtf8String());
         }
         #endregion
+
+        public override string Dump()
+        {
+            return jsonCodec.Serialize(this);
+        }
     }
 
 }

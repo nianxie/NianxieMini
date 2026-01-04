@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using Cysharp.Threading.Tasks;
 using Nianxie.Craft;
+using Nianxie.Riff;
 using Nianxie.Utils;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -11,11 +12,10 @@ using XLua.LuaDLL;
 
 namespace Nianxie.Framework
 {
+
     public struct MiniPlayArgs
     {
         public LuaFunction playEnding;
-        //public CraftJson craftJson;
-        public Texture2D atlasTex;
 
         public void PlayEnding(MiniGameManager miniManager)
         {
@@ -26,31 +26,29 @@ namespace Nianxie.Framework
     {
         public LuaFunction shellRefresh;
         public LuaFunction shellRelease;
-        //public CraftJson craftJson;
-        public Texture2D atlasTex;
     }
 
     public class MiniBridge: IAssetLoader
     {
-        protected readonly AssetBundle bundle;
+        protected readonly AssetBundle assetBundle;
         public readonly EnvPaths envPaths;
         public readonly byte[] miniBoot;
         public MiniProjectConfig miniConfig { get; private set; }
-        public MiniBridge(byte[] miniBoot, string folder, AssetBundle bundle)
+        public MiniBridge(byte[] miniBoot, string folder, AssetBundle assetBundle)
         {
-            this.bundle = bundle;
+            this.assetBundle = assetBundle;
             this.miniBoot = miniBoot;
             envPaths = EnvPaths.MiniEnvPaths(folder);
         }
 
-        public async UniTask<MiniGameManager> LoadMini()
+        public async UniTask<MiniGameManager> LoadMini(RiffBundle riffBundle)
         {
             var scene = await SceneAsyncUtility.LoadSceneAsync(NianxieConst.MiniSceneName);
             var objList = scene.GetRootGameObjects();
             var miniManager = objList[0].GetComponent<MiniGameManager>();
             SceneManager.SetActiveScene(scene);
             Assert.IsTrue(objList.Length == 1, "mini scene's root object is not one and only one");
-            await miniManager.PreInit(this);
+            await miniManager.PreInit(this, riffBundle);
             // TODO, 这里需要注意一下加载的时序问题，可能在加载中，玩家返回了。
             return miniManager;
         }
@@ -83,12 +81,12 @@ namespace Nianxie.Framework
 
         public virtual async UniTask<UnityEngine.Object> LoadAssetAsync(string resPath, Type resType)
         {
-            return await bundle.LoadAssetAsync(resPath, resType).ToUniTask();
+            return await assetBundle.LoadAssetAsync(resPath, resType).ToUniTask();
         }
 
         public virtual async UniTask<UnityEngine.Object[]> LoadSubAssetsAsync(string resPath)
         {
-            var request = bundle.LoadAssetWithSubAssetsAsync(resPath);
+            var request = assetBundle.LoadAssetWithSubAssetsAsync(resPath);
             await request.ToUniTask();
             return request.allAssets;
         }

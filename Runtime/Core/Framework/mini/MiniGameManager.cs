@@ -1,5 +1,6 @@
 using Cysharp.Threading.Tasks;
 using Nianxie.Craft;
+using Nianxie.Riff;
 using Nianxie.Utils;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -14,13 +15,15 @@ namespace Nianxie.Framework
         private bool stopped = false;
 
         private MiniBridge bridge;
-        public MiniPlayArgs playArgs { get; private set; }
         public AbstractEntryModule entry { get; private set; }
 
-        public async UniTask PreInit(MiniBridge _bridge)
+        public RiffBundle riffBundle { get; private set; }
+
+        public async UniTask PreInit(MiniBridge _bridge, RiffBundle _riffBundle)
         {
             Assert.IsNull(bridge, "MiniGame is running");
             bridge = _bridge;
+            riffBundle = _riffBundle;
             GetComponent<AssetModule>().PreInit(_bridge);
             entry = GetComponent<AbstractEntryModule>();
             entry.PreInit(_bridge, EntryPlay);

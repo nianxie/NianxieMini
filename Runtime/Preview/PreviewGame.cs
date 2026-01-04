@@ -11,12 +11,11 @@ using Object = UnityEngine.Object;
 
 namespace Nianxie.Preview
 {
-    public abstract class PreviewGame: MiniBridge
+    public abstract class PreviewGame
     {
         private static byte[] miniBootBytes => PreviewAssets.instance.miniBoot.bytes;
-        private PreviewGame(byte[] miniBoot, string folder, AssetBundle bundle) : base(miniBoot, folder, bundle)
-        {
-        }
+        private AssetBundle bundle;
+        private MiniBridge bridge;
 
         public class EditReopenArgs
         {
@@ -28,15 +27,18 @@ namespace Nianxie.Preview
         public class EditGame:PreviewGame
         {
             private PreviewEditView editView;
-            public EditGame(AssetBundle bundle) : base(miniBootBytes, bundle.CheckMiniFolder(), bundle)
+            public EditGame(AssetBundle bundle)
             {
+                this.bundle = bundle;
+                bridge = new MiniBridge(miniBootBytes, bundle.CheckMiniFolder(), bundle);
             }
-            public EditGame(string folder) : base(miniBootBytes, folder, null)
+            public EditGame(string folder)
             {
+                bridge = new EditorBridge(folder);
             }
             public async UniTask Main(Func<Transform, PreviewEditView> makeEditView, EditReopenArgs reopenArgs, Action<EditReopenArgs> reopen)
             {
-                var selfWrap = await InitFakeShell();
+                var selfWrap = InitFakeShell();
                 if (reopenArgs!=null)
                 {
                     if (reopenArgs.kind == PreviewEditView.ReopenKind.LOAD)
@@ -54,8 +56,9 @@ namespace Nianxie.Preview
                     shellRefresh=selfWrap.Get<LuaFunction>(nameof(GizmosRefresh)),
                     shellRelease=selfWrap.Get<LuaFunction>(nameof(GizmosRelease)),
                     //craftJson=craftJson,
-                    atlasTex=atlasTex,
+                    //atlasTex=atlasTex,
                 };
+                miniManager = await bridge.LoadMini(null);
                 await miniManager.entry.EditMain(args);
                 var craftEdit = (miniManager.entry as CraftEntryModule)!.craftEdit;
                 editView = makeEditView(craftEdit.editCanvas.transform);
@@ -95,29 +98,35 @@ namespace Nianxie.Preview
         public class PlayGame:PreviewGame
         {
             private Action<string> playEnding;
-            public PlayGame(byte[] miniBoot, AssetBundle bundle) : base(miniBoot, bundle.CheckMiniFolder(), bundle)
+            public PlayGame(byte[] miniBoot, AssetBundle bundle)
             {
+                this.bundle = bundle;
+                bridge = new MiniBridge(miniBoot, bundle.CheckMiniFolder(), bundle);
             }
-            public PlayGame(AssetBundle bundle) : base(miniBootBytes, bundle.CheckMiniFolder(), bundle)
+            public PlayGame(AssetBundle bundle)
             {
+                this.bundle = bundle;
+                bridge = new MiniBridge(miniBootBytes, bundle.CheckMiniFolder(), bundle);
             }
-            public PlayGame(string folder) : base(miniBootBytes, folder, null)
+            public PlayGame(string folder)
             {
+                bridge = new EditorBridge(folder);
             }
 
             public async UniTask Main(Action<string> playEnding)
             {
                 this.playEnding = playEnding;
-                var selfWrap = await InitFakeShell();
+                var selfWrap = InitFakeShell();
                 var args = new MiniPlayArgs
                 {
                     playEnding=selfWrap.Get<LuaFunction>(nameof(PlayEnding)),
                 };
-                if (miniConfig.craftable)
+                miniManager = await bridge.LoadMini(null);
+                if (bridge.miniConfig.craftable)
                 {
                     var (craftJson, atlasTex) = OpenPanelLoadCraftFiles();
                     //args.craftJson = craftJson;
-                    args.atlasTex = atlasTex;
+                    //args.atlasTex = atlasTex;
                 }
                 else
                 {
@@ -127,20 +136,19 @@ namespace Nianxie.Preview
             }
             public void PlayEnding()
             {
-                playEnding(miniConfig.previewVideoUrl);
+                playEnding(bridge.miniConfig.previewVideoUrl);
             }
         }
 
         private LuaEnv luaEnv;
-        private LuaFunction bridgeWrapFn;
         private MiniGameManager miniManager;
         private CraftJson craftJson;
         private Texture2D atlasTex;
 
-        private async UniTask<LuaTable> InitFakeShell()
+        private LuaTable InitFakeShell()
         {
             luaEnv = new LuaEnv();
-            bridgeWrapFn = luaEnv.LoadString<LuaFunction>(@"
+            var wrapFn = luaEnv.LoadString<LuaFunction>(@"
 local bridge = ...
 return setmetatable({
 }, {
@@ -151,8 +159,7 @@ return setmetatable({
     end
 })
 ");
-            var selfWrap = bridgeWrapFn.Func<PreviewGame, LuaTable>(this);
-            miniManager = await LoadMini();
+            var selfWrap = wrapFn.Func<PreviewGame, LuaTable>(this);
             return selfWrap;
         }
 
@@ -198,33 +205,25 @@ return setmetatable({
             throw new System.NotImplementedException();
 #endif
         }
-#if UNITY_EDITOR
-        
-        public override async UniTask<Object> LoadAssetAsync(string resPath, System.Type resType)
+
+        private class EditorBridge: MiniBridge
         {
-            if (bundle == null)
+            public EditorBridge(string folder) : base(miniBootBytes, folder, null)
+            {
+            }
+            
+    #if UNITY_EDITOR
+            
+            public override async UniTask<Object> LoadAssetAsync(string resPath, System.Type resType)
             {
                 return UnityEditor.AssetDatabase.LoadAssetAtPath(resPath, resType);
             }
-            else
-            {
-                return await bundle.LoadAssetAsync(resPath, resType).ToUniTask();
-            }
-        }
 
-        public override async UniTask<Object[]> LoadSubAssetsAsync(string resPath)
-        {
-            if (bundle == null)
+            public override async UniTask<Object[]> LoadSubAssetsAsync(string resPath)
             {
                 return UnityEditor.AssetDatabase.LoadAllAssetsAtPath(resPath);
             }
-            else
-            {
-                var request = bundle.LoadAssetWithSubAssetsAsync(resPath);
-                await request.ToUniTask();
-                return request.allAssets;
-            }
+    #endif
         }
-#endif
     }
 }

@@ -118,7 +118,7 @@ namespace Nianxie.Craft
             editCamera.gameObject.SetActive(true);
             InitByLoading(miniCraftLoading);
             //var craftJson = args.craftJson;
-            var atlasTex = args.atlasTex;
+            //var atlasTex = args.atlasTex;
             //if (craftJson != null)
             {
                 //var unpackContext = new CraftUnpackContext(craftJson, atlasTex);

@@ -39,7 +39,7 @@ namespace Nianxie.Preview
 #if UNITY_EDITOR
                     _instance = UnityEditor.AssetDatabase.LoadAssetAtPath<PreviewAssets>($"{MiniDefaultAssets}/PreviewAssets.asset");
 #else
-                    throw new NotImplementedException("preview assets is only used when runtime");
+                    throw new System.NotImplementedException("preview assets is only used when runtime");
 #endif
                 }
                 return _instance;

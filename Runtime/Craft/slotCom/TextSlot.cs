@@ -1,13 +1,6 @@
-using System;
-using Cysharp.Threading.Tasks.Triggers;
-using Nianxie.Utils;
 using TMPro;
-using UnityEditor;
-using UnityEditorInternal;
 using UnityEngine;
-using UnityEngine.UI;
 using XLua;
-using Object = UnityEngine.Object;
 
 namespace Nianxie.Craft
 {

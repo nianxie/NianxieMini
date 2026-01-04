@@ -1,4 +1,5 @@
-﻿using Nianxie.Craft;
+﻿using System;
+using Nianxie.Craft;
 using UnityEngine;
 
 namespace Nianxie.Riff
@@ -17,8 +18,17 @@ namespace Nianxie.Riff
             public string ext;
         }
 
-        public Vector2Int atlasSize;
-        public SpriteMeta[] sprites;
-        public BinaryMeta[] binaries;
+        public SpriteMeta[] sprites = { };
+        public BinaryMeta[] binaries = { };
+        
+        private static JsonCodec<ManifestJson> jsonCodec = new();
+        public override string Dump()
+        {
+            return jsonCodec.Serialize(this);
+        }
+        public static ManifestJson Load(string data)
+        {
+            return jsonCodec.Deserialize(data);
+        }
     }
 }

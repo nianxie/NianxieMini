@@ -1,5 +1,5 @@
 {
-    "name": "NianxieMini.Runtime.Preview",
+    "name": "NianxieMini.Preview",
     "rootNamespace": "",
     "references": [
         "GUID:9558edf117ab73147b241059b49b2734",

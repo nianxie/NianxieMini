@@ -6,39 +6,49 @@ using System.Linq;
 
 namespace Nianxie.Riff
 {
+    // 使用 ArraySegment 存储数据
+    // 而在解析过程中使用 Span 进行高性能运算
+    public class RiffChunk
+    {
+        public readonly uint FourCC;
+        public ArraySegment<byte> Data;// 依然保持对原始内存的引用，无拷贝
+
+        public RiffChunk(uint fourCC, ArraySegment<byte> data)
+        {
+            FourCC = fourCC;
+            Data = data;
+        }
+
+        public ReadOnlySpan<byte> AsSpan()
+        {
+            return new (Data.Array, Data.Offset, Data.Count);
+        }
+
+        public string GetUtf8String()
+        {
+            return Encoding.UTF8.GetString(Data.Array, Data.Offset, Data.Count);
+        }
+    }
     /// <summary>
     /// Riff文件，webp也是一种riff文件。
     /// </summary>
     public class RiffContainer
     {
-        // 使用 ReadOnlyMemory 存储数据，因为它比 Span 更适合存储在类字段中
-        // 而在解析过程中使用 Span 进行高性能运算
-        private class RiffChunk
-        {
-            public readonly uint FourCC;
-            public ReadOnlyMemory<byte> Data;// 依然保持对原始内存的引用，无拷贝
-
-            public RiffChunk(uint fourCC, ReadOnlyMemory<byte> data)
-            {
-                FourCC = fourCC;
-                Data = data;
-            }
-        }
         private static uint RIFF_UINT = BinaryPrimitives.ReadUInt32LittleEndian(Encoding.ASCII.GetBytes("RIFF"));
         private static uint WEBP_UINT = BinaryPrimitives.ReadUInt32LittleEndian(Encoding.ASCII.GetBytes("WEBP"));
-        private static uint NX_ARCHIVE_UINT = BinaryPrimitives.ReadUInt32LittleEndian(Encoding.ASCII.GetBytes("NX_A")); // nianxie custom fourCC id
+        private static uint NX_CUSTOM_UINT = BinaryPrimitives.ReadUInt32LittleEndian(Encoding.ASCII.GetBytes("NX_C")); // nianxie custom fourCC id
         private static uint NX_MANIFEST_UINT = BinaryPrimitives.ReadUInt32LittleEndian(Encoding.ASCII.GetBytes("NX_M")); // nianxie custom fourCC id
         private static uint NX_BINARY_UINT = BinaryPrimitives.ReadUInt32LittleEndian(Encoding.ASCII.GetBytes("NX_B")); // nianxie custom fourCC id
-        private IEnumerable<RiffChunk> AllChunks => WebpChunks.Concat(new []{ArchiveChunk, ManifestChunk}).Concat(BinaryChunks);
+        private IEnumerable<RiffChunk> AllChunks => WebpChunks.Concat(new []{CustomChunk, ManifestChunk}).Concat(BinaryChunks);
         private readonly RiffChunk[] WebpChunks;
-        private readonly RiffChunk ArchiveChunk;
-        private readonly RiffChunk ManifestChunk;
-        private readonly List<RiffChunk> BinaryChunks;
+        public readonly RiffChunk CustomChunk;
+        public readonly RiffChunk ManifestChunk;
+        public readonly List<RiffChunk> BinaryChunks;
 
         private RiffContainer(List<RiffChunk> chunks)
         {
-            WebpChunks = chunks.Where(a => a.FourCC != NX_ARCHIVE_UINT && a.FourCC != NX_MANIFEST_UINT && a.FourCC != NX_BINARY_UINT).ToArray();
-            ArchiveChunk = chunks.FirstOrDefault(a => a.FourCC == NX_ARCHIVE_UINT) ?? new RiffChunk(NX_ARCHIVE_UINT, new byte[]{});
+            WebpChunks = chunks.Where(a => a.FourCC != NX_CUSTOM_UINT && a.FourCC != NX_MANIFEST_UINT && a.FourCC != NX_BINARY_UINT).ToArray();
+            CustomChunk = chunks.FirstOrDefault(a => a.FourCC == NX_CUSTOM_UINT) ?? new RiffChunk(NX_CUSTOM_UINT, new byte[]{});
             ManifestChunk = chunks.FirstOrDefault(a => a.FourCC == NX_MANIFEST_UINT) ?? new RiffChunk(NX_MANIFEST_UINT, new byte[]{});
             BinaryChunks = chunks.Where(a => a.FourCC == NX_BINARY_UINT).ToList();
         }
@@ -52,11 +62,11 @@ namespace Nianxie.Riff
             int totalSize = 12; // RIFF + Size + WEBP
             foreach (var chunk in AllChunks)
             {
-                totalSize += 8 + chunk.Data.Length + (chunk.Data.Length % 2);
+                totalSize += 8 + chunk.Data.Count + (chunk.Data.Count % 2);
             }
 
             byte[] result = new byte[totalSize];
-            Span<byte> dest = result.AsSpan();
+            Span<byte> dest = result;
 
             // 2. 写入 Header
             BinaryPrimitives.WriteUInt32LittleEndian(dest.Slice(0, 4), RIFF_UINT);
@@ -70,16 +80,16 @@ namespace Nianxie.Riff
                 // 写入 ID
                 BinaryPrimitives.WriteUInt32LittleEndian(dest.Slice(offset, 4), chunk.FourCC);
                 // 写入 Size
-                BinaryPrimitives.WriteUInt32LittleEndian(dest.Slice(offset + 4, 4), (uint)chunk.Data.Length);
+                BinaryPrimitives.WriteUInt32LittleEndian(dest.Slice(offset + 4, 4), (uint)chunk.Data.Count);
                 
                 offset += 8;
 
                 // 写入内容 (Memory.Span.CopyTo 也是极速操作)
-                chunk.Data.Span.CopyTo(dest.Slice(offset, chunk.Data.Length));
-                offset += chunk.Data.Length;
+                chunk.AsSpan().CopyTo(dest.Slice(offset, chunk.Data.Count));
+                offset += chunk.Data.Count;
 
                 // 填充字节
-                if (chunk.Data.Length % 2 != 0)
+                if (chunk.Data.Count % 2 != 0)
                 {
                     dest[offset] = 0;
                     offset++;
@@ -89,10 +99,10 @@ namespace Nianxie.Riff
             return result;
         }
 
-        private static RiffContainer LoadRiff(ReadOnlyMemory<byte> source)
+        public static RiffContainer Load(byte[] source)
         {
             var chunks = new List<RiffChunk>();
-            ReadOnlySpan<byte> span = source.Span;
+            ReadOnlySpan<byte> span = source;
 
             // 1. 基础合法性检查
             if (span.Length < 12) throw new Exception("Data too short.");
@@ -120,7 +130,7 @@ namespace Nianxie.Riff
                 if (offset + chunkSize > span.Length) throw new Exception("Chunk size out of bounds.");
 
                 // 获取 Data 的切片 (使用 Memory 保证引用同一块内存而不拷贝)
-                var chunkData = source.Slice(offset, (int)chunkSize);
+                var chunkData = new ArraySegment<byte>(source, offset, (int)chunkSize);
                 chunks.Add(new RiffChunk(fourCC, chunkData));
 
                 // 移动偏移量
@@ -136,15 +146,17 @@ namespace Nianxie.Riff
             return new RiffContainer(chunks);
         }
 
-        public static byte[] Pack(byte[] webpData, ArchiveJson archiveJson, ManifestJson manifestJson, ReadOnlyMemory<byte>[] binaries)
+        public static byte[] Pack(byte[] webpData, string customStr, ManifestJson manifestJson, List<byte[]> binaries)
         {
-            return null;
-        }
-
-        public static void Unpack<TArchiveJson>(byte[] riffData, out TArchiveJson archiveJson, out ManifestJson manifestJson, out ReadOnlyMemory<byte>[] binaries) where TArchiveJson:ArchiveJson
-        {
-            //var riffContainer = LoadRiff(riffData);
-            throw new NotImplementedException("TODO");
+            var riffContainer = Load(webpData);
+            riffContainer.CustomChunk.Data = Encoding.UTF8.GetBytes(customStr);
+            riffContainer.ManifestChunk.Data = Encoding.UTF8.GetBytes(manifestJson.Dump());
+            riffContainer.BinaryChunks.Clear();
+            foreach (var bin in binaries)
+            {
+                riffContainer.BinaryChunks.Add(new RiffChunk(NX_BINARY_UINT, bin));
+            }
+            return riffContainer.Dump();
         }
 
     }

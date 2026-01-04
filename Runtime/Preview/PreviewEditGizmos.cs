@@ -95,7 +95,7 @@ namespace Nianxie.Preview
 #if UNITY_EDITOR
             return UnityEditor.EditorUtility.OpenFilePanel("select image", "./", "png,jpg,jpeg");
 #else
-            throw new NotImplementedException("not implement here");
+            throw new System.NotImplementedException("not implement here");
 #endif
         }
         void IInitializePotentialDragHandler.OnInitializePotentialDrag(PointerEventData eventData)
