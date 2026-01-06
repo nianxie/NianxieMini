@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using Nianxie.Craft;
 using Nianxie.Preview;
+using Nianxie.Utils;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -42,21 +43,14 @@ namespace Nianxie.Preview
         {
 #if UNITY_EDITOR
             var packContext = new SimplePackContext();
-            var (jsonBytes, webpData) = packContext.PackRoot(craftEdit.rootSlot);
-            var selectPath = UnityEditor.EditorUtility.SaveFilePanel("Save Craft", Path.Combine(Application.dataPath, ".."), "craft", "json,png");
-            var (jsonPath, webpPath) = ToJsonWebpPath(selectPath);
-            File.WriteAllBytes(jsonPath, jsonBytes.data);
-            File.WriteAllBytes(webpPath, webpData);
-            UnityEditor.EditorUtility.RevealInFinder(Path.GetDirectoryName(jsonPath));
+            var packBytes = packContext.PackRoot(craftEdit.rootSlot);
+            var selectPath = UnityEditor.EditorUtility.SaveFilePanel("Save Craft", Directory.GetCurrentDirectory(), "untitle", NianxieConst.Ext.CRAFT);
+            selectPath = $"{Path.GetDirectoryName(selectPath)}/{Path.GetFileNameWithoutExtension(selectPath)}.{NianxieConst.Ext.CRAFT}";
+            File.WriteAllBytes(selectPath, packBytes);
+            UnityEditor.EditorUtility.RevealInFinder(Path.GetDirectoryName(selectPath));
 #else
             throw new NotImplementedException("not implement here");
 #endif
-        }
-        private (string, string) ToJsonWebpPath(string selectPath)
-        {
-            var jsonPath = $"{Path.GetDirectoryName(selectPath)}/{Path.GetFileNameWithoutExtension(selectPath)}.json";
-            var webpPath = $"{Path.GetDirectoryName(selectPath)}/{Path.GetFileNameWithoutExtension(selectPath)}.webp";
-            return (jsonPath, webpPath);
         }
     }
 }

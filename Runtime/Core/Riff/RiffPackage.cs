@@ -9,7 +9,7 @@ namespace Nianxie.Riff
 {
     public class RiffPackage:ScriptableObject
     {
-        public string custom { get; private set; }
+        public CustomJson customJson { get; private set; }
         public Sprite[] sprites { get; private set; }
         public Object[] binaries { get; private set; }
 
@@ -23,9 +23,9 @@ namespace Nianxie.Riff
         public static async UniTask<RiffPackage> Create(byte[] riffBytes, Texture2D texture)
         {
             var riffPackage = CreateInstance<RiffPackage>();
-            var riffContainer = RiffContainer.Load(riffBytes);
-            riffPackage.custom = riffContainer.CustomChunk.GetUtf8String();
-            var manifestJson = ManifestJson.Load(riffContainer.ManifestChunk.GetUtf8String());
+            var riffContainer = RiffFile.Load(riffBytes);
+            riffPackage.customJson = JsonCodec.Load<CustomJson>(riffContainer.CustomChunk.GetUtf8String());
+            var manifestJson = JsonCodec.Load<ManifestJson>(riffContainer.ManifestChunk.GetUtf8String());
             riffPackage.sprites = new Sprite[manifestJson.sprites.Length];
             for (int i = 0; i < riffPackage.sprites.Length; i++)
             {

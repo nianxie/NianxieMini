@@ -4,6 +4,7 @@ using Nianxie.Utils;
 using UnityEngine;
 using WebP;
 using Nianxie.Craft;
+using Nianxie.Riff;
 
 namespace Nianxie.Preview
 {
@@ -52,24 +53,30 @@ namespace Nianxie.Preview
             return webpData;
         }
 
-        public (LargeBytes, byte[]) PackRoot(SlotBehaviour rootSlot)
+        public byte[] PackRoot(SlotBehaviour rootSlot)
         {
             var rootJson = (SlotBehavJson)rootSlot.PackToJson(this);
             RectanglePacker.PackFromVec2s(atlasSpriteList.Select(s => s.size).ToArray(), out var packRectArr, out var atlasSize);
             var webpData = PackAtlasWebp(packRectArr, atlasSize);
-            var craftJson = new CraftJson()
+            var manifestJson = new ManifestJson()
             {
-                root = rootJson,
-                atlasSize = atlasSize,
-                spriteList = atlasSpriteList.Select((s,i)=>new CraftJson.SpriteInfo()
+                sprites = atlasSpriteList.Select((s,i)=>new ManifestJson.SpriteMeta()
                 {
                     rect=packRectArr[i],
                     pivot=s.pivot,
                     pixelsPerUnit=s.sprite.pixelsPerUnit,
                 }).ToArray(),
+                binaries = binaryList.Select(a=>new ManifestJson.BinaryMeta()
+                {
+                    ext=a.ext,
+                }).ToArray(),
             };
-            var jsonBytes = craftJson.ToLargeBytes();
-            return (jsonBytes, webpData);
+            var craftJson = new CraftJson()
+            {
+                root = rootJson,
+            };
+            var packBytes = RiffFile.Pack(webpData, craftJson, manifestJson, binaryList.Select(a=>a.data).ToList());
+            return packBytes;
         }
     }
 }

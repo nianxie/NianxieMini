@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Buffers.Binary;
 using System.Linq;
+using UnityEngine.Assertions;
 
 namespace Nianxie.Riff
 {
@@ -32,7 +33,7 @@ namespace Nianxie.Riff
     /// <summary>
     /// Riff文件，webp也是一种riff文件。
     /// </summary>
-    public class RiffContainer
+    public class RiffFile
     {
         private static uint RIFF_UINT = BinaryPrimitives.ReadUInt32LittleEndian(Encoding.ASCII.GetBytes("RIFF"));
         private static uint WEBP_UINT = BinaryPrimitives.ReadUInt32LittleEndian(Encoding.ASCII.GetBytes("WEBP"));
@@ -45,7 +46,7 @@ namespace Nianxie.Riff
         public readonly RiffChunk ManifestChunk;
         public readonly List<RiffChunk> BinaryChunks;
 
-        private RiffContainer(List<RiffChunk> chunks)
+        private RiffFile(List<RiffChunk> chunks)
         {
             WebpChunks = chunks.Where(a => a.FourCC != NX_CUSTOM_UINT && a.FourCC != NX_MANIFEST_UINT && a.FourCC != NX_BINARY_UINT).ToArray();
             CustomChunk = chunks.FirstOrDefault(a => a.FourCC == NX_CUSTOM_UINT) ?? new RiffChunk(NX_CUSTOM_UINT, new byte[]{});
@@ -99,7 +100,7 @@ namespace Nianxie.Riff
             return result;
         }
 
-        public static RiffContainer Load(byte[] source)
+        public static RiffFile Load(byte[] source)
         {
             var chunks = new List<RiffChunk>();
             ReadOnlySpan<byte> span = source;
@@ -143,18 +144,27 @@ namespace Nianxie.Riff
                 }
             }
 
-            return new RiffContainer(chunks);
+            return new RiffFile(chunks);
         }
 
-        public static byte[] Pack(byte[] webpData, string customStr, ManifestJson manifestJson, List<byte[]> binaries)
+        public static byte[] Pack(byte[] webpData, CustomJson customJson, ManifestJson manifestJson, List<byte[]> binaries)
         {
+            if (binaries != null)
+            {
+                Assert.IsTrue(manifestJson.binaries.Length==binaries.Count, "binaries count not match when riff pack");
+            }
+            else
+            {
+                Assert.IsTrue(manifestJson.binaries.Length==0, "binaries count not match when riff pack");
+            }
+
             var riffContainer = Load(webpData);
-            riffContainer.CustomChunk.Data = Encoding.UTF8.GetBytes(customStr);
+            riffContainer.CustomChunk.Data = Encoding.UTF8.GetBytes(JsonCodec.Dump(customJson));
             riffContainer.ManifestChunk.Data = Encoding.UTF8.GetBytes(manifestJson.Dump());
             riffContainer.BinaryChunks.Clear();
-            foreach (var bin in binaries)
+            for(int i=0;i<manifestJson.binaries.Length;i++)
             {
-                riffContainer.BinaryChunks.Add(new RiffChunk(NX_BINARY_UINT, bin));
+                riffContainer.BinaryChunks.Add(new RiffChunk(NX_BINARY_UINT, binaries[i]));
             }
             return riffContainer.Dump();
         }

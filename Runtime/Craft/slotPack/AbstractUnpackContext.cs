@@ -1,16 +1,15 @@
-using System.Security.Cryptography.X509Certificates;
-using UnityEngine;
+using Nianxie.Riff;
 
 namespace Nianxie.Craft
 {
 
-    public class AbstractUnpackContext:IGetAsset
+    public abstract class AbstractUnpackContext:IGetAsset
     {
-        protected Sprite[] spriteList;
+        protected abstract RiffPackage package { get; }
 
         UnityEngine.Sprite IGetAsset.GetSprite(int spriteIndex)
         {
-            return spriteList[spriteIndex];
+            return package.sprites[spriteIndex];
         }
 
     }

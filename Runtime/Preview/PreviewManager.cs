@@ -138,19 +138,11 @@ namespace Nianxie.Preview
             UnityEngine.Assertions.Assert.IsNull(previewGame, "game is existed");
             menuCanvas.Hide();
             playCanvas.Show();
-            PreviewGame.PlayGame playGame;
-            if (string.IsNullOrEmpty(bundlePath))
-            {
-                playGame = new PreviewGame.PlayGame(folder);
-            }
-            else
-            {
-                var bundle = AssetBundle.LoadFromFile(bundlePath);
-                playGame = new PreviewGame.PlayGame(bundle);
-            }
+            var playGame = new PreviewGame.PlayGame();
             previewGame = playGame;
             UniTask.Create(async () =>
             {
+                await playGame.InitBridgeByPath(folder, bundlePath);
                 await playGame.Main(playCanvas.PlayEnding);
             }).Forget();
         }
@@ -160,30 +152,16 @@ namespace Nianxie.Preview
             menuCanvas.Hide();
             playCanvas.Show();
 
-            void Open(PreviewGame.EditReopenArgs args)
+            var editGame = new PreviewGame.EditGame();
+            previewGame = editGame;
+            UniTask.Create(async () =>
             {
-                PreviewGame.EditGame editGame;
-                if (string.IsNullOrEmpty(bundlePath))
+                await editGame.InitBridgeByPath(folder, bundlePath);
+                await editGame.Main(EditViewMaker, (newEditGame) =>
                 {
-                    editGame = new PreviewGame.EditGame(folder);
-                }
-                else
-                {
-                    var bundle = AssetBundle.LoadFromFile(bundlePath);
-                    editGame = new PreviewGame.EditGame(bundle);
-                }
-                previewGame = editGame;
-                UniTask.Create(async () =>
-                {
-                    await editGame.Main(EditViewMaker, args, (reopenArgs) =>
-                    {
-                        previewGame.Unload();
-                        previewGame = null;
-                        Open(reopenArgs);
-                    });
-                }).Forget();
-            }
-            Open(null);
+                    previewGame = newEditGame;
+                });
+            }).Forget();
         }
 
         private PreviewEditView EditViewMaker(Transform transform)

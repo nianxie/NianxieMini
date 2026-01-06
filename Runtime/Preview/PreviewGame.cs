@@ -1,56 +1,37 @@
 ﻿using System;
-using System.IO;
 using Cysharp.Threading.Tasks;
 using Nianxie.Craft;
 using Nianxie.Framework;
+using Nianxie.Riff;
 using Nianxie.Utils;
 using UnityEngine;
-using WebP;
 using XLua;
-using Object = UnityEngine.Object;
 
 namespace Nianxie.Preview
 {
     public abstract class PreviewGame
     {
-        private static byte[] miniBootBytes => PreviewAssets.instance.miniBoot.bytes;
-        private AssetBundle bundle;
-        private MiniBridge bridge;
-
-        public class EditReopenArgs
-        {
-            public PreviewEditView.ReopenKind kind;
-            public CraftJson craftJson;
-            public Texture2D atlasTex;
-        }
-
         public class EditGame:PreviewGame
         {
             private PreviewEditView editView;
-            public EditGame(AssetBundle bundle)
+
+            public async UniTask InitBridgeByPath(string folder, string bundlePath)
             {
-                this.bundle = bundle;
-                bridge = new MiniBridge(miniBootBytes, bundle.CheckMiniFolder(), bundle, null);
+                PreviewBridge previewBridge;
+                if (string.IsNullOrEmpty(bundlePath))
+                {
+                    previewBridge = new PreviewBridge(folder);
+                }
+                else
+                {
+                    var bundle = AssetBundle.LoadFromFile(bundlePath);
+                    previewBridge = new PreviewBridge(bundle);
+                }
+                bridge = previewBridge;
             }
-            public EditGame(string folder)
-            {
-                bridge = new EditorBridge(folder);
-            }
-            public async UniTask Main(Func<Transform, PreviewEditView> makeEditView, EditReopenArgs reopenArgs, Action<EditReopenArgs> reopen)
+            public async UniTask Main(Func<Transform, PreviewEditView> makeEditView, Action<EditGame> onReopen)
             {
                 var selfWrap = InitFakeShell();
-                if (reopenArgs!=null)
-                {
-                    if (reopenArgs.kind == PreviewEditView.ReopenKind.LOAD)
-                    {
-                        (craftJson, atlasTex) = OpenPanelLoadCraftFiles();
-                    }
-                    else
-                    {
-                        craftJson = reopenArgs.craftJson;
-                        atlasTex = reopenArgs.atlasTex;
-                    }
-                }
                 var args = new MiniEditArgs
                 {
                     shellRefresh=selfWrap.Get<LuaFunction>(nameof(GizmosRefresh)),
@@ -62,28 +43,23 @@ namespace Nianxie.Preview
                 await miniManager.entry.EditMain(args);
                 var craftEdit = (miniManager.entry as CraftEntryModule)!.craftEdit;
                 editView = makeEditView(craftEdit.editCanvas.transform);
-                editView.Main(craftEdit, (reopenKind) =>
+                editView.Main(craftEdit, (kind) =>
                 {
-                    if (reopenKind == PreviewEditView.ReopenKind.RESET)
+                    var reserveBridge = bridge;
+                    bridge = null;
+                    Unload();
+                    var newEditGame = new EditGame();
+                    newEditGame.bridge = bridge;
+                    onReopen(newEditGame);
+                    if (kind == PreviewEditView.ReopenKind.RESET)
                     {
-                        var reserveTex = atlasTex;
-                        atlasTex = null;
-                        reopen(new EditReopenArgs()
-                        {
-                            kind = reopenKind,
-                            craftJson = craftJson,
-                            atlasTex = reserveTex,
-                        });
                     }
                     else
                     {
-                        reopen(new EditReopenArgs()
-                        {
-                            kind = reopenKind,
-                        });
                     }
                 });
             }
+
             public void GizmosRefresh()
             {
                 if (editView == null) return;
@@ -98,21 +74,27 @@ namespace Nianxie.Preview
         public class PlayGame:PreviewGame
         {
             private Action<string> playEnding;
-            public PlayGame(byte[] miniBoot, AssetBundle bundle)
-            {
-                this.bundle = bundle;
-                bridge = new MiniBridge(miniBoot, bundle.CheckMiniFolder(), bundle, null);
-            }
-            public PlayGame(AssetBundle bundle)
-            {
-                this.bundle = bundle;
-                bridge = new MiniBridge(miniBootBytes, bundle.CheckMiniFolder(), bundle, null);
-            }
-            public PlayGame(string folder)
-            {
-                bridge = new EditorBridge(folder);
-            }
 
+            public void InitBridgeByRaw(PreviewBridge bridge)
+            {
+                this.bridge = bridge;
+            }
+            public async UniTask InitBridgeByPath(string folder, string bundlePath)
+            {
+                PreviewBridge previewBridge;
+                if (string.IsNullOrEmpty(bundlePath))
+                {
+                    previewBridge = new PreviewBridge(folder);
+                }
+                else
+                {
+                    var bundle = AssetBundle.LoadFromFile(bundlePath);
+                    previewBridge = new PreviewBridge(bundle);
+                }
+
+                bridge = previewBridge;
+                await previewBridge.OpenCraft();
+            }
             public async UniTask Main(Action<string> playEnding)
             {
                 this.playEnding = playEnding;
@@ -122,16 +104,7 @@ namespace Nianxie.Preview
                     playEnding=selfWrap.Get<LuaFunction>(nameof(PlayEnding)),
                 };
                 miniManager = await SceneAsyncUtility.CreateMiniGameAsync(bridge);
-                if (bridge.miniConfig.craftable)
-                {
-                    var (craftJson, atlasTex) = OpenPanelLoadCraftFiles();
-                    //args.craftJson = craftJson;
-                    //args.atlasTex = atlasTex;
-                }
-                else
-                {
-                    await miniManager.entry.PlayMain(args);
-                }
+                await miniManager.entry.PlayMain(args);
         
             }
             public void PlayEnding()
@@ -139,11 +112,18 @@ namespace Nianxie.Preview
                 playEnding(bridge.miniConfig.previewVideoUrl);
             }
         }
+        
+        public class EditReopenArgs
+        {
+            public PreviewEditView.ReopenKind kind;
+            public CraftJson craftJson;
+            public Texture2D atlasTex;
+        }
 
-        private LuaEnv luaEnv;
         private MiniGameManager miniManager;
-        private CraftJson craftJson;
-        private Texture2D atlasTex;
+        private LuaEnv luaEnv;
+        
+        private PreviewBridge bridge;
 
         private LuaTable InitFakeShell()
         {
@@ -163,17 +143,13 @@ return setmetatable({
             return selfWrap;
         }
 
+
         public void Unload()
         {
-            if (bundle != null)
+            if (bridge != null)
             {
-                bundle.Unload(true);
-            }
-
-            if (atlasTex != null)
-            {
-                UnityEngine.Object.Destroy(atlasTex);
-                atlasTex = null;
+                bridge.Unload();
+                bridge = null;
             }
 
             if (miniManager != null)
@@ -181,49 +157,12 @@ return setmetatable({
                 UnityEngine.Object.Destroy(miniManager);
                 miniManager = null;
             }
-        }
 
-        private static (CraftJson, Texture2D) OpenPanelLoadCraftFiles()
-        {
-#if UNITY_EDITOR
-            var selectPath = UnityEditor.EditorUtility.OpenFilePanel("Open Craft Game", Path.Combine(Application.dataPath, ".."), "json,png");
-            if (!string.IsNullOrEmpty(selectPath))
+            if (luaEnv != null)
             {
-                var jsonPath = $"{Path.GetDirectoryName(selectPath)}/{Path.GetFileNameWithoutExtension(selectPath)}.json";
-                var webpPath = $"{Path.GetDirectoryName(selectPath)}/{Path.GetFileNameWithoutExtension(selectPath)}.webp";
-                var craftJson = CraftJson.FromLargeBytes(new LargeBytes(File.ReadAllBytes(jsonPath)));
-                var atlasTex = Texture2DExt.CreateTexture2DFromWebP(File.ReadAllBytes(webpPath), false, false, out var err);
-                if (err != Error.Success)
-                {
-                    throw new Exception($"webp load error {err.ToString()}");
-                }
-
-                return (craftJson, atlasTex);
+                luaEnv.Dispose();
+                luaEnv = null;
             }
-            return (null, null);
-#else
-            throw new System.NotImplementedException();
-#endif
-        }
-
-        private class EditorBridge: MiniBridge
-        {
-            public EditorBridge(string folder) : base(miniBootBytes, folder, null, null)
-            {
-            }
-            
-    #if UNITY_EDITOR
-            
-            public override async UniTask<Object> LoadAssetAsync(string resPath, System.Type resType)
-            {
-                return UnityEditor.AssetDatabase.LoadAssetAtPath(resPath, resType);
-            }
-
-            public override async UniTask<Object[]> LoadSubAssetsAsync(string resPath)
-            {
-                return UnityEditor.AssetDatabase.LoadAllAssetsAtPath(resPath);
-            }
-    #endif
         }
     }
 }

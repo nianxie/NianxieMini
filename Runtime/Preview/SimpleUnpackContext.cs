@@ -3,24 +3,24 @@ using Nianxie.Utils;
 using UnityEngine;
 using WebP;
 using Nianxie.Craft;
+using Nianxie.Riff;
 
 namespace Nianxie.Preview
 {
     public class SimpleUnpackContext:AbstractUnpackContext
     {
-        public SimpleUnpackContext()
+        protected override RiffPackage package { get; }
+        private CraftJson craftJson;
+        public SimpleUnpackContext(RiffPackage riffPackage)
         {
+            package = riffPackage;
+            craftJson = (riffPackage.customJson as CraftJson)!;
         }
         
-        public void UnpackRoot(CraftJson craftJson, Texture2D atlasTex, SlotBehaviour rootBehav)
+        public void UnpackRoot(SlotBehaviour rootBehav)
         {
-            spriteList = new Sprite[craftJson.spriteList.Length];
-            for (int i = 0; i < craftJson.spriteList.Length; i++)
-            {
-                var info = craftJson.spriteList[i];
-                spriteList[i] = Sprite.Create(atlasTex, info.rect.ToUnityRect(), new Vector2(1.0f*info.pivot.x/info.rect.width, 1.0f*info.pivot.y/info.rect.height), info.pixelsPerUnit);
-            }
             rootBehav.UnpackFromJson(this, craftJson.root);
         }
+
     }
 }

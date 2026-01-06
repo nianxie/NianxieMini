@@ -1,48 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using UnityEngine;
+using Newtonsoft.Json.Linq;
 
 namespace Nianxie.Riff
 {
-    internal interface IJsonCodec
+    public class JsonCodec
     {
-        string AbstractSerialize(AbstractRiffJson riffJson);
-        AbstractRiffJson AbstractDeserialize(string jsonStr);
-    }
-
-    public class JsonCodec<TRiffJson> :IJsonCodec where TRiffJson : AbstractRiffJson
-    {
-        private readonly JsonSerializerSettings settings;
-
-        protected JsonCodec(Type[] bindTypes)
-        {
-            settings = new JsonSerializerSettings
-            {
-                TypeNameHandling = TypeNameHandling.Auto,
-                SerializationBinder = bindTypes == null ? null : new TypeBinder(bindTypes),
-                Formatting = Formatting.Indented,
-                Converters = new JsonConverter[]
-                {
-                    new Vector2IntConverter(),
-                }
-            };
-        }
-
-        public JsonCodec():this(null)
-        {
-        }
-
         private class TypeBinder: ISerializationBinder
         {
             private readonly Dictionary<string, Type> _typeMappings;
             private readonly Dictionary<Type, string> _reverseMappings;
-            public TypeBinder(Type[] jsonTypes)
+            public TypeBinder(Dictionary<string, Type> typeMap)
             {
-                _typeMappings = jsonTypes.ToDictionary(type => type.Name);
-                _reverseMappings = jsonTypes.ToDictionary(type => type, type=>type.Name);
+                _typeMappings = typeMap;
+                _reverseMappings = _typeMappings.ToDictionary(pair => pair.Value, pair => pair.Key);
             }
 
             public Type BindToType(string? assemblyName, string typeName)
@@ -109,41 +85,105 @@ namespace Nianxie.Riff
                 return new Vector2Int(x, y);
             }
         }
-        public string Serialize(TRiffJson riffJson)
+        private class Factory
         {
-            var jsonStr = JsonConvert.SerializeObject(riffJson, settings);
-            return jsonStr;
+            private Func<AbstractRiffJson> ctor;
+            private Version version;
+            public readonly JsonSerializerSettings dumpSettings;
+            public readonly JsonSerializer serializer;
+            public Factory(AbstractRiffJson empty, Func<AbstractRiffJson> ctor, Dictionary<string, Type> typeMap) 
+            {
+                this.ctor = ctor;
+                this.version = Version.Parse(empty.version);
+                dumpSettings = new JsonSerializerSettings
+                {
+                    TypeNameHandling = TypeNameHandling.Auto,
+                    SerializationBinder = typeMap == null ? null : new TypeBinder(typeMap),
+                    Formatting = Formatting.None,
+                    Converters = new JsonConverter[]
+                    {
+                        new Vector2IntConverter(),
+                    }
+                };
+                serializer = JsonSerializer.CreateDefault(dumpSettings);
+            }
+
+            public AbstractRiffJson Build(Version versionInJson)
+            {
+                if (version != versionInJson)
+                {
+                    throw new NotImplementedException("TODO version compatible");
+                }
+                return ctor();
+            }
         }
 
-        public TRiffJson Deserialize(string jsonStr)
+        private static Dictionary<string, Factory> kindToFactory = new();
+        private static Dictionary<Type, Factory> typeToFactory = new();
+        private static JsonSerializerSettings loadSettings = new JsonSerializerSettings
         {
-            return JsonConvert.DeserializeObject<TRiffJson>(jsonStr, settings);
+            TypeNameHandling = TypeNameHandling.None,
+            Converters = new JsonConverter[]
+            {
+                new RiffJsonConverter(),
+            }
+        };
+        public static void RegisterFactory<TRiffJson>(Dictionary<string, Type> innerTypeMap=null) where TRiffJson:AbstractRiffJson, new()
+        {
+            var empty = new TRiffJson();
+            if (kindToFactory.ContainsKey(empty.kind))
+            {
+                throw new Exception($"kind={empty.kind} is registered in json converter");
+            }
+
+            var type = typeof(TRiffJson);
+            if (typeToFactory.ContainsKey(type))
+            {
+                throw new Exception($"type={type} is registered in json converter");
+            }
+
+            var factory = new Factory(empty, () => new TRiffJson(), innerTypeMap);
+            kindToFactory[empty.kind] = factory;
+            typeToFactory[type] = factory;
+        }
+        private class RiffJsonConverter : JsonConverter<AbstractRiffJson>
+        {
+
+            public override AbstractRiffJson ReadJson(JsonReader reader, Type objectType, AbstractRiffJson existingValue, bool hasExistingValue, JsonSerializer serializer)
+            {
+                // 1. 将 JSON 加载为 JObject
+                JObject jo = JObject.Load(reader);
+
+                // 2. 读取判别器字段
+                string kind = jo[nameof(AbstractRiffJson.kind)]!.Value<string>();
+                string version = jo[nameof(AbstractRiffJson.version)]!.Value<string>();
+
+                // 3. 根据 kind 决定实例化哪个子类
+                var factory = kindToFactory[kind];
+                AbstractRiffJson target = factory.Build(Version.Parse(version));
+
+                // 4. 将剩余属性填充到实例中
+                factory.serializer.Populate(jo.CreateReader(), target);
+                return target;
+            }
+
+            public override bool CanWrite => false;
+
+            public override void WriteJson(JsonWriter writer, AbstractRiffJson value, JsonSerializer _)
+            {
+                throw new NotImplementedException("Write Json not implement in converter");
+            }
         }
 
-        string IJsonCodec.AbstractSerialize(AbstractRiffJson riffJson)
+        public static string Dump(AbstractRiffJson json)
         {
-            return Serialize((TRiffJson) riffJson);
+            var factory = kindToFactory[json.kind];
+            return JsonConvert.SerializeObject(json, factory.dumpSettings);
         }
 
-        AbstractRiffJson IJsonCodec.AbstractDeserialize(string jsonStr)
+        public static TRiffJson Load<TRiffJson>(string jsonStr) where TRiffJson:AbstractRiffJson
         {
-            return Deserialize(jsonStr);
-        }
-    }
-
-    public class JsonCodec<TRiffJson, TContentJson> : JsonCodec<TRiffJson> where TRiffJson : AbstractRiffJson
-    {
-        public JsonCodec():base(FindBindTypes())
-        {
-        }
-
-        private static Type[] FindBindTypes()
-        {
-            var contentType = typeof(TContentJson);
-            // 使用反射获取contentType同命名空间、同程序集的派生类
-            var asm = AppDomain.CurrentDomain.GetAssemblies().First(asm => asm.GetType(contentType.FullName) != null);
-            var jsonTypes = asm.GetTypes().Where(type => type.Namespace == contentType.Namespace && type.IsSubclassOf(contentType)).ToArray();
-            return jsonTypes;
+            return JsonConvert.DeserializeObject<TRiffJson>(jsonStr, loadSettings);
         }
     }
 }

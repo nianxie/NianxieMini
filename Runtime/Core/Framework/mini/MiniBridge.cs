@@ -30,16 +30,16 @@ namespace Nianxie.Framework
 
     public class MiniBridge: IAssetLoader
     {
-        private readonly AssetBundle assetBundle;
-        private readonly RiffPackage riffPackage;
+        protected AssetBundle assetBundle { get; }
+        public RiffPackage riffPackage { get; protected set; }
         public readonly EnvPaths envPaths;
         public readonly byte[] miniBoot;
-        public MiniProjectConfig miniConfig { get; private set; }
+        public MiniProjectConfig miniConfig { get; protected set; }
         public MiniBridge(byte[] miniBoot, string folder, AssetBundle assetBundle, RiffPackage riffPackage)
         {
             this.assetBundle = assetBundle;
-            this.riffPackage = riffPackage;
             this.miniBoot = miniBoot;
+            this.riffPackage = riffPackage;
             envPaths = EnvPaths.MiniEnvPaths(folder);
         }
 
@@ -62,7 +62,7 @@ namespace Nianxie.Framework
             await UniTask.WhenAll(preloadTask);
             return retScriptDict;
         }
-        public async UniTask<TObject> LoadAssetAsync<TObject>(string resPath) where TObject: UnityEngine.Object
+        protected async UniTask<TObject> LoadAssetAsync<TObject>(string resPath) where TObject: UnityEngine.Object
         {
             var obj = await LoadAssetAsync(resPath, typeof(TObject));
             return (TObject) obj;

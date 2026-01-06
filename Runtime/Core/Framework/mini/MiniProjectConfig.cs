@@ -25,7 +25,7 @@ namespace Nianxie.Framework
             this.name = name;
             this.craftable = craftable;
             this.scripts = scripts;
-            miniVersion = NianxieConst.MINI_VERSION;
+            miniVersion = NianxieConst.MINI_VERSION.ToJsonString();
             unityVersion = Application.unityVersion;
         }
 
@@ -56,7 +56,7 @@ namespace Nianxie.Framework
                 return false;
             } 
             // check version match
-            if (miniVersion != NianxieConst.MINI_VERSION)
+            if (miniVersion != NianxieConst.MINI_VERSION.ToJsonString())
             {
                 return false;
             } 

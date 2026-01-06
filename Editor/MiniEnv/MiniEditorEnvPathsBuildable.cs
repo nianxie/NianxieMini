@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using Cysharp.Threading.Tasks;
 using Nianxie.Preview;
+using Nianxie.Utils;
 using UnityEditor;
 using UnityEngine;
 
@@ -192,7 +193,7 @@ namespace Nianxie.Editor
             AssetBundle.UnloadAllAssetBundles(true);
             var originPath = finalBundleDict[platform];
             // 1. 解压
-            var targetPath = $"{magicDir}/{targetGuid}_{platform}.bundle";
+            var targetPath = $"{magicDir}/{targetGuid}_{platform}.{NianxieConst.Ext.BUNDLE}";
             await AssetBundle.RecompressAssetBundleAsync(originPath, targetPath, BuildCompression.Uncompressed, 0, ThreadPriority.High).ToUniTask();
             var bundleBytes = await File.ReadAllBytesAsync(targetPath);
             await File.WriteAllBytesAsync(targetPath, bundleBytes);

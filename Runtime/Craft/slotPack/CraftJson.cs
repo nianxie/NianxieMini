@@ -1,17 +1,25 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 using Nianxie.Riff;
-using Nianxie.Utils;
 using UnityEngine;
 
 namespace Nianxie.Craft
 {
     public class CraftJson:CustomJson
     {
+        public override string kind => nameof(CraftJson);
+        public override string version => "0.0.1";
+
+        static CraftJson()
+        {
+            var slotJsonType = typeof(AbstractSlotJson);
+            // 使用反射获取contentType同命名空间、同程序集的派生类
+            var asm = AppDomain.CurrentDomain.GetAssemblies().First(asm => asm.GetType(slotJsonType.FullName) != null);
+            var jsonTypes = asm.GetTypes().Where(type => type.Namespace == slotJsonType.Namespace && type.IsSubclassOf(slotJsonType)).ToArray();
+            var typeMap = jsonTypes.ToDictionary(type => type.Name);
+            JsonCodec.RegisterFactory<CraftJson>(typeMap);
+        }
+
         public class SpriteInfo
         {
             public IntRectangle rect;
@@ -22,26 +30,6 @@ namespace Nianxie.Craft
         public SlotBehavJson root;
         public Vector2Int atlasSize;
         public SpriteInfo[] spriteList;
-        
-        #region // static items
-
-        private static JsonCodec<CraftJson, AbstractSlotJson> jsonCodec = new();
-
-        public LargeBytes ToLargeBytes()
-        {
-            return LargeBytes.FromUtf8String(jsonCodec.Serialize(this));
-        }
-        
-        public static CraftJson FromLargeBytes(LargeBytes jsonBytes)
-        {
-            return jsonCodec.Deserialize(jsonBytes.ToUtf8String());
-        }
-        #endregion
-
-        public override string Dump()
-        {
-            return jsonCodec.Serialize(this);
-        }
     }
 
 }

@@ -5,7 +5,13 @@ namespace Nianxie.Utils
 {
     public static class NianxieConst
     {
-        public const string MINI_VERSION = "0.0.1";
+        public static class Ext
+        {
+            public const string CRAFT = "craft";
+            public const string BUNDLE = "bundle";
+        }
+
+        public static Version MINI_VERSION = Version.Parse("0.0.1");
         public const string UNITY_VERSION = "2022.3.62f2c1";
         public static string StoragePath => Application.persistentDataPath + "/storage.db";
         public const string ShellResPath = "Assets/ShellRes";
@@ -53,6 +59,11 @@ namespace Nianxie.Utils
                 throw new Exception("no valid folder in AssetBundle");
             }
             return folder;
+        }
+
+        public static string ToJsonString(this Version version)
+        {
+            return version.ToString(3);
         }
     }
 }

@@ -10,8 +10,16 @@ using Vector2 = UnityEngine.Vector2;
 
 namespace Nianxie.Craft
 {
-    public abstract class AbstractPackContext:IPutAsset
+    public abstract class AbstractPackContext : IPutAsset
     {
+        protected List<TypedBinary> binaryList = new();
+
+        protected class TypedBinary
+        {
+            public string ext;
+            public byte[] data;
+        }
+
         protected List<AtlasSprite> atlasSpriteList = new();
         protected class AtlasSprite
         {
@@ -37,10 +45,21 @@ namespace Nianxie.Craft
         int IPutAsset.PutSprite(Sprite sprite)
         {
             var index = atlasSpriteList.Count;
-            var rect = sprite.rect;
+            //var rect = sprite.rect;
             atlasSpriteList.Add(new AtlasSprite
             {
                 sprite = sprite,
+            });
+            return index;
+        }
+
+        int IPutAsset.PutBinary(string ext, byte[] binary)
+        {
+            var index = binaryList.Count;
+            binaryList.Add(new TypedBinary
+            {
+                ext=ext,
+                data=binary
             });
             return index;
         }

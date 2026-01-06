@@ -43,7 +43,7 @@ namespace Nianxie.Preview
 
         public static string GetFinalBundlePath(string folder, string buildTarget)
         {
-            return $"{GetFinalBuildDir(folder)}/{folder}_{buildTarget}.bundle";
+            return $"{GetFinalBuildDir(folder)}/{folder}_{buildTarget}.{NianxieConst.Ext.BUNDLE}";
         }
         public static string GetFinalManifestPath(string folder)
         {
