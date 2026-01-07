@@ -25,6 +25,18 @@ namespace Nianxie.Preview
 
         public async UniTask OpenCraft()
         {
+            if (riffPackage != null)
+            {
+                UnityEngine.Object.Destroy(riffPackage);
+                riffPackage = null;
+            }
+
+            if (webpTexture != null)
+            {
+                UnityEngine.Object.Destroy(webpTexture);
+                webpTexture = null;
+            }
+
             var configTextAsset = await LoadAssetAsync<TextAsset>(envPaths.miniProjectConfig);
             miniConfig = MiniProjectConfig.FromJson(configTextAsset.bytes);
             if (miniConfig.craftable)

@@ -8,7 +8,8 @@ namespace Nianxie.Craft
     public abstract class SlotCallback:MonoBehaviour
     {
         private Dictionary<int, Dictionary<int, AbstractSlotCom>> texIdToComDict = new();
-        protected MiniEditArgs editArgs;
+        protected abstract MiniEditArgs editArgs { get; }
+
         [BlackList]
         public void ShellRefresh()
         {

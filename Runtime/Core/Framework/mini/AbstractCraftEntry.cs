@@ -5,7 +5,7 @@ using UnityEngine.Assertions;
 
 namespace Nianxie.Framework
 {
-    public abstract class AbstractEntryModule:AbstractGameModule
+    public abstract class AbstractCraftEntry:AbstractGameModule
     {
         public abstract void PlayEnding();
         public abstract UniTask PlayMain(MiniPlayArgs args);

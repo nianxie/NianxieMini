@@ -12,15 +12,15 @@ namespace Nianxie.Framework
 {
     public class MiniGameManager : AbstractGameManager
     {
-        private bool stopped = false;
+        private bool unloaded = false;
         public MiniBridge bridge { get; private set; }
-        public AbstractEntryModule entry { get; private set; }
+        public AbstractCraftEntry craftEntry { get; private set; }
 
         public async UniTask Init(MiniBridge _bridge)
         {
             Assert.IsNull(bridge, "MiniGame is running");
             bridge = _bridge;
-            entry = GetComponent<AbstractEntryModule>();
+            craftEntry = GetComponent<AbstractCraftEntry>();
             await InitGameModule();
         }
 
@@ -39,22 +39,26 @@ namespace Nianxie.Framework
             return bridge;
         }
 
+        public async UniTask UnloadAsync()
+        {
+            if (unloaded) return;
+            unloaded = true;
+            try
+            {
+                await SceneAsyncUtility.UnloadSceneAsync(gameObject.scene);
+            }
+            finally
+            {
+                reflectEnv.Dispose();
+            }
+        }
+
         void OnDestroy()
         {
-            if (stopped) return;
-            stopped = true;
-            UniTask.Create(async () =>
+            if (!unloaded)
             {
-                try
-                {
-                    await SceneAsyncUtility.UnloadSceneAsync(gameObject.scene);
-                }
-                finally
-                {
-                    // TODO how to dispose luaEnv properly??
-                    //reflectEnv.Dispose();
-                }
-            }).Forget();
+                Debug.LogWarning($"use {nameof(UnloadAsync)} to destroy GameManager");
+            }
         }
     }
 }

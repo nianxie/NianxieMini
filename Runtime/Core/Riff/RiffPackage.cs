@@ -30,7 +30,7 @@ namespace Nianxie.Riff
             for (int i = 0; i < riffPackage.sprites.Length; i++)
             {
                 var meta = manifestJson.sprites[i];
-                riffPackage.sprites[i] = Sprite.Create(texture, meta.rect.ToUnityRect(), new Vector2(meta.pivot.x, meta.pivot.y), meta.pixelsPerUnit);
+                riffPackage.sprites[i] = Sprite.Create(texture, meta.rect.ToUnityRect(), new Vector2(1.0f*meta.pivot.x/meta.rect.width, 1.0f*meta.pivot.y/meta.rect.height), meta.pixelsPerUnit);
             }
 
             riffPackage.binaries = new Object[manifestJson.binaries.Length];
@@ -45,7 +45,6 @@ namespace Nianxie.Riff
 
         private void OnDestroy()
         {
-            Debug.Log("Riff Bundle on Destroy");
             if (sprites != null)
             {
                 for (int i = 0; i < sprites.Length; i++)

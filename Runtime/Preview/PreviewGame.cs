@@ -36,27 +36,27 @@ namespace Nianxie.Preview
                 {
                     shellRefresh=selfWrap.Get<LuaFunction>(nameof(GizmosRefresh)),
                     shellRelease=selfWrap.Get<LuaFunction>(nameof(GizmosRelease)),
-                    //craftJson=craftJson,
-                    //atlasTex=atlasTex,
                 };
                 miniManager = await SceneAsyncUtility.CreateMiniGameAsync(bridge);
-                await miniManager.entry.EditMain(args);
-                var craftEdit = (miniManager.entry as CraftEntryModule)!.craftEdit;
-                editView = makeEditView(craftEdit.editCanvas.transform);
-                editView.Main(craftEdit, (kind) =>
+                await miniManager.craftEntry.EditMain(args);
+                var entry = (miniManager.craftEntry as DefaultCraftEntry)!;
+                editView = makeEditView(entry.craftEdit.editCanvas.transform);
+                editView.Main(entry, (kind) =>
                 {
                     var reserveBridge = bridge;
                     bridge = null;
                     Unload();
                     var newEditGame = new EditGame();
-                    newEditGame.bridge = bridge;
+                    newEditGame.bridge = reserveBridge;
                     onReopen(newEditGame);
-                    if (kind == PreviewEditView.ReopenKind.RESET)
+                    UniTask.Create(async () =>
                     {
-                    }
-                    else
-                    {
-                    }
+                        if (kind == PreviewEditView.ReopenKind.LOAD)
+                        {
+                            await reserveBridge.OpenCraft();
+                        }
+                        await newEditGame.Main(makeEditView, onReopen);
+                    });
                 });
             }
 
@@ -104,7 +104,7 @@ namespace Nianxie.Preview
                     playEnding=selfWrap.Get<LuaFunction>(nameof(PlayEnding)),
                 };
                 miniManager = await SceneAsyncUtility.CreateMiniGameAsync(bridge);
-                await miniManager.entry.PlayMain(args);
+                await miniManager.craftEntry.PlayMain(args);
         
             }
             public void PlayEnding()
@@ -152,17 +152,20 @@ return setmetatable({
                 bridge = null;
             }
 
-            if (miniManager != null)
+            UniTask.Create(async () =>
             {
-                UnityEngine.Object.Destroy(miniManager);
-                miniManager = null;
-            }
+                if (miniManager != null)
+                {
+                    await miniManager.UnloadAsync();
+                    miniManager = null;
+                }
 
-            if (luaEnv != null)
-            {
-                luaEnv.Dispose();
-                luaEnv = null;
-            }
+                if (luaEnv != null)
+                {
+                    luaEnv.Dispose();
+                    luaEnv = null;
+                }
+            });
         }
     }
 }

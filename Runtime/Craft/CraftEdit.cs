@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Nianxie.Framework;
+using Nianxie.Riff;
 using Nianxie.Utils;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -23,23 +24,11 @@ namespace Nianxie.Craft
         public Canvas editCanvas => m_Canvas;
         [SerializeField]
         private CanvasScaler m_CanvasScaler;
+        [SerializeField]
+        private DefaultCraftEntry m_CraftEntry;
 
-        public SlotBehaviour rootSlot { get; private set; }
+        protected override MiniEditArgs editArgs => m_CraftEntry.editArgs;
         public SlotSelectHead slotSelect { get; private set; }
-
-        private void InitByLoading(LuafabLoading miniCraftLoading)
-        {
-            var behav = miniCraftLoading.RawFork(editArea.transform);
-            if (behav is SlotBehaviour slotBehav)
-            {
-                rootSlot = slotBehav;
-                rootSlot.RootInit(this);
-            }
-            else
-            {
-                throw new Exception("BehavSlot expected in root of MiniCraft");
-            }
-        }
 
         void IInitializePotentialDragHandler.OnInitializePotentialDrag(PointerEventData eventData)
         {
@@ -76,54 +65,6 @@ namespace Nianxie.Craft
             var newPinch = editCamera.ScreenToWorldPoint(center);
             editCamera.transform.position = editCamera.transform.position - newPinch + curPinch;
             ShellRefresh();
-        }
-
-        [BlackList]
-        public void PlayMain(MiniGameManager gameManager, LuafabLoading miniCraftLoading)
-        {
-            Debug.Log("craft unpack TODO");
-            editCamera.gameObject.SetActive(false);
-            editCanvas.gameObject.SetActive(false);
-            if (miniCraftLoading != null)
-            {
-                InitByLoading(miniCraftLoading);
-                //var craftJson = gameManager.playArgs.craftJson;
-                //var atlasTex = gameManager.playArgs.atlasTex;
-                //if (craftJson != null)
-                {
-                    //var unpackContext = new CraftUnpackContext(craftJson, atlasTex);
-                    //unpackContext.UnpackRoot(rootSlot);
-                }
-            }
-            foreach (var childRenderer in gameObject.GetComponentsInChildren<Renderer>())
-            {
-                childRenderer.enabled = false;
-            }
-
-            foreach (var childCollider2D in gameObject.GetComponentsInChildren<Collider2D>())
-            {
-                childCollider2D.enabled = false;
-            }
-
-            foreach (var childCollider in gameObject.GetComponentsInChildren<Collider>())
-            {
-                childCollider.enabled = false;
-            }
-        }
-
-        [BlackList]
-        public void EditMain(MiniEditArgs args, LuafabLoading miniCraftLoading)
-        {
-            editArgs = args;
-            editCamera.gameObject.SetActive(true);
-            InitByLoading(miniCraftLoading);
-            //var craftJson = args.craftJson;
-            //var atlasTex = args.atlasTex;
-            //if (craftJson != null)
-            {
-                //var unpackContext = new CraftUnpackContext(craftJson, atlasTex);
-                //unpackContext.UnpackRoot(rootSlot);
-            }
         }
 
         /// <summary>

@@ -91,10 +91,11 @@ namespace Nianxie.Riff
             private Version version;
             public readonly JsonSerializerSettings dumpSettings;
             public readonly JsonSerializer serializer;
-            public Factory(AbstractRiffJson empty, Func<AbstractRiffJson> ctor, Dictionary<string, Type> typeMap) 
+            public Factory(AbstractRiffJson empty)
             {
-                this.ctor = ctor;
-                this.version = Version.Parse(empty.version);
+                ctor = () => Activator.CreateInstance(empty.GetType()) as AbstractRiffJson;
+                version = Version.Parse(empty.version);
+                var typeMap = empty.FactoryBinderTypeMap();
                 dumpSettings = new JsonSerializerSettings
                 {
                     TypeNameHandling = TypeNameHandling.Auto,
@@ -118,8 +119,7 @@ namespace Nianxie.Riff
             }
         }
 
-        private static Dictionary<string, Factory> kindToFactory = new();
-        private static Dictionary<Type, Factory> typeToFactory = new();
+        private static Dictionary<string, Factory> fullName2factory = new();
         private static JsonSerializerSettings loadSettings = new JsonSerializerSettings
         {
             TypeNameHandling = TypeNameHandling.None,
@@ -128,24 +128,31 @@ namespace Nianxie.Riff
                 new RiffJsonConverter(),
             }
         };
-        public static void RegisterFactory<TRiffJson>(Dictionary<string, Type> innerTypeMap=null) where TRiffJson:AbstractRiffJson, new()
+
+        private static Factory GetOrMakeFactory(string fullName)
         {
-            var empty = new TRiffJson();
-            if (kindToFactory.ContainsKey(empty.kind))
+            if (fullName2factory.TryGetValue(fullName, out var factory))
             {
-                throw new Exception($"kind={empty.kind} is registered in json converter");
+                return factory;
             }
 
-            var type = typeof(TRiffJson);
-            if (typeToFactory.ContainsKey(type))
+            var types = AppDomain.CurrentDomain.GetAssemblies().Select(asm => asm.GetType(fullName)).Where(t=>t!=null).ToArray();
+            if (types.Length != 1)
             {
-                throw new Exception($"type={type} is registered in json converter");
+                throw new Exception($"{types.Length} types have name:{fullName}");
+            }
+            var type = types[0];
+            var empty = (Activator.CreateInstance(type) as AbstractRiffJson)!;
+            if (fullName2factory.ContainsKey(empty.fullName))
+            {
+                throw new Exception($"fullName={empty.fullName} is registered in json converter");
             }
 
-            var factory = new Factory(empty, () => new TRiffJson(), innerTypeMap);
-            kindToFactory[empty.kind] = factory;
-            typeToFactory[type] = factory;
+            factory = new Factory(empty);
+            fullName2factory[empty.fullName] = factory;
+            return factory;
         }
+
         private class RiffJsonConverter : JsonConverter<AbstractRiffJson>
         {
 
@@ -155,11 +162,11 @@ namespace Nianxie.Riff
                 JObject jo = JObject.Load(reader);
 
                 // 2. 读取判别器字段
-                string kind = jo[nameof(AbstractRiffJson.kind)]!.Value<string>();
+                string fullName = jo[nameof(AbstractRiffJson.fullName)]!.Value<string>();
                 string version = jo[nameof(AbstractRiffJson.version)]!.Value<string>();
 
-                // 3. 根据 kind 决定实例化哪个子类
-                var factory = kindToFactory[kind];
+                // 3. 根据 fullName 决定实例化哪个子类
+                var factory = GetOrMakeFactory(fullName);
                 AbstractRiffJson target = factory.Build(Version.Parse(version));
 
                 // 4. 将剩余属性填充到实例中
@@ -177,7 +184,7 @@ namespace Nianxie.Riff
 
         public static string Dump(AbstractRiffJson json)
         {
-            var factory = kindToFactory[json.kind];
+            var factory = GetOrMakeFactory(json.fullName);
             return JsonConvert.SerializeObject(json, factory.dumpSettings);
         }
 

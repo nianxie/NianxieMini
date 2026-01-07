@@ -6,13 +6,7 @@ namespace Nianxie.Riff
 {
     public class ManifestJson:AbstractRiffJson
     {
-        public override string kind => nameof(ManifestJson);
         public override string version => "0.0.1";
-
-        static ManifestJson()
-        {
-            JsonCodec.RegisterFactory<ManifestJson>();
-        }
 
         public class SpriteMeta
         {

@@ -1,17 +1,13 @@
-﻿using System;
-using Nianxie.Utils;
-using UnityEngine;
-using WebP;
-using Nianxie.Craft;
 using Nianxie.Riff;
 
-namespace Nianxie.Preview
+namespace Nianxie.Craft
 {
-    public class SimpleUnpackContext:AbstractUnpackContext
+
+    public class UnpackContext:IGetAsset
     {
-        protected override RiffPackage package { get; }
+        private RiffPackage package;
         private CraftJson craftJson;
-        public SimpleUnpackContext(RiffPackage riffPackage)
+        public UnpackContext(RiffPackage riffPackage)
         {
             package = riffPackage;
             craftJson = (riffPackage.customJson as CraftJson)!;
@@ -20,6 +16,12 @@ namespace Nianxie.Preview
         public void UnpackRoot(SlotBehaviour rootBehav)
         {
             rootBehav.UnpackFromJson(this, craftJson.root);
+        }
+
+
+        UnityEngine.Sprite IGetAsset.GetSprite(int spriteIndex)
+        {
+            return package.sprites[spriteIndex];
         }
 
     }

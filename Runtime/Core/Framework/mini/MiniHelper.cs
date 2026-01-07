@@ -12,10 +12,10 @@ namespace Nianxie.Framework
 {
     public class MiniHelper : AsyncHelper
     {
-        [SerializeField] private AbstractEntryModule entryModule;
+        [SerializeField] private AbstractCraftEntry craftEntry;
         public void PlayEnding()
         {
-            entryModule.PlayEnding();
+            craftEntry.PlayEnding();
         }
 
         public LuaTable GetCraftTable()
