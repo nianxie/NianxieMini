@@ -38,10 +38,9 @@ namespace Nianxie.Preview
                     shellRelease=selfWrap.Get<LuaFunction>(nameof(GizmosRelease)),
                 };
                 miniManager = await SceneAsyncUtility.CreateMiniGameAsync(bridge);
-                await miniManager.craftEntry.EditMain(args);
-                var entry = (miniManager.craftEntry as DefaultCraftEntry)!;
-                editView = makeEditView(entry.craftEdit.editCanvas.transform);
-                editView.Main(entry, (kind) =>
+                var craftEdit = await miniManager.GetComponent<DefaultCraftEntry>().EditMain(args);
+                editView = makeEditView(craftEdit.editCanvas.transform);
+                editView.Main(craftEdit, (kind) =>
                 {
                     var reserveBridge = bridge;
                     bridge = null;
@@ -104,8 +103,8 @@ namespace Nianxie.Preview
                     playEnding=selfWrap.Get<LuaFunction>(nameof(PlayEnding)),
                 };
                 miniManager = await SceneAsyncUtility.CreateMiniGameAsync(bridge);
-                await miniManager.craftEntry.PlayMain(args);
-        
+                await miniManager.PlayMain(args);
+
             }
             public void PlayEnding()
             {

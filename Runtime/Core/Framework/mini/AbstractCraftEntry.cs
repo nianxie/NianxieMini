@@ -2,13 +2,13 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Assertions;
+using XLua;
 
 namespace Nianxie.Framework
 {
+    [BlackList]
     public abstract class AbstractCraftEntry:AbstractGameModule
     {
-        public abstract void PlayEnding();
-        public abstract UniTask PlayMain(MiniPlayArgs args);
-        public abstract UniTask EditMain(MiniEditArgs args);
+        public abstract LuaTable PlayBuild();
     }
 }

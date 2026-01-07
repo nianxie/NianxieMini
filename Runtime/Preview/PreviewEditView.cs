@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Cysharp.Threading.Tasks;
 using Nianxie.Craft;
 using Nianxie.Preview;
 using Nianxie.Utils;
@@ -24,10 +25,11 @@ namespace Nianxie.Preview
         [SerializeField]
         private Button save;
         private DefaultCraftEntry craftEntry;
-        public void Main(DefaultCraftEntry craftEntry, Action<ReopenKind> reopen)
+        private CraftEdit craftEdit;
+        public void Main(CraftEdit craftEdit, Action<ReopenKind> reopen)
         {
-            this.craftEntry = craftEntry;
-            gizmos.Main(craftEntry.craftEdit);
+            this.craftEdit = craftEdit;
+            gizmos.Main(craftEdit);
             save.onClick.AddListener(Save);
             load.onClick.AddListener(() =>
             {
@@ -42,12 +44,13 @@ namespace Nianxie.Preview
         private void Save()
         {
 #if UNITY_EDITOR
-            var packContext = new SimplePackContext();
-            var packBytes = packContext.PackRoot(craftEntry.rootSlot);
-            var selectPath = UnityEditor.EditorUtility.SaveFilePanel("Save Craft", Directory.GetCurrentDirectory(), "untitle", NianxieConst.Ext.CRAFT);
-            selectPath = $"{Path.GetDirectoryName(selectPath)}/{Path.GetFileNameWithoutExtension(selectPath)}.{NianxieConst.Ext.CRAFT}";
-            File.WriteAllBytes(selectPath, packBytes);
-            UnityEditor.EditorUtility.RevealInFinder(Path.GetDirectoryName(selectPath));
+            UniTask.Create(async () => { 
+                var packBytes = await craftEdit.PackCraftAsync<SimplePackContext>();
+                var selectPath = UnityEditor.EditorUtility.SaveFilePanel("Save Craft", Directory.GetCurrentDirectory(), "untitle", NianxieConst.Ext.CRAFT);
+                selectPath = $"{Path.GetDirectoryName(selectPath)}/{Path.GetFileNameWithoutExtension(selectPath)}.{NianxieConst.Ext.CRAFT}";
+                await File.WriteAllBytesAsync(selectPath, packBytes);
+                UnityEditor.EditorUtility.RevealInFinder(Path.GetDirectoryName(selectPath));
+            }).Forget();;
 #else
             throw new NotImplementedException("not implement here");
 #endif

@@ -2,29 +2,37 @@
 using Nianxie.Framework;
 using UnityEngine;
 using UnityEngine.Assertions;
+using XLua;
 
 namespace Nianxie.Craft
 {
+    [BlackList]
     public class DefaultCraftEntry:AbstractCraftEntry
     {
         [SerializeField]
         private AssetModule assetModule;
-        public CraftEdit craftEdit;
+        
+        [SerializeField]
+        private CraftEdit craftEdit;
 
         private MiniGameManager miniGameManager => (MiniGameManager) gameManager;
-        public MiniPlayArgs playArgs { get; private set; }
         public MiniEditArgs editArgs { get; private set; }
         public SlotBehaviour rootSlot { get; private set; }
-        public override async UniTask PlayMain(MiniPlayArgs args)
+        public override LuaTable PlayBuild()
         {
-            playArgs = args;
             craftEdit.gameObject.SetActive(false);
-            if (miniGameManager.bridge.miniConfig.craftable)
+            var riffPackage = miniGameManager.bridge.riffPackage;
+            if (riffPackage == null)
             {
+                return null;
             }
-            await miniGameManager.EntryPlay();
+            else
+            {
+                Debug.LogError("TODO build craft table");
+                return null;
+            }
         }
-        public override async UniTask EditMain(MiniEditArgs args)
+        public async UniTask<CraftEdit> EditMain(MiniEditArgs args)
         {
             editArgs = args;
             // 1. Instantiate MiniCraft as rootSlot
@@ -47,11 +55,7 @@ namespace Nianxie.Craft
                 var unpackContext = new UnpackContext(riffPackage);
                 unpackContext.UnpackRoot(rootSlot);
             }
-        }
-
-        public override void PlayEnding()
-        {
-            playArgs.PlayEnding(miniGameManager);
+            return craftEdit;
         }
     }
 }

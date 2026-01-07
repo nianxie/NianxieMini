@@ -19,17 +19,7 @@ namespace Nianxie.Craft
             var typeMap = jsonTypes.ToDictionary(type => type.Name);
             return typeMap;
         }
-
-        public class SpriteInfo
-        {
-            public IntRectangle rect;
-            public Vector2Int pivot;
-            public float pixelsPerUnit;
-        }
-
         public SlotBehavJson root;
-        public Vector2Int atlasSize;
-        public SpriteInfo[] spriteList;
     }
 
 }

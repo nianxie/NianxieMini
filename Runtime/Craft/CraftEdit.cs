@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using Nianxie.Framework;
 using Nianxie.Riff;
 using Nianxie.Utils;
@@ -167,6 +168,13 @@ namespace Nianxie.Craft
                 slotSelect = slot;
             }
             ShellRefresh();
+        }
+
+        [BlackList]
+        public async UniTask<byte[]> PackCraftAsync<TPackContext>() where TPackContext:AbstractPackContext,new()
+        {
+            var ctx = new TPackContext();
+            return await ctx.PackRoot(m_CraftEntry.rootSlot);
         }
     }
 }

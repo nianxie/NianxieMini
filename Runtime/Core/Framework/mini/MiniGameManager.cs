@@ -13,23 +13,23 @@ namespace Nianxie.Framework
     public class MiniGameManager : AbstractGameManager
     {
         private bool unloaded = false;
+        private MiniPlayArgs playArgs;
         public MiniBridge bridge { get; private set; }
-        public AbstractCraftEntry craftEntry { get; private set; }
-
+        public LuaTable craftTable { get; private set; }
         public async UniTask Init(MiniBridge _bridge)
         {
             Assert.IsNull(bridge, "MiniGame is running");
             bridge = _bridge;
-            craftEntry = GetComponent<AbstractCraftEntry>();
             await InitGameModule();
         }
 
-        public async UniTask EntryPlay()
+        public async UniTask PlayMain(MiniPlayArgs playArgs)
         {
+            craftTable = GetComponent<AbstractCraftEntry>().PlayBuild();
             await PrepareContextAndRoot();
             rootLuafabLoading.Fork(transform);
         }
-
+        
         protected override RuntimeReflectEnv CreateReflectEnv()
         {
             return RuntimeReflectEnv.Create(this, bridge.envPaths, bridge.miniBoot);
@@ -38,7 +38,7 @@ namespace Nianxie.Framework
         {
             return bridge;
         }
-
+        
         public async UniTask UnloadAsync()
         {
             if (unloaded) return;
@@ -59,6 +59,11 @@ namespace Nianxie.Framework
             {
                 Debug.LogWarning($"use {nameof(UnloadAsync)} to destroy GameManager");
             }
+        }
+
+        public void PlayEnding()
+        {
+            playArgs.PlayEnding(this);
         }
     }
 }

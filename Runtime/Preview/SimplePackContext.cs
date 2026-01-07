@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using Nianxie.Utils;
 using UnityEngine;
 using WebP;
@@ -10,7 +11,7 @@ namespace Nianxie.Preview
 {
     public class SimplePackContext:AbstractPackContext
     {
-        private byte[] PackAtlasWebp(IntRectangle[] atlasPackRectArr, Vector2Int atlasSize)
+        protected override async UniTask<byte[]> PackAtlasWebp(IntRectangle[] atlasPackRectArr, Vector2Int atlasSize)
         {
             RenderTexture tempRT = new RenderTexture(atlasSize.x, atlasSize.y, 0, RenderTextureFormat.ARGB32);
             RenderTexture previousRT = RenderTexture.active;
@@ -51,32 +52,6 @@ namespace Nianxie.Preview
             }
             UnityEngine.Object.Destroy(resultTexture);
             return webpData;
-        }
-
-        public byte[] PackRoot(SlotBehaviour rootSlot)
-        {
-            var rootJson = (SlotBehavJson)rootSlot.PackToJson(this);
-            RectanglePacker.PackFromVec2s(atlasSpriteList.Select(s => s.size).ToArray(), out var packRectArr, out var atlasSize);
-            var webpData = PackAtlasWebp(packRectArr, atlasSize);
-            var manifestJson = new ManifestJson()
-            {
-                sprites = atlasSpriteList.Select((s,i)=>new ManifestJson.SpriteMeta()
-                {
-                    rect=packRectArr[i],
-                    pivot=s.pivot,
-                    pixelsPerUnit=s.sprite.pixelsPerUnit,
-                }).ToArray(),
-                binaries = binaryList.Select(a=>new ManifestJson.BinaryMeta()
-                {
-                    ext=a.ext,
-                }).ToArray(),
-            };
-            var craftJson = new CraftJson()
-            {
-                root = rootJson,
-            };
-            var packBytes = RiffFile.Pack(webpData, craftJson, manifestJson, binaryList.Select(a=>a.data).ToList());
-            return packBytes;
         }
     }
 }
