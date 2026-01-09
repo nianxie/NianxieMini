@@ -13,8 +13,6 @@ namespace Nianxie.Utils
 
         public static Version MINI_VERSION = Version.Parse("0.0.1");
         public const string UNITY_VERSION = "2022.3.62f2c1";
-        public static string StoragePath => Application.persistentDataPath + "/storage.db";
-        public const string ShellResPath = "Assets/ShellRes";
         public const string MiniSceneName = "MiniScene";
         
         public const string MiniPrefixPath = "Assets/MiniProjects";

@@ -16,7 +16,7 @@ namespace Nianxie.Editor
     {
         private static readonly Dictionary<string, MiniEditorEnvPaths> cache = new();
         public static BuildTarget[] BuildTargets { get; } = {BuildTarget.iOS, BuildTarget.Android, BuildTarget.WebGL};
-        public static MiniEditorEnvPaths Get(string folder)
+        public static MiniEditorEnvPaths GetOrCreate(string folder)
         {
             if (!cache.TryGetValue(folder, out var envPaths))
             {
@@ -26,7 +26,10 @@ namespace Nianxie.Editor
             }
             return envPaths;
         }
-        public static readonly ReadOnlyDictionary<string, MiniEditorEnvPaths> readOnlyCache = new (cache);
+        public static bool TryGet(string folder, out MiniEditorEnvPaths envPaths)
+        {
+            return cache.TryGetValue(folder, out envPaths);
+        }
         protected override EditorReflectEnv CreateReflectEnv()
         {
             Debug.Log($"mini refresh editor reflect env : {pathPrefix}");

@@ -14,9 +14,8 @@ namespace Nianxie.Editor
     {
         private static bool TrySilentMap(string assetPath, out EditorEnvPaths envPaths)
         {
-            if (assetPath.StartsWith(NianxieConst.ShellResPath))
+            if (EditorWatchDog.shellExt!=null && EditorWatchDog.shellExt.TryEnvPaths(assetPath, out envPaths))
             {
-                envPaths = ShellEditorEnvPaths.Instance;
                 return true;
             }
             if (assetPath.StartsWith(NianxieConst.MiniPrefixPath))
@@ -25,7 +24,7 @@ namespace Nianxie.Editor
                 if (splitArr.Length >= 3 && !string.IsNullOrEmpty(splitArr[2]))
                 {
                     var folder = splitArr[2];
-                    if(MiniEditorEnvPaths.readOnlyCache.TryGetValue(folder, out var miniEnvPaths))
+                    if(MiniEditorEnvPaths.TryGet(folder, out var miniEnvPaths))
                     {
                         envPaths = miniEnvPaths;
                         return true;

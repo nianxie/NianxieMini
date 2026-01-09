@@ -134,7 +134,7 @@ namespace Nianxie.Editor
                         state.folder = folder;
                         Refresh();
                     };
-                    var envPaths = MiniEditorEnvPaths.Get(folder);
+                    var envPaths = MiniEditorEnvPaths.GetOrCreate(folder);
                     var craftable = envPaths.config.craftable;
                     itemView.kindCraft.SetDisplay(craftable);
                     itemView.kindGame.SetDisplay(!craftable);
@@ -146,7 +146,7 @@ namespace Nianxie.Editor
             {
                 view.selectView.SetDisplay(false);
                 view.managerView.SetDisplay(true);
-                var envPaths = MiniEditorEnvPaths.Get(state.folder);
+                var envPaths = MiniEditorEnvPaths.GetOrCreate(state.folder);
                 view.managerView.Apply((managerView) =>
                 {
                     managerView.detailView.Apply((self) =>
@@ -289,13 +289,13 @@ namespace Nianxie.Editor
 
         private static void ExecuteBuild(string folder, BuildTarget[] targets)
         {
-            var envPaths = MiniEditorEnvPaths.Get(folder);
+            var envPaths = MiniEditorEnvPaths.GetOrCreate(folder);
             envPaths.Build(targets);
         }
 
         private static void ExecutePack(string folder)
         {
-            var envPaths = MiniEditorEnvPaths.Get(folder);
+            var envPaths = MiniEditorEnvPaths.GetOrCreate(folder);
             var notScriptGuids = CollectNotScript.Collect(envPaths.reflectEnv).Values.Select(a => a.guid).Where(a=>!string.IsNullOrEmpty(a));
             var scriptGuids = envPaths.collectScriptDict.Values.Select(a => a.guid);
             var guids = notScriptGuids.Concat(scriptGuids).ToArray();
@@ -313,7 +313,7 @@ namespace Nianxie.Editor
 
             if (AssetDatabase.CopyAsset(srcPath, dstPath))
             {
-                var miniEnvPaths = MiniEditorEnvPaths.Get(folder);
+                var miniEnvPaths = MiniEditorEnvPaths.GetOrCreate(folder);
                 if (miniEnvPaths!=null)
                 {
                     miniEnvPaths.FlushName(name);

@@ -108,7 +108,7 @@ namespace Nianxie.Editor
         private EditorReflectEnv CheckReflectEnvAndRefreshPath(PrefabStage prefabStage)
         {
             var assetPath = prefabStage.assetPath;
-            if (!EditorEnvPaths.TryMapEnvPaths(assetPath, out var envPaths))
+            if (!EditorWatchDog.TryMapEnvPaths(assetPath, out var envPaths))
             {
                 EditorGUILayout.HelpBox("error, invalid path for luafab..", MessageType.Error);
                 return null;
@@ -243,7 +243,7 @@ namespace Nianxie.Editor
                 if (prefabAssetType != PrefabAssetType.NotAPrefab)
                 {
                     var assetPath = AssetDatabase.GetAssetPath(m_behav.gameObject);
-                    if (!EditorEnvPaths.TryMapEnvPaths(assetPath, out var envPaths))
+                    if (!EditorWatchDog.TryMapEnvPaths(assetPath, out var envPaths))
                     {
                         EditorGUILayout.HelpBox("error, invalid path for luafab.", MessageType.Warning);
                         return;

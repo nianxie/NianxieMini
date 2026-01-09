@@ -120,7 +120,7 @@ namespace Nianxie.Editor
                         selectManifest = null;
                         if (!string.IsNullOrEmpty(value))
                         {
-                            envPaths = MiniEditorEnvPaths.Get(value);
+                            envPaths = MiniEditorEnvPaths.GetOrCreate(value);
                             if (File.Exists(envPaths.finalManifest))
                             {
                                 try

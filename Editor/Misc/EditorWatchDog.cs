@@ -17,7 +17,33 @@ namespace Nianxie.Editor
     [InitializeOnLoad]
     public static class EditorWatchDog
     {
-        public static System.Func<GameObject, (bool, Color)> customColorFunc = null;
+        public interface ShellExt
+        {
+            (bool, Color) CustomColorFunc(GameObject go);
+            bool TryEnvPaths(string assetPath, out EditorEnvPaths envPaths);
+        }
+
+        public static ShellExt shellExt;
+        public static bool TryMapEnvPaths(string assetPath, out EditorEnvPaths envPaths)
+        {
+            if (shellExt != null && shellExt.TryEnvPaths(assetPath, out envPaths))
+            {
+                return true;
+            }
+            if (assetPath.StartsWith(NianxieConst.MiniPrefixPath))
+            {
+                var splitArr = assetPath.Split("/");
+                if (splitArr.Length >= 3 && !string.IsNullOrEmpty(splitArr[2]))
+                {
+                    var folder = splitArr[2];
+                    var miniEnvPaths = MiniEditorEnvPaths.GetOrCreate(folder);
+                    envPaths = miniEnvPaths;
+                    return true;
+                }
+            }
+            envPaths = null;
+            return false;
+        }
         
         private static bool CheckVersion(int version, int major, string minor)
         {
@@ -64,9 +90,9 @@ namespace Nianxie.Editor
             
 
             var iconRect = new Rect(selectionRect.xMin, selectionRect.yMin, selectionRect.height, selectionRect.height);
-            if (customColorFunc != null)
+            if (shellExt != null)
             {
-                var (useCustomColor, color) = customColorFunc(go);
+                var (useCustomColor, color) = shellExt.CustomColorFunc(go);
                 if (useCustomColor)
                 {
                     GUI.DrawTexture(iconRect, prefabIcon, ScaleMode.StretchToFill, true, 0, color, 0, 0);
@@ -75,7 +101,7 @@ namespace Nianxie.Editor
 
             // show custom 
             var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
-            if (prefabStage != null && EditorEnvPaths.TryMapEnvPaths(prefabStage.assetPath, out var envPaths))
+            if (prefabStage != null && TryMapEnvPaths(prefabStage.assetPath, out var envPaths))
             {
                 var luaBehav = go.GetComponentInParent<LuaBehaviour>(true);
                 if (luaBehav != null && !string.IsNullOrEmpty(luaBehav.classPath))
@@ -210,7 +236,7 @@ namespace Nianxie.Editor
                 return;
             }
 
-            if (EditorEnvPaths.TryMapEnvPaths(path, out var envPaths) && envPaths is MiniEditorEnvPaths miniEnvPaths && envPaths.pathPrefix == path)
+            if (TryMapEnvPaths(path, out var envPaths) && envPaths is MiniEditorEnvPaths miniEnvPaths && envPaths.pathPrefix == path)
             {
                 GUI.DrawTexture(iconRect, folderIcon, ScaleMode.StretchToFill, true, 0, new Color(0.1f,0.1f,0.1f), 0, 0);
                 var miniName = miniEnvPaths.GetCachedName();
@@ -253,7 +279,7 @@ namespace Nianxie.Editor
                 return;
             }
 
-            if (EditorEnvPaths.TryMapEnvPaths(path, out var envPaths) && envPaths is MiniEditorEnvPaths miniEnvPaths && envPaths.pathPrefix == path)
+            if (TryMapEnvPaths(path, out var envPaths) && envPaths is MiniEditorEnvPaths miniEnvPaths && envPaths.pathPrefix == path)
             {
                 GUI.DrawTexture(iconRect, folderIcon, ScaleMode.StretchToFill, true, 0, Color.black, 0, 0);
                 var rect = new Rect(iconRect.x + 120, iconRect.y, iconRect.width + 300, iconRect.height);
@@ -265,7 +291,7 @@ namespace Nianxie.Editor
             path = AssetDatabase.GUIDToAssetPath(guid);
             if (path.EndsWith(".prefab"))
             {
-                if (EditorEnvPaths.TryMapEnvPaths(path, out var envPaths))
+                if (TryMapEnvPaths(path, out var envPaths))
                 {
                     var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
                     var luaBehav = prefab.GetComponent<LuaBehaviour>();

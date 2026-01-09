@@ -41,34 +41,12 @@ namespace Nianxie.Editor
             _reflectEnv = null;
         }
 
-        protected EditorEnvPaths() : base()
+        protected EditorEnvPaths(string vPrefix, string vContextName, string vRootLuafabPath):base(vPrefix, vContextName, vRootLuafabPath)
         {
         }
 
         protected EditorEnvPaths(string folder) : base(folder)
         {
-        }
-
-        public static bool TryMapEnvPaths(string assetPath, out EditorEnvPaths envPaths)
-        {
-            if (assetPath.StartsWith(NianxieConst.ShellResPath))
-            {
-                envPaths = ShellEditorEnvPaths.Instance;
-                return true;
-            }
-            if (assetPath.StartsWith(NianxieConst.MiniPrefixPath))
-            {
-                var splitArr = assetPath.Split("/");
-                if (splitArr.Length >= 3 && !string.IsNullOrEmpty(splitArr[2]))
-                {
-                    var folder = splitArr[2];
-                    var miniEnvPaths = MiniEditorEnvPaths.Get(folder);
-                    envPaths = miniEnvPaths;
-                    return true;
-                }
-            }
-            envPaths = null;
-            return false;
         }
     }
 }
