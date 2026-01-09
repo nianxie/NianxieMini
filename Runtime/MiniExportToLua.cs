@@ -17,7 +17,7 @@ namespace XLua
             // framework items
             typeof(Nianxie.Utils.PlatformUtility),
             typeof(Nianxie.Utils.NianxieUnityExtension),
-            typeof(Nianxie.Utils.LargeBytes),
+            //typeof(Nianxie.Utils.LargeBytes),
             typeof(Nianxie.Framework.LuafabLoading),
             typeof(Nianxie.Framework.MiniHelper),
             typeof(Nianxie.Framework.AsyncHelper),

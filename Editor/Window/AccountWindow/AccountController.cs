@@ -6,6 +6,7 @@ using UnityEditor;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
 using Nianxie.Framework;
 using Nianxie.Utils;
 using UnityEngine;
@@ -105,7 +106,8 @@ namespace Nianxie.Editor
                 onFileProgress(file, i + 1, key_file_type.Count);
                 var fileBytes = await File.ReadAllBytesAsync(file);
                 var respMd5 = await postSign.PostFile(fileBytes, key, type);
-                var fileMd5 = new LargeBytes(fileBytes).Md5Base64();
+                // 计算字节数组的哈希值
+                var fileMd5 = Convert.ToBase64String(MD5.Create().ComputeHash(fileBytes));
                 if (fileMd5 == respMd5)
                 {
                     Debug.Log($"文件 {file} 上传成功");

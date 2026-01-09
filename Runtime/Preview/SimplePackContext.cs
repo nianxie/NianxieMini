@@ -6,6 +6,7 @@ using UnityEngine;
 using WebP;
 using Nianxie.Craft;
 using Nianxie.Riff;
+using UnityEngine.Rendering;
 
 namespace Nianxie.Preview
 {

@@ -1,14 +1,19 @@
 ﻿using System;
+using UnityEngine;
 
 namespace Nianxie.Craft
 {
+    public abstract class AbstractSlotValue
+    {
+    }
+
     [Serializable]
-    public struct SlotValue<T>
+    public class SlotValue<T>:AbstractSlotValue
     {
         public T defaultValue;
-        [NonEditable]
+        [NonSerialized]
         public T assignedValue;
-        [NonEditable]
+        [NonSerialized] 
         public bool isAssigned;
 
         public T ReadValue()

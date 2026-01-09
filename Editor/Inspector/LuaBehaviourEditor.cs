@@ -262,7 +262,9 @@ namespace Nianxie.Editor
             }
 
             var classPath = m_behav.classPath;
+            EditorGUI.BeginDisabledGroup(true);
             EditorGUILayout.ObjectField(m_behav.whichClass, reflectEnv.searchTextAssetForRequire(ref classPath), typeof(TextAsset), false);
+            EditorGUI.EndDisabledGroup();
             var reflectInfo = reflectEnv.GetWarmedReflect(m_behav.classPath, m_behav.nestedKeys);
             if (reflectInfo is ErrorReflectClass errReflect)
             {

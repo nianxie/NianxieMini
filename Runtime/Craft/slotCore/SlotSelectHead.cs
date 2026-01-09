@@ -46,7 +46,7 @@ namespace Nianxie.Craft
             if (IsList())
             {
                 var slotField = unionSlot.slotInjected;
-                slotField.behav.GetSlotList(slotField.injection).DuplicateElement(gameObject);
+                slotField.behav.GetSlotList(slotField.injection).DuplicateElement();
             }
         }
         public void DeleteSelf()

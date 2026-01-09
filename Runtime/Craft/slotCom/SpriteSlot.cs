@@ -44,7 +44,12 @@ namespace Nianxie.Craft
 
         [SerializeField]
         private SlotValue<Sprite> m_SlotValue;
-        
+
+        private void Awake()
+        {
+            spriteRenderer.sprite = m_SlotValue.ReadValue();
+        }
+
         public override AbstractSlotJson PackToJson(IPutAsset putAsset)
         {
             var index = putAsset.PutSprite(m_SlotValue.ReadValue());
@@ -81,22 +86,6 @@ namespace Nianxie.Craft
             }
             m_SlotValue.AssignValue(sprite);
             spriteRenderer.sprite = sprite;
-        }
-
-        public override void PostDuplicate()
-        {
-            var originSprite = m_SlotValue.assignedValue;
-            if (originSprite != null)
-            {
-                var copySprite = Sprite.Create(originSprite.texture, originSprite.rect, originSprite.pivot);
-                slotCallback.Incref(this, originSprite.texture);
-                m_SlotValue.assignedValue = copySprite;
-                spriteRenderer.sprite = copySprite;
-            }
-            else
-            {
-                spriteRenderer.sprite = m_SlotValue.defaultValue;
-            }
         }
 
         private void OnDestroy()

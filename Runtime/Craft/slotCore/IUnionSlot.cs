@@ -9,7 +9,6 @@ namespace Nianxie.Craft
         public GameObject gameObject { get; }
         public Transform transform { get; }
         public void Init(SlotInjected injected);
-        public void PostDuplicate();
         public SlotInjected slotInjected { get; }
         public SlotCallback slotCallback { get; }
         public AbstractSlotJson PackToJson(IPutAsset putAsset);

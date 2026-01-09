@@ -20,21 +20,14 @@ namespace Nianxie.Craft
 			    this.slotInjected = slotInjected;
 		    }
 
-		    public void DuplicateElement(GameObject go)
-			{
-				foreach (var child in list)
-				{
-					if (child.gameObject == go)
-					{
-						var newGo = Instantiate(child.gameObject, child.transform.parent);
-						var newSlot = newGo.GetComponent(child.GetType()) as IUnionSlot;
-						newSlot.Init(slotInjected);
-						newSlot.transform.localPosition += Vector3.right*go.GetComponent<AbstractRenderSlot>().selectHead.selectBody.touchCollider2D.size.x;
-						newSlot.PostDuplicate();
-						list.Add(newSlot);
-						return;
-					}
-				}
+		    public void DuplicateElement()
+		    {
+			    var template = list[0];
+				var newGo = Instantiate(template.gameObject, template.transform.parent);
+				var newSlot = newGo.GetComponent(template.GetType()) as IUnionSlot;
+				newSlot.Init(slotInjected);
+				newSlot.transform.localPosition += Vector3.right*template.gameObject.GetComponent<AbstractRenderSlot>().selectHead.selectBody.touchCollider2D.size.x*list.Count;
+				list.Add(newSlot);
 			}
 
 			public void DeleteElement(GameObject go)
@@ -48,13 +41,14 @@ namespace Nianxie.Craft
 						return;
 					}
 				}
+				Debug.LogError($"try to remove {go} but it's not in this list");
 			}
 
 			public void UnpackFromJsonList(IGetAsset getAsset, AbstractSlotJson[] slotJsonArr)
 			{
 				for (int i = list.Count; i < slotJsonArr.Length; i++)
 				{
-					DuplicateElement(list[i].gameObject);
+					DuplicateElement();
 				}
 				for (int i = list.Count-1; i >= slotJsonArr.Length; i--)
 				{
@@ -89,22 +83,6 @@ namespace Nianxie.Craft
         {
 	        slotCallback = edit;
 	        (this as IUnionSlot).Init(null);
-        }
-
-        void IUnionSlot.PostDuplicate()
-        {
-	        foreach (var slot in slotSingleDict.Values)
-	        {
-		        slot.PostDuplicate();
-	        }
-
-	        foreach (var list in slotListDict.Values)
-	        {
-		        foreach (var slot in list)
-		        {
-			        slot.PostDuplicate();
-		        }
-	        }
         }
 
         void IUnionSlot.Init(SlotInjected injected)
@@ -207,7 +185,7 @@ namespace Nianxie.Craft
 		    // implement in SlotBehaviour
 		    if (com is AbstractSlotCom slotCom)
 		    {
-			    cacheSlotIds.Add(com.GetInstanceID());
+			    cacheSlotIds.Add(slotCom.GetInstanceID());
 		    }
 	    }
 #endif

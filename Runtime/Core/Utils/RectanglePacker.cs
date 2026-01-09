@@ -109,13 +109,20 @@ namespace Nianxie.Craft
 	    private static Vector2Int PackRectsInplace_TestFromBaseSize(IntRectangle[] sortedRect, int baseSize)
 	    {
 		    var allProduct = sortedRect.Select(r => r.width * r.height).Sum();
-		    while (baseSize * baseSize < allProduct)
-		    {
-			    baseSize *= 2;
-		    }
-		    // 开始尝试打包矩形
 		    var curWidth = baseSize;
 		    var curHeight = baseSize;
+		    while (curWidth * curHeight < allProduct)
+		    {
+				if (curWidth >= curHeight)
+				{
+					curHeight *= 2;
+				}
+				else
+				{
+					curWidth *= 2;
+				}
+		    }
+		    // 开始尝试打包矩形
 		    while (true)
 		    {
 				var packer = new RectanglePacker(curWidth, curHeight);

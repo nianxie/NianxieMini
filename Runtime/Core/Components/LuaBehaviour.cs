@@ -120,6 +120,7 @@ namespace Nianxie.Components
 						if (com != null)
 						{
 							go = com.gameObject;
+							CachePutSlot(com);
 						}
 					}
 
