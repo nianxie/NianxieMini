@@ -51,24 +51,24 @@ local FutureMeta = {
     __index=FutureVtbl
 }
 
-local MainThreadCall = nil  
+local MainThreadCall = nil
 
-      
+
 local PENDING = 0
 local REJECTED = 1
 local RESOLVED = 2
 
 local function xerror(excOrReason)
-         
+
     return Exception.is(excOrReason) and excOrReason or Exception.new(excOrReason, debug.traceback(nil, 2))
 end
 
 function Future.new(vSyncFn)
-       
-         
-    
-         
-    
+
+
+
+
+
 
     local self = setmetatable({
         __type = false  ,
@@ -76,11 +76,11 @@ function Future.new(vSyncFn)
         _state = PENDING    ,
         _value = nil  ,
         _exception = nil  ,
-         
+
         _thread = false  ,
-         
+
         _cbList = false    ,
-         
+
         _coList = false  ,
     }, FutureMeta)
     if vSyncFn then
@@ -112,11 +112,11 @@ end
 function Future.complete(self, ok, ret)
     if ok then
         self._state = RESOLVED
-        self._value = ret  
+        self._value = ret
     else
         ret = Exception.is(ret) and ret or Exception.new(ret  , self._stack)
         self._state = REJECTED
-        self._exception = ret  
+        self._exception = ret
     end
     local coList = self._coList
     self._coList = false
@@ -145,7 +145,7 @@ function Future.complete(self, ok, ret)
     end
 end
 
-function FutureVtbl:Pwait()  
+function FutureVtbl:Pwait()
     local co, ismain = coroutine.running()
     assert(not ismain, "can't wait in main coroutine")
     if self._state == PENDING then
@@ -159,13 +159,13 @@ function FutureVtbl:Pwait()
         if not ok then
             return false, ret
         else
-            return true, ret  
+            return true, ret
         end
     else
         if self._state == REJECTED then
             return false, self._exception
         elseif self._state == RESOLVED then
-            return true, self._value  
+            return true, self._value
         end
     end
 end
@@ -245,26 +245,26 @@ local StreamMeta = {
     __index=StreamVtbl
 }
 
-local MainThreadCall = nil  
+local MainThreadCall = nil
 
 local function xerror(excOrReason)
-         
+
     return Exception.is(excOrReason) and excOrReason or Exception.new(excOrReason, debug.traceback(nil, 2))
 end
 
 function Stream.new(vSyncFn)
-       
-         
-    
-         
-    
+
+
+
+
+
 
     local self = setmetatable({
         __type = false  ,
         _closed = false  ,
-         
+
         _thread = false  ,
-         
+
         _coList = false  ,
     }, StreamMeta)
     if vSyncFn then
@@ -293,19 +293,19 @@ end
 function Stream.sink(self, ok, ret)
 end
 
-function StreamVtbl:Pnext();  
+function StreamVtbl:Pnext();
     error("stream pnext TODO")
     return false, nil
 end
 
 function StreamVtbl:Next();
     error("stream next TODO")
-    return nil  
+    return nil
 end
 
 
-   
-     
+
+
 
 
 
@@ -326,10 +326,15 @@ local Future = require "boot.Future"
 local Stream = require "boot.Stream"
 
 ;
-	
+
 
 
 local boot = {}
+
+function boot.FileLine(level)
+	local info = debug.getinfo(level, "Sl")
+	return info.source, info.currentline
+end
 
 function boot.Repl(script)
 	local func, err = load('return '..script, '(lua repl)')
@@ -356,7 +361,7 @@ function boot.InitHelper(vAsyncHelper)
 	Stream.initHelper(vAsyncHelper)
 end
 
-   
+
 boot.NewFuture=Future.new
 
 boot.NewStream=Stream.new
@@ -440,11 +445,11 @@ packages['reflect.injection.ClassCore'] = function (...)
 local meta2isCache={}
 
 ;
-	  
-	  
-	  
-	  
-	  
+
+
+
+
+
 
 
 local function recursiveCreate(obj, cls, ...)
@@ -485,7 +490,7 @@ local function class (super)
 	classOpen.super=super or false
 	classOpen.meta=meta
 	classOpen.ctor=false
-	classOpen.new=function (...)  
+	classOpen.new=function (...)
 		local obj={}
 		recursiveCreate(obj, classOpen, ...)
 		setmetatable(obj, meta)
@@ -495,7 +500,7 @@ local function class (super)
 		local isCache = meta2isCache[getmetatable(v) or 1]
 		return isCache and isCache[classOpen] or false
 	end
-	classOpen.__hint=nil  
+	classOpen.__hint=nil
 	local isCache = (setmetatable({}, {
 		__index=function(type2is , if_type)
 			local cur_type = classOpen
@@ -510,7 +515,7 @@ local function class (super)
 			type2is[if_type] = false
 			return false
 		end
-	}) );  
+	}) );
 	meta2isCache[meta]=isCache
 
 	setmetatable(classOpen,classMeta)
@@ -520,13 +525,13 @@ local function class (super)
 		for k,v in pairs(super_meta.__index) do
 			vtbl[k] = v
 		::continue:: end
-		 
-		    
-			            
-				  
-			
-		
-		
+
+
+
+
+
+
+
 	end
 
 	return classOpen
@@ -545,18 +550,18 @@ do local _ENV = _ENV
 packages['reflect.injection.LuafabField'] = function (...)
 
 ;
-      
+
 
 
 local LuafabField = {}
 LuafabField.__index=LuafabField
 
 function LuafabField.new (vClsOpen, vClsPath, vLazy)
-       
-         
-    
-          
-    
+
+
+
+
+
 
     return setmetatable({
         clsOpen = vClsOpen,
@@ -565,42 +570,42 @@ function LuafabField.new (vClsOpen, vClsPath, vLazy)
     }, LuafabField)
 end
 
-function LuafabField.is(v) 
+function LuafabField.is(v)
     return getmetatable(v) == LuafabField
 end
 
 ;
-      
-           
-           
-            
-        
-         
-               
-        
-    
 
-      
-           
-           
-            
-        
-         
-               
-        
-         
-               
-        
-    
 
-     
-           
-           
-            
-               
-               
-        
-    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 return LuafabField
@@ -620,17 +625,17 @@ local typeof_LuafabLoading = typeof(CS.Nianxie.Framework.LuafabLoading)
 local ClassCore = require "reflect.injection.ClassCore"
 
 ;
-      
+
 
 
 local ReflectInjection = {}
 
 function ReflectInjection.new(vKey, vClsOpen, vCSharpType, vIndexCSharpType, vNodePath, vAssetPath, vNodePathTable , vAssetPathTable )
-       
-         
-    
-         
-    
+
+
+
+
+
 
     return {
         key=vKey,
@@ -675,8 +680,8 @@ function ReflectInjection.Create(vKeyToTuple, vKey, vFieldOrTuple)
     local fieldValue = outMeta and vFieldOrTuple or vFieldOrTuple[1]
     local nodePath=nil
     local assetPath=nil
-    local nodePathTable=nil 
-    local assetPathTable=nil 
+    local nodePathTable=nil
+    local assetPathTable=nil
     if not outMeta then
         if type(vFieldOrTuple) == "table" then
             do
@@ -755,23 +760,23 @@ do local _ENV = _ENV
 packages['reflect.injection.TableField'] = function (...)
 
 ;
-      
+
 
 
 local TableField = {}
 TableField.__index=TableField
 
 ;
-      
-         
-            
-            
-         
-    
+
+
+
+
+
+
 
 
 function TableField.new (vValue, vKey)
-     
+
 
     return setmetatable({
         key=vKey,
@@ -784,13 +789,13 @@ function TableField.is(v)
 end
 
 ;
-     
-          
-              
-        
-             
-        
-    
+
+
+
+
+
+
+
 
 
 return TableField
@@ -801,9 +806,9 @@ end end
 do local _ENV = _ENV
 packages['reflect.reflect'] = function (...)
 
-if false then 
-	  
-	 
+if false then
+
+
 	local rapidjson = require "rapidjson"
     local arraymeta = getmetatable(rapidjson.array())
     local objectmeta = getmetatable(rapidjson.object())
@@ -835,22 +840,22 @@ local reflect = {}
 reflect.class = class
 
 ;
-      
-            
-            
-            
-            
-    
-       
-             
-                
-                  
-            
-                     
-                  
-            
-        
-    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 local MiniScript = require "reflect.behav.MiniScript"
@@ -871,18 +876,18 @@ function reflect.MiniScript (vKeyToInjectionValue)
     clsOpen.meta.__name = "MiniScript"
     reflect._saveInjections(clsOpen, vKeyToInjectionValue)
     ;
-          
-               
-             
-               
-            
-             
-                
-              
-                
-            
-        
-    
+
+
+
+
+
+
+
+
+
+
+
+
     return clsOpen
 end
 
@@ -891,18 +896,18 @@ function reflect.SlotScript (vKeyToInjectionValue)
     clsOpen.meta.__name = "SlotScript"
     reflect._saveInjections(clsOpen, vKeyToInjectionValue)
     ;
-          
-               
-             
-               
-            
-             
-                
-              
-                
-            
-        
-    
+
+
+
+
+
+
+
+
+
+
+
+
     return clsOpen
 end
 

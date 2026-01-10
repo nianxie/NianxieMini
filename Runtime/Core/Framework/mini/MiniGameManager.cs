@@ -1,12 +1,12 @@
+using System;
+using System.Diagnostics;
 using Cysharp.Threading.Tasks;
 using Nianxie.Craft;
 using Nianxie.Riff;
 using Nianxie.Utils;
-using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.EventSystems;
 using XLua;
-using XLua.LuaDLL;
+using Debug = UnityEngine.Debug;
 
 namespace Nianxie.Framework
 {
@@ -45,6 +45,7 @@ namespace Nianxie.Framework
             unloaded = true;
             try
             {
+                gameObject.SetActive(false);
                 await SceneAsyncUtility.UnloadSceneAsync(gameObject.scene);
             }
             finally

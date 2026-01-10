@@ -164,7 +164,7 @@ return setmetatable({
                     luaEnv.Dispose();
                     luaEnv = null;
                 }
-            });
+            }).Forget();
         }
     }
 }

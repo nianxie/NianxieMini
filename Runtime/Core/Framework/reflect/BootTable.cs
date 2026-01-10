@@ -8,6 +8,7 @@ namespace Nianxie.Framework
     {
         public LuaFunction Repl;
         public LuaFunction InitHelper;
+        public LuaFunction FileLine;
         // for async item
         public LuaFunction NewFuture;
         public LuaFunction NewStream;

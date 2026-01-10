@@ -1,7 +1,11 @@
 ﻿using System;
 using UnityEngine;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using Nianxie.Framework;
+using XLua.LuaDLL;
+using LuaAPI = XLua.LuaDLL.Lua;
 
 namespace XLua
 {
@@ -99,6 +103,21 @@ namespace XLua
                 var miniBootTable = LoadString<LuaFunction>(miniBoot, nameof(miniBoot)).Func<LuaTable>();
                 boot = new BootTable(miniBootTable);
             }
+            LuaAPI.lua_pushstdcallcfunction(rawL, BuildPrintFunc(LogType.Log));
+            if (0 != LuaAPI.xlua_setglobal(rawL, "print"))
+            {
+                throw new Exception("call xlua_setglobal fail!");
+            }
+            LuaAPI.lua_pushstdcallcfunction(rawL, BuildPrintFunc(LogType.Warning));
+            if (0 != LuaAPI.xlua_setglobal(rawL, "printwarn"))
+            {
+                throw new Exception("call xlua_setglobal fail!");
+            }
+            LuaAPI.lua_pushstdcallcfunction(rawL, BuildPrintFunc(LogType.Error));
+            if (0 != LuaAPI.xlua_setglobal(rawL, "printerror"))
+            {
+                throw new Exception("call xlua_setglobal fail!");
+            }
         }
 
 
@@ -192,6 +211,71 @@ namespace XLua
         private LuaFunction RequireFunction(string module)
         {
             return luaRequire.Func<string, LuaFunction>(module);
+        }
+        
+        private static StringBuilder _sbCache = new StringBuilder(1024);
+        private lua_CSFunction BuildPrintFunc(UnityEngine.LogType logType)
+        {
+            return (IntPtr invokeL) =>
+            {
+                try
+                {
+                    int n = LuaAPI.lua_gettop(L);
+                    _sbCache.Clear();
+    #if UNITY_EDITOR // TODO 支持手机端debug模式
+                    // := local currentline = boot.CurrentLine(3)
+                    boot.FileLine.push(invokeL);
+                    LuaAPI.xlua_pushinteger(invokeL, 3);
+                    var err = LuaAPI.lua_pcall(invokeL, 1, 2, 0);
+                    if (err != 0)
+                    {
+                        var errMsg = LuaAPI.lua_tostring(invokeL, -1);
+                        return LuaAPI.luaL_error(invokeL, $"Future.new call failed: {errMsg}");
+                    }
+                    _sbCache.Append('(');
+                    _sbCache.Append(Path.GetFileName(LuaAPI.lua_tostring(invokeL, -2)));
+                    _sbCache.Append(':');
+                    _sbCache.Append(LuaAPI.xlua_tointeger(invokeL, -1));
+                    _sbCache.Append(") ");
+                    LuaAPI.lua_settop(L, n);  /* recover stack */
+    #endif
+
+                    if (0 != LuaAPI.xlua_getglobal(L, "tostring"))
+                    {
+                        return LuaAPI.luaL_error(L, "can not get tostring in print:");
+                    }
+
+                    for (int i = 1; i <= n; i++)
+                    {
+                        LuaAPI.lua_pushvalue(L, -1);  /* function to be called */
+                        LuaAPI.lua_pushvalue(L, i);   /* value to print */
+                        if (0 != LuaAPI.lua_pcall(L, 1, 1, 0))
+                        {
+                            return LuaAPI.lua_error(L);
+                        }
+                        _sbCache.Append(LuaAPI.lua_tostring(L, -1));
+
+                        if (i != n) _sbCache.Append('\t');
+
+                        LuaAPI.lua_pop(L, 1);  /* pop result */
+                    }
+
+    #if UNITY_EDITOR // TODO 支持手机端debug模式
+                    // push stack info
+                    _sbCache.AppendLine();
+                    LuaAPI.luaL_traceback(L, L, IntPtr.Zero, 1);
+                    _sbCache.Append(LuaAPI.lua_tostring(L, -1));
+                    LuaAPI.lua_pop(L, 1);  /* pop result */
+    #endif
+
+                    UnityEngine.Debug.unityLogger.Log(logType, _sbCache.ToString());
+                    return 0;
+                }
+                catch (System.Exception e)
+                {
+                    return LuaAPI.luaL_error(L, "c# exception in print:" + e);
+                }
+            };
         }
     }
 }

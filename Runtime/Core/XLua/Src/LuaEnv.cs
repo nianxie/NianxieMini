@@ -43,7 +43,7 @@ namespace XLua
 
         private LuaTable _G;
 
-        public ObjectTranslator translator { get; private set; }
+        public ObjectTranslator translator { get; protected set; }
 
         public int errorFuncRef { get; } = -1;
 
@@ -389,7 +389,7 @@ namespace XLua
 #endif
         }
 
-        private bool disposed = false;
+        protected bool disposed = false;
 
         public void Dispose()
         {
@@ -403,7 +403,7 @@ namespace XLua
             System.GC.WaitForPendingFinalizers();
         }
 
-        public virtual void Dispose(bool dispose)
+        protected virtual void Dispose(bool dispose)
         {
 #if THREAD_SAFE || HOTFIX_ENABLE
             lock (luaEnvLock)

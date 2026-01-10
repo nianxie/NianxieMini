@@ -233,5 +233,32 @@ namespace XLua
         }
         public LuaFunction bootSleep => boot.Sleep;
         public LuaFunction bootNewFuture => boot.NewFuture;
+        protected override void Dispose(bool dispose)
+        {
+#if THREAD_SAFE || HOTFIX_ENABLE
+            lock (luaEnvLock)
+            {
+#endif
+                if (disposed) return;
+                Tick();
+
+                /* 直接关闭env并清理translatorPool，忽略掉DelegateBridge检查
+                if (!translator.AllDelegateBridgeReleased())
+                {
+                    throw new InvalidOperationException("try to dispose a LuaEnv with C# callback!");
+                }*/
+                
+                ObjectTranslatorPool.Instance.Remove(L);
+
+                Lua.lua_close(L);
+                translator = null;
+
+                rawL = IntPtr.Zero;
+
+                disposed = true;
+#if THREAD_SAFE || HOTFIX_ENABLE
+            }
+#endif
+        }
     }
 }

@@ -381,6 +381,9 @@ namespace XLua.LuaDLL
 
         [DllImport(LUADLL,CallingConvention=CallingConvention.Cdecl)]
 		public static extern int luaL_newmetatable(IntPtr L, string meta);//[-0, +1, m]
+		
+        [DllImport(LUADLL,CallingConvention=CallingConvention.Cdecl)]
+		public static extern int luaL_traceback(IntPtr L, IntPtr L1, IntPtr msgPtr, int level);
 
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern int xlua_pgettable(IntPtr L, int idx);
