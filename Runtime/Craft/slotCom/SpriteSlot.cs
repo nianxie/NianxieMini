@@ -68,12 +68,7 @@ namespace Nianxie.Craft
             spriteRenderer.sprite = sprite;
         }
 
-        public override object GetValue()
-        {
-            return m_SlotValue.ReadValue();
-        }
-
-        public override void SetValue(object o)
+        public override void AssignValue(object o)
         {
             // TODO 根据fitx和fity对sprite进行裁切。
             var inputSprite = m_SlotValue.SafeCast(o);

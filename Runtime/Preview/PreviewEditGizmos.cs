@@ -69,7 +69,7 @@ namespace Nianxie.Preview
                 tex.LoadImage(imageBytes);
                 refObjDict[tex.GetInstanceID()] = tex;
                 var sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), Vector2.one*0.5f);
-                spriteSlot.SetValue(sprite);
+                spriteSlot.AssignValue(sprite);
                 UnityEngine.Object.Destroy(sprite);
             }
         }

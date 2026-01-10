@@ -147,22 +147,22 @@ namespace Nianxie.Riff
             return new RiffFile(chunks);
         }
 
-        public static byte[] Pack(byte[] webpData, CustomJson customJson, ManifestJson manifestJson, List<byte[]> binaries)
+        public static byte[] Pack(byte[] webpData, CustomRiffJson customRiffJson, ManifestRiffJson manifestRiffJson, List<byte[]> binaries)
         {
             if (binaries != null)
             {
-                Assert.IsTrue(manifestJson.binaries.Length==binaries.Count, "binaries count not match when riff pack");
+                Assert.IsTrue(manifestRiffJson.binaries.Length==binaries.Count, "binaries count not match when riff pack");
             }
             else
             {
-                Assert.IsTrue(manifestJson.binaries.Length==0, "binaries count not match when riff pack");
+                Assert.IsTrue(manifestRiffJson.binaries.Length==0, "binaries count not match when riff pack");
             }
 
             var riffContainer = Load(webpData);
-            riffContainer.CustomChunk.Data = Encoding.UTF8.GetBytes(JsonCodec.Dump(customJson));
-            riffContainer.ManifestChunk.Data = Encoding.UTF8.GetBytes(manifestJson.Dump());
+            riffContainer.CustomChunk.Data = Encoding.UTF8.GetBytes(customRiffJson.Dump());
+            riffContainer.ManifestChunk.Data = Encoding.UTF8.GetBytes(manifestRiffJson.Dump());
             riffContainer.BinaryChunks.Clear();
-            for(int i=0;i<manifestJson.binaries.Length;i++)
+            for(int i=0;i<manifestRiffJson.binaries.Length;i++)
             {
                 riffContainer.BinaryChunks.Add(new RiffChunk(NX_BINARY_UINT, binaries[i]));
             }

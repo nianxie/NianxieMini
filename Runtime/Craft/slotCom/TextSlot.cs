@@ -18,12 +18,7 @@ namespace Nianxie.Craft
         
         private DrivenRectTransformTracker m_RectTracker = new DrivenRectTransformTracker();
 
-        public override object GetValue()
-        {
-            return m_SlotValue.ReadValue();
-        }
-        
-        public override void SetValue(object o)
+        public override void AssignValue(object o)
         {
             var text = m_SlotValue.SafeCast(o);
             m_SlotValue.AssignValue(text);

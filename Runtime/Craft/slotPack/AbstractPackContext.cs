@@ -73,24 +73,24 @@ namespace Nianxie.Craft
             var rootJson = (SlotBehavJson)rootSlot.PackToJson(this);
             RectanglePacker.PackFromVec2s(atlasSpriteList.Select(s => s.size).ToArray(), out var packRectArr, out var atlasSize);
             var webpData = await PackAtlasWebp(packRectArr, atlasSize);
-            var manifestJson = new ManifestJson()
+            var manifestRiffJson = new ManifestRiffJson()
             {
-                sprites = atlasSpriteList.Select((s,i)=>new ManifestJson.SpriteMeta()
+                sprites = atlasSpriteList.Select((s,i)=>new ManifestRiffJson.SpriteMeta()
                 {
                     rect=packRectArr[i],
                     pivot=s.pivot,
                     pixelsPerUnit=s.sprite.pixelsPerUnit,
                 }).ToArray(),
-                binaries = binaryList.Select(a=>new ManifestJson.BinaryMeta()
+                binaries = binaryList.Select(a=>new ManifestRiffJson.BinaryMeta()
                 {
                     ext=a.ext,
                 }).ToArray(),
             };
-            var craftJson = new CraftJson()
+            var craftJson = new CraftRiffJson()
             {
                 root = rootJson,
             };
-            var packBytes = RiffFile.Pack(webpData, craftJson, manifestJson, binaryList.Select(a=>a.data).ToList());
+            var packBytes = RiffFile.Pack(webpData, craftJson, manifestRiffJson, binaryList.Select(a=>a.data).ToList());
             return packBytes;
         }
     }

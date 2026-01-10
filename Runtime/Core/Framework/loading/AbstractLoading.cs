@@ -7,7 +7,7 @@ using Debug = UnityEngine.Debug;
 namespace Nianxie.Framework
 {
 
-    // 使用UniTask的TaskSource包裹asset的加载，因为AssetHandle类无法支持互相等待功能
+    // 使用UniTask的TaskSource包裹asset的加载，以处理多个Task之间的等待关系。
     [BlackList]
     public abstract class AbstractLoading<T>
     {

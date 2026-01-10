@@ -1,11 +1,12 @@
-﻿namespace Nianxie.Craft
-{
-    public class DefaultSlotJson:AbstractSlotJson
-    {
-        public static DefaultSlotJson Instance = new DefaultSlotJson();
-    }
+﻿using System;
 
-    public class AbstractSlotJson
+namespace Nianxie.Craft
+{
+    public abstract class AbstractSlotJson
     {
+        public virtual object MakeTarget(IGetAsset getAsset)
+        {
+            throw new NotImplementedException("Read data");
+        }
     }
 }

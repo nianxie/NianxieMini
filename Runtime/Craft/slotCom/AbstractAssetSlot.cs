@@ -13,10 +13,6 @@ namespace Nianxie.Craft
     [ExecuteAlways]
     public abstract class AbstractAssetSlot : AbstractRenderSlot
     {
-        public virtual void WriteRawData(object rawData)
-        {
-            throw new NotImplementedException();
-        }
     }
     
 }

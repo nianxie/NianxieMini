@@ -4,7 +4,10 @@ using UnityEngine;
 
 namespace Nianxie.Riff
 {
-    public class ManifestJson:AbstractRiffJson
+    /// <summary>
+    /// 用来存储riff package中的sprite和二进制对象的meta信息。
+    /// </summary>
+    public class ManifestRiffJson:AbstractRiffJson
     {
         public override string version => "0.0.1";
 

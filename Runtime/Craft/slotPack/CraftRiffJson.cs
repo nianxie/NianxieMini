@@ -6,11 +6,11 @@ using UnityEngine;
 
 namespace Nianxie.Craft
 {
-    public class CraftJson:CustomJson
+    public class CraftRiffJson:CustomRiffJson
     {
         public override string version => "0.0.1";
 
-        public virtual Dictionary<string, Type> FactoryBinderTypeMap()
+        public override Dictionary<string, Type> FactoryBinderTypeMap()
         {
             var slotJsonType = typeof(AbstractSlotJson);
             // 使用反射获取contentType同命名空间、同程序集的派生类

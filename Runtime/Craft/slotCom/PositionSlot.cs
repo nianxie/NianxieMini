@@ -24,13 +24,8 @@ namespace Nianxie.Craft
                 y=pos.y,
             };
         }
-
-        public override object GetValue()
-        {
-            return m_SlotValue.ReadValue();
-        }
         
-        public override void SetValue(object o)
+        public override void AssignValue(object o)
         {
             var vec = m_SlotValue.SafeCast(o);
             m_SlotValue.AssignValue(vec);

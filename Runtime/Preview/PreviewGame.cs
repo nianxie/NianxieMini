@@ -115,7 +115,7 @@ namespace Nianxie.Preview
         public class EditReopenArgs
         {
             public PreviewEditView.ReopenKind kind;
-            public CraftJson craftJson;
+            public CraftRiffJson craftRiffJson;
             public Texture2D atlasTex;
         }
 

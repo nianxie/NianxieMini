@@ -6,16 +6,16 @@ namespace Nianxie.Craft
     public class UnpackContext:IGetAsset
     {
         private RiffPackage package;
-        private CraftJson craftJson;
+        private CraftRiffJson craftRiffJson;
         public UnpackContext(RiffPackage riffPackage)
         {
             package = riffPackage;
-            craftJson = (riffPackage.customJson as CraftJson)!;
+            craftRiffJson = (riffPackage.custom as CraftRiffJson)!;
         }
         
         public void UnpackRoot(SlotBehaviour rootBehav)
         {
-            rootBehav.UnpackFromJson(this, craftJson.root);
+            rootBehav.UnpackFromJson(this, craftRiffJson.root);
         }
 
 

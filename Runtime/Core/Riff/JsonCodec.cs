@@ -136,7 +136,7 @@ namespace Nianxie.Riff
                 return factory;
             }
 
-            var types = AppDomain.CurrentDomain.GetAssemblies().Select(asm => asm.GetType(fullName)).Where(t=>t!=null).ToArray();
+            var types = AppDomain.CurrentDomain.GetAssemblies().Select(asm => asm.GetType(fullName)).Where(t=>t!=null && t.IsSubclassOf(typeof(AbstractRiffJson))).ToArray();
             if (types.Length != 1)
             {
                 throw new Exception($"{types.Length} types have name:{fullName}");

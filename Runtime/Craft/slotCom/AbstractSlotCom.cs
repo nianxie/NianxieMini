@@ -5,6 +5,15 @@ using XLua;
 
 namespace Nianxie.Craft
 {
+    public abstract class AbstractSlotCom<TSlotTarget, TSlotJson>:AbstractSlotCom
+    {
+        public sealed override AbstractSlotJson PackToJson(IPutAsset putAsset)
+        {
+            return null;
+        }
+
+    }
+
     public abstract class AbstractSlotCom:MonoBehaviour, IUnionSlot
     {
         public SlotCallback slotCallback => slotInjected.behav.slotCallback;
@@ -19,15 +28,7 @@ namespace Nianxie.Craft
         public abstract AbstractSlotJson PackToJson(IPutAsset putAsset);
         public abstract void UnpackFromJson(IGetAsset getAsset, AbstractSlotJson slotJson);
 
-        public virtual object GetValue()
-        {
-            throw new NotImplementedException("TODO");
-        }
-
-        public virtual void SetValue(object o)
-        {
-            throw new NotImplementedException("TODO");
-        }
+        public abstract void AssignValue(object o);
 
         protected virtual void Awake()
         {
