@@ -11,7 +11,7 @@ namespace Nianxie.Craft
         public void Init(SlotInjected injected);
         public SlotInjected slotInjected { get; }
         public SlotCallback slotCallback { get; }
-        public AbstractSlotJson PackToJson(IPutAsset putAsset);
-        public void UnpackFromJson(IGetAsset getAsset, AbstractSlotJson slotJson);
+        public AbstractSlotJson RawPack(IPutAsset putAsset);
+        public void RawUnpack(IGetAsset getAsset, AbstractSlotJson slotJson);
     }
 }

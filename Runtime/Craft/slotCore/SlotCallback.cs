@@ -5,6 +5,7 @@ using XLua;
 
 namespace Nianxie.Craft
 {
+    // TODO，改成interface
     public abstract class SlotCallback:MonoBehaviour
     {
         private Dictionary<int, Dictionary<int, AbstractSlotCom>> texIdToComDict = new();

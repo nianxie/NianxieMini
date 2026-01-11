@@ -15,7 +15,7 @@ namespace Nianxie.Craft
         
         public void UnpackRoot(SlotBehaviour rootBehav)
         {
-            rootBehav.UnpackFromJson(this, craftRiffJson.root);
+            rootBehav.RawUnpack(this, craftRiffJson.root);
         }
 
 

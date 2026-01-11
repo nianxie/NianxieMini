@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Nianxie.Craft
 {
-    public class TextJson:AbstractSlotJson
+    public class TextJson:AbstractSlotJson<string>
     {
         public string text;
     }

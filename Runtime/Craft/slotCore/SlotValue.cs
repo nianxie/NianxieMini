@@ -11,31 +11,20 @@ namespace Nianxie.Craft
     public class SlotValue<T>:AbstractSlotValue
     {
         public T defaultValue;
-        [NonSerialized]
-        public T assignedValue;
-        [NonSerialized] 
-        public bool isAssigned;
+        private T assignedValue;
+        private bool isAssigned;
 
-        public T ReadValue()
+        public T Get()
         {
             return isAssigned ? assignedValue : defaultValue;
         }
-        public void AssignValue(T value)
+        public T Set(T value)
         {
             isAssigned = true;
+            var oldValue = assignedValue;
             assignedValue = value;
-        }
-
-        public T SafeCast(object o)
-        {
-            if (o is T t)
-            {
-                return t;
-            }
-            else
-            {
-                throw new InvalidCastException($"{typeof(T)} expected but get {o.GetType()}");
-            }
+            oldValue = value;
+            return oldValue;
         }
     }
 }

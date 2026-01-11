@@ -44,7 +44,7 @@ namespace Nianxie.Craft
 				Debug.LogError($"try to remove {go} but it's not in this list");
 			}
 
-			public void UnpackFromJsonList(IGetAsset getAsset, AbstractSlotJson[] slotJsonArr)
+			public void RawUnpackList(IGetAsset getAsset, AbstractSlotJson[] slotJsonArr)
 			{
 				for (int i = list.Count; i < slotJsonArr.Length; i++)
 				{
@@ -57,7 +57,7 @@ namespace Nianxie.Craft
 
 				for (int i = 0; i < slotJsonArr.Length; i++)
 				{
-					list[i].UnpackFromJson(getAsset, slotJsonArr[i]);
+					list[i].RawUnpack(getAsset, slotJsonArr[i]);
 				}
 			}
 
@@ -141,12 +141,12 @@ namespace Nianxie.Craft
 	        // do nothing
         }
 
-        public AbstractSlotJson PackToJson(IPutAsset putAsset)
+        public AbstractSlotJson RawPack(IPutAsset putAsset)
         {
 	        var behavJson = new SlotBehavJson();
 	        foreach (var kv in slotSingleDict)
 	        {
-		        behavJson.singleDict[kv.Key] = kv.Value.PackToJson(putAsset);
+		        behavJson.singleDict[kv.Key] = kv.Value.RawPack(putAsset);
 	        }
 	        foreach (var kv in slotListDict)
 	        {
@@ -154,22 +154,22 @@ namespace Nianxie.Craft
 		        behavJson.listDict[kv.Key] = arr;
 		        for (int i = 0; i < arr.Length; i++)
 		        {
-			        arr[i] = kv.Value[i].PackToJson(putAsset);
+			        arr[i] = kv.Value[i].RawPack(putAsset);
 		        }
 	        }
 			return behavJson;
         }
 
-        public void UnpackFromJson(IGetAsset getAsset, AbstractSlotJson slotJson)
+        public void RawUnpack(IGetAsset getAsset, AbstractSlotJson slotJson)
         {
 	        var behavJson = (SlotBehavJson)slotJson;
 	        foreach (var kv in slotSingleDict)
 	        {
-		        kv.Value.UnpackFromJson(getAsset, behavJson.singleDict[kv.Key]);
+		        kv.Value.RawUnpack(getAsset, behavJson.singleDict[kv.Key]);
 	        }
 	        foreach (var kv in slotListDict)
 	        {
-		        kv.Value.UnpackFromJsonList(getAsset, behavJson.listDict[kv.Key]);
+		        kv.Value.RawUnpackList(getAsset, behavJson.listDict[kv.Key]);
 	        }
         }
 

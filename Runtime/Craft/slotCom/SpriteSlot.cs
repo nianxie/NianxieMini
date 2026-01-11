@@ -7,7 +7,7 @@ using Object = UnityEngine.Object;
 namespace Nianxie.Craft
 {
     [RequireComponent(typeof(SlotSelectHead))]
-    public class SpriteSlot : AbstractAssetSlot
+    public class SpriteSlot : AbstractRenderSlot<Sprite, SpriteJson>
     {
         private SpriteRenderer spriteRenderer => selectHead.selectBody.spriteRenderer;
         
@@ -42,17 +42,14 @@ namespace Nianxie.Craft
         [SerializeField]
         private bool m_FitY;
 
-        [SerializeField]
-        private SlotValue<Sprite> m_SlotValue;
-
         private void Awake()
         {
-            spriteRenderer.sprite = m_SlotValue.ReadValue();
+            spriteRenderer.sprite = m_SlotValue.Get();
         }
 
-        public override AbstractSlotJson PackToJson(IPutAsset putAsset)
+        protected override SpriteJson PackToJson(IPutAsset putAsset)
         {
-            var index = putAsset.PutSprite(m_SlotValue.ReadValue());
+            var index = putAsset.PutSprite(m_SlotValue.Get());
             var json = new SpriteJson()
             {
                 sprite=index,
@@ -60,35 +57,35 @@ namespace Nianxie.Craft
             return json;
         }
 
-        public override void UnpackFromJson(IGetAsset getAsset, AbstractSlotJson slotJson)
+        protected override void UnpackFromJson(IGetAsset getAsset, SpriteJson slotJson)
         {
-            var spriteJson = (SpriteJson) slotJson;
+            var spriteJson = slotJson;
             var sprite = getAsset.GetSprite(spriteJson.sprite);
             m_SlotValue.defaultValue = sprite;
             spriteRenderer.sprite = sprite;
         }
 
-        public override void AssignValue(object o)
+        public override void AssignValue(Sprite inputSprite)
         {
             // TODO 根据fitx和fity对sprite进行裁切。
-            var inputSprite = m_SlotValue.SafeCast(o);
             var sprite = Sprite.Create(inputSprite.texture, inputSprite.rect, Vector2.one*0.5f);
             slotCallback.Incref(this, sprite.texture);
-            if (m_SlotValue.assignedValue != null)
+            var oldValue = m_SlotValue.Set(sprite);
+            if (oldValue != null)
             {
-                slotCallback.Decref(this, m_SlotValue.assignedValue.texture);
-                Destroy(m_SlotValue.assignedValue);
+                slotCallback.Decref(this, oldValue.texture);
+                Destroy(oldValue);
             }
-            m_SlotValue.AssignValue(sprite);
             spriteRenderer.sprite = sprite;
         }
 
         private void OnDestroy()
         {
-            if (m_SlotValue.assignedValue != null)
+            var oldValue = m_SlotValue.Set(null);
+            if (oldValue != null)
             {
-                slotCallback.Decref(this, m_SlotValue.assignedValue.texture);
-                Destroy(m_SlotValue.assignedValue);
+                slotCallback.Decref(this, oldValue.texture);
+                Destroy(oldValue);
             }
         }
 #if UNITY_EDITOR

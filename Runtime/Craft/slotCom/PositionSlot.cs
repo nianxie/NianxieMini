@@ -9,13 +9,9 @@ namespace Nianxie.Craft
 {
     [RequireComponent(typeof(SlotSelectHead))]
     [DisallowMultipleComponent]
-    public class PositionSlot:AbstractSlotCom
+    public class PositionSlot:AbstractSlotCom<Vector2, PositionJson>
     {
-        [SerializeField]
-        private SlotValue<Vector2> m_SlotValue;
-
-        [BlackList]
-        public override AbstractSlotJson PackToJson(IPutAsset putAsset)
+        protected override PositionJson PackToJson(IPutAsset putAsset)
         {
             var pos = transform.localPosition;
             return new PositionJson()
@@ -25,17 +21,15 @@ namespace Nianxie.Craft
             };
         }
         
-        public override void AssignValue(object o)
-        {
-            var vec = m_SlotValue.SafeCast(o);
-            m_SlotValue.AssignValue(vec);
-        }
-
-        [BlackList]
-        public override void UnpackFromJson(IGetAsset getAsset, AbstractSlotJson slotJson)
+        protected override void UnpackFromJson(IGetAsset getAsset, PositionJson slotJson)
         {
             var posJson = (PositionJson)slotJson;
             transform.localPosition = new Vector3(posJson.x, posJson.y, -0.01f);
+        }
+        
+        public override void AssignValue(Vector2 vec)
+        {
+            m_SlotValue.Set(vec);
         }
 #if UNITY_EDITOR
         [BlackList]

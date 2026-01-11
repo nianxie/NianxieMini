@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Nianxie.Craft
 {
-    public class PositionJson:AbstractSlotJson
+    public class PositionJson:AbstractSlotJson<Vector2>
     {
         public float x;
         public float y;

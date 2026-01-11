@@ -26,7 +26,6 @@ namespace XLua
             
             // craft
             typeof(Nianxie.Craft.SlotBehaviour),
-            typeof(Nianxie.Craft.AbstractAssetSlot),
             typeof(Nianxie.Craft.AbstractRenderSlot),
             typeof(Nianxie.Craft.AbstractSlotCom),
             typeof(Nianxie.Craft.PositionSlot),

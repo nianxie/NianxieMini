@@ -1,10 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
+
 using UnityEngine;
 
 namespace Nianxie.Craft
 {
-    public class SpriteJson:AbstractSlotJson
+    public class SpriteJson:AbstractSlotJson<Sprite>
     {
         public int sprite;
     }

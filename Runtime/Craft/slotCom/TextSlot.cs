@@ -7,21 +7,31 @@ namespace Nianxie.Craft
 
     [RequireComponent(typeof(SlotSelectHead))]
     [ExecuteAlways]
-    public class TextSlot : AbstractAssetSlot
+    public class TextSlot : AbstractRenderSlot<string, TextJson>
     {
         private const string TEXT_NODE_NAME = "::text";
         [SerializeField]
         private TextMeshPro m_TextMeshPro;
 
-        [SerializeField] 
-        private SlotValue<string> m_SlotValue;
-        
         private DrivenRectTransformTracker m_RectTracker = new DrivenRectTransformTracker();
 
-        public override void AssignValue(object o)
+        protected override TextJson PackToJson(IPutAsset putAsset)
         {
-            var text = m_SlotValue.SafeCast(o);
-            m_SlotValue.AssignValue(text);
+            var json = new TextJson()
+            {
+                text = m_SlotValue.Get(),
+            };
+            return json;
+        }
+
+        protected override void UnpackFromJson(IGetAsset getAsset, TextJson textJson)
+        {
+            m_SlotValue.defaultValue = textJson.text;
+            m_TextMeshPro.text = textJson.text;
+        }
+        public override void AssignValue(string text)
+        {
+            m_SlotValue.Set(text);
             m_TextMeshPro.text = text;
         }
         
@@ -42,22 +52,6 @@ namespace Nianxie.Craft
         private void OnDestroy()
         {
             m_RectTracker.Clear();
-        }
-
-        public override AbstractSlotJson PackToJson(IPutAsset putAsset)
-        {
-            var json = new TextJson()
-            {
-                text = m_SlotValue.ReadValue(),
-            };
-            return json;
-        }
-
-        public override void UnpackFromJson(IGetAsset getAsset, AbstractSlotJson slotJson)
-        {
-            var textJson = (TextJson) slotJson;
-            m_SlotValue.defaultValue = textJson.text;
-            m_TextMeshPro.text = textJson.text;
         }
         
 #if UNITY_EDITOR
