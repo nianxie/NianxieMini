@@ -10,7 +10,7 @@ namespace Nianxie.Craft
         public Transform transform { get; }
         public void Init(SlotInjected injected);
         public SlotInjected slotInjected { get; }
-        public SlotCallback slotCallback { get; }
+        public ISlotHandler slotHandler { get; }
         public AbstractSlotJson RawPack(IPutAsset putAsset);
         public void RawUnpack(IGetAsset getAsset, AbstractSlotJson slotJson);
     }

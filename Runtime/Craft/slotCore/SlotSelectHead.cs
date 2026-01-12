@@ -35,7 +35,7 @@ namespace Nianxie.Craft
 
         void IPointerClickHandler.OnPointerClick(PointerEventData eventData)
         {
-            unionSlot.slotCallback.OnSelect(this);
+            unionSlot.slotHandler.OnSelect(this);
         }
 
         void IPointerUpHandler.OnPointerUp(PointerEventData eventData)

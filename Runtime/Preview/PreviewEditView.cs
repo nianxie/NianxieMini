@@ -24,7 +24,6 @@ namespace Nianxie.Preview
         private Button reset;
         [SerializeField]
         private Button save;
-        private DefaultCraftEntry craftEntry;
         private CraftEdit craftEdit;
         public void Main(CraftEdit craftEdit, Action<ReopenKind> reopen)
         {

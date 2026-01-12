@@ -69,11 +69,11 @@ namespace Nianxie.Craft
         {
             // TODO 根据fitx和fity对sprite进行裁切。
             var sprite = Sprite.Create(inputSprite.texture, inputSprite.rect, Vector2.one*0.5f);
-            slotCallback.Incref(this, sprite.texture);
+            slotHandler.Incref(this, sprite.texture);
             var oldValue = m_SlotValue.Set(sprite);
             if (oldValue != null)
             {
-                slotCallback.Decref(this, oldValue.texture);
+                slotHandler.Decref(this, oldValue.texture);
                 Destroy(oldValue);
             }
             spriteRenderer.sprite = sprite;
@@ -84,7 +84,7 @@ namespace Nianxie.Craft
             var oldValue = m_SlotValue.Set(null);
             if (oldValue != null)
             {
-                slotCallback.Decref(this, oldValue.texture);
+                slotHandler.Decref(this, oldValue.texture);
                 Destroy(oldValue);
             }
         }

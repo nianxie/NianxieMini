@@ -21,7 +21,7 @@ namespace Nianxie.Craft
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            craftEdit.OnSelect(null);
+            (craftEdit as ISlotHandler).OnSelect(null);
         }
     }
 }

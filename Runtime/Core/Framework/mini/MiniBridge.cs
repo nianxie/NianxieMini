@@ -22,11 +22,6 @@ namespace Nianxie.Framework
             playEnding.Action(miniManager);
         }
     }
-    public struct MiniEditArgs
-    {
-        public LuaFunction shellRefresh;
-        public LuaFunction shellRelease;
-    }
 
     public class MiniBridge: IAssetLoader
     {

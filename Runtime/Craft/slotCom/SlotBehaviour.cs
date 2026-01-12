@@ -74,14 +74,14 @@ namespace Nianxie.Craft
 	    }
 
 	    public SlotInjected slotInjected { get; private set; }
-	    public SlotCallback slotCallback { get; private set; }
+	    public ISlotHandler slotHandler { get; private set; }
 
         private Dictionary<string, IUnionSlot> slotSingleDict = new();
         private Dictionary<string, UnionSlotList> slotListDict = new();
 
         public void RootInit(CraftEdit edit)
         {
-	        slotCallback = edit;
+	        slotHandler = edit;
 	        (this as IUnionSlot).Init(null);
         }
 
@@ -90,7 +90,7 @@ namespace Nianxie.Craft
 	        if (injected != null)
 	        {
 				slotInjected = injected;
-				slotCallback = injected.behav.slotCallback;
+				slotHandler = injected.behav.slotHandler;
 	        }
 			var reflectEnv = gameManager.reflectEnv;
 	        var reflectCls = reflectEnv.GetWarmedReflect(classPath, nestedKeys);

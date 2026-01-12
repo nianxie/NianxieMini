@@ -11,9 +11,13 @@ using XLua;
 
 namespace Nianxie.Craft
 {
-    public class CraftEdit: SlotCallback, IScrollHandler, IInitializePotentialDragHandler, IBeginDragHandler, IEndDragHandler, IDragHandler
+    public struct MiniEditArgs
     {
-
+        public LuaFunction shellRefresh;
+        public LuaFunction shellRelease;
+    }
+    public class CraftEdit: ICraftEdit, ISlotHandler, IScrollHandler, IInitializePotentialDragHandler, IBeginDragHandler, IEndDragHandler, IDragHandler
+    {
         [SerializeField]
         private Camera m_Camera;
         public Camera editCamera => m_Camera;
@@ -25,11 +29,14 @@ namespace Nianxie.Craft
         public Canvas editCanvas => m_Canvas;
         [SerializeField]
         private CanvasScaler m_CanvasScaler;
+        
         [SerializeField]
-        private DefaultCraftEntry m_CraftEntry;
+        private MiniGameManager manager;
 
-        protected override MiniEditArgs editArgs => m_CraftEntry.editArgs;
         public SlotSelectHead slotSelect { get; private set; }
+        
+        private SlotBehaviour rootSlot;
+        private MiniEditArgs editArgs;
 
         void IInitializePotentialDragHandler.OnInitializePotentialDrag(PointerEventData eventData)
         {
@@ -54,7 +61,7 @@ namespace Nianxie.Craft
         {
             var delta = eventData.delta;
             editCamera.transform.position -= editCamera.ScreenToWorldPoint(delta) - editCamera.ScreenToWorldPoint(Vector3.zero);
-            ShellRefresh();
+            (this as ISlotHandler).ShellRefresh();
         }
 
         void IScrollHandler.OnScroll(PointerEventData eventData)
@@ -65,7 +72,7 @@ namespace Nianxie.Craft
             editCamera.orthographicSize = Mathf.Max(0.5f, editCamera.orthographicSize - deltaY*0.001f);
             var newPinch = editCamera.ScreenToWorldPoint(center);
             editCamera.transform.position = editCamera.transform.position - newPinch + curPinch;
-            ShellRefresh();
+            (this as ISlotHandler).ShellRefresh();
         }
 
         /// <summary>
@@ -156,8 +163,85 @@ namespace Nianxie.Craft
             return screenRect;
         }
         
+        public async UniTask<byte[]> PackCraftAsync<TPackContext>() where TPackContext:AbstractPackContext,new()
+        {
+            var ctx = new TPackContext();
+            return await ctx.PackRoot(rootSlot);
+        }
+        
+        #region // ICraftEdit
         [BlackList]
-        public override void OnSelect(SlotSelectHead slot)
+        public override async UniTask<LuaTable> PlayCraftTable(RiffPackage riffPackage)
+        {
+            if (riffPackage == null)
+            {
+                return null;
+            }
+            else
+            {
+                Debug.LogError("TODO build craft table");
+                return null;
+            }
+        }
+
+        [BlackList]
+        public async UniTask EditMain(MiniEditArgs args)
+        {
+            editArgs = args;
+            // 1. Instantiate MiniCraft as rootSlot
+            var miniCraftLuafab = manager.GetComponent<AssetModule>().AttachLuafabLoading(manager.bridge.envPaths.miniCraftLuafabPath, false);
+            await miniCraftLuafab.WaitTask;
+            var behav = miniCraftLuafab.RawFork(editArea.transform);
+            if (behav is SlotBehaviour slotBehav)
+            {
+                rootSlot = slotBehav;
+                rootSlot.RootInit(this);
+            }
+            else
+            {
+                throw new System.Exception("BehavSlot expected in root of MiniCraft");
+            }
+            // 2. unpack from root slot
+            var riffPackage = manager.bridge.riffPackage;
+            if (riffPackage != null)
+            {
+                var unpackContext = new UnpackContext(riffPackage);
+                unpackContext.UnpackRoot(rootSlot);
+            }
+        }
+        #endregion
+
+        #region // ISlotHandler
+        private Dictionary<int, Dictionary<int, AbstractSlotCom>> texIdToComDict = new();
+        void ISlotHandler.ShellRefresh()
+        {
+            editArgs.shellRefresh.Action();
+        }
+        void ISlotHandler.Incref(AbstractSlotCom com, Texture2D tex)
+        {
+            if (!texIdToComDict.TryGetValue(tex.GetInstanceID(), out var comDict))
+            {
+                comDict = new Dictionary<int, AbstractSlotCom>();
+                texIdToComDict[tex.GetInstanceID()] = comDict;
+            }
+            comDict[com.GetInstanceID()] = com;
+        }
+        void ISlotHandler.Decref(AbstractSlotCom com, Texture2D tex)
+        {
+            if (texIdToComDict.TryGetValue(tex.GetInstanceID(), out var comDict))
+            {
+                if (comDict.ContainsKey(com.GetInstanceID()))
+                {
+                    comDict.Remove(com.GetInstanceID());
+                    if (comDict.Count <= 0)
+                    {
+                        texIdToComDict.Remove(tex.GetInstanceID());
+                        editArgs.shellRelease.Action(tex);
+                    }
+                }
+            }
+        }
+        void ISlotHandler.OnSelect(SlotSelectHead slot)
         {
             if (slot == null)
             {
@@ -167,14 +251,9 @@ namespace Nianxie.Craft
             {
                 slotSelect = slot;
             }
-            ShellRefresh();
+            (this as ISlotHandler).ShellRefresh();
         }
+        #endregion
 
-        [BlackList]
-        public async UniTask<byte[]> PackCraftAsync<TPackContext>() where TPackContext:AbstractPackContext,new()
-        {
-            var ctx = new TPackContext();
-            return await ctx.PackRoot(m_CraftEntry.rootSlot);
-        }
     }
 }

@@ -120,7 +120,7 @@ namespace Nianxie.Preview
                 var delta = eventData.delta;
                 var selectTrans = craftEdit.slotSelect.posSlot.transform;
                 selectTrans.position += craftEdit.editCamera.ScreenToWorldPoint(delta) - craftEdit.editCamera.ScreenToWorldPoint(Vector3.zero);
-                craftEdit.ShellRefresh();
+                (craftEdit as ISlotHandler).ShellRefresh();
             }
         }
     }

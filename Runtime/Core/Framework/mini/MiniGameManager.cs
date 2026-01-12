@@ -4,18 +4,21 @@ using Cysharp.Threading.Tasks;
 using Nianxie.Craft;
 using Nianxie.Riff;
 using Nianxie.Utils;
+using UnityEngine;
 using UnityEngine.Assertions;
 using XLua;
 using Debug = UnityEngine.Debug;
 
 namespace Nianxie.Framework
 {
+
     public class MiniGameManager : AbstractGameManager
     {
         private bool unloaded = false;
         private MiniPlayArgs playArgs;
         public MiniBridge bridge { get; private set; }
         public LuaTable craftTable { get; private set; }
+        public ICraftEdit craftEdit;
         public async UniTask Init(MiniBridge _bridge)
         {
             Assert.IsNull(bridge, "MiniGame is running");
@@ -23,9 +26,11 @@ namespace Nianxie.Framework
             await InitGameModule();
         }
 
-        public async UniTask PlayMain(MiniPlayArgs playArgs)
+        public async UniTask PlayMain(MiniPlayArgs args)
         {
-            craftTable = GetComponent<AbstractCraftEntry>().PlayBuild();
+            playArgs = args;
+            craftEdit.gameObject.SetActive(false);
+            craftTable = await craftEdit.PlayCraftTable(bridge.riffPackage);
             await PrepareContextAndRoot();
             rootLuafabLoading.Fork(transform);
         }

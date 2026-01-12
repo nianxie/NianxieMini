@@ -35,7 +35,7 @@ namespace XLua
             // mini
             typeof(Nianxie.Framework.MiniGameManager),
             typeof(Nianxie.Framework.MiniPlayArgs),
-            typeof(Nianxie.Framework.MiniEditArgs),
+            typeof(Nianxie.Craft.MiniEditArgs),
             
             // unity items
             typeof(UnityEngine.LayerMask),

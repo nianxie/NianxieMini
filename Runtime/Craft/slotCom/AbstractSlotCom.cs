@@ -26,7 +26,7 @@ namespace Nianxie.Craft
 
     public abstract class AbstractSlotCom:MonoBehaviour
     {
-        public SlotCallback slotCallback => slotInjected.behav.slotCallback;
+        public ISlotHandler slotHandler => slotInjected.behav.slotHandler;
         public SlotInjected slotInjected { get; private set; }
 
         public void Init(SlotInjected injected)

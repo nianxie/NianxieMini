@@ -38,7 +38,8 @@ namespace Nianxie.Preview
                     shellRelease=selfWrap.Get<LuaFunction>(nameof(GizmosRelease)),
                 };
                 miniManager = await SceneAsyncUtility.CreateMiniGameAsync(bridge);
-                var craftEdit = await miniManager.GetComponent<DefaultCraftEntry>().EditMain(args);
+                var craftEdit = miniManager.craftEdit as CraftEdit;
+                await craftEdit.EditMain(args);
                 editView = makeEditView(craftEdit.editCanvas.transform);
                 editView.Main(craftEdit, (kind) =>
                 {
