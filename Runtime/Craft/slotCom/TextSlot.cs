@@ -15,7 +15,7 @@ namespace Nianxie.Craft
 
         private DrivenRectTransformTracker m_RectTracker = new DrivenRectTransformTracker();
 
-        protected override TextJson PackToJson(IPutAsset putAsset)
+        protected override TextJson TypedPackToJson(IPutAsset putAsset)
         {
             var json = new TextJson()
             {
@@ -24,7 +24,7 @@ namespace Nianxie.Craft
             return json;
         }
 
-        protected override void UnpackFromJson(IGetAsset getAsset, TextJson textJson)
+        protected override void TypedUnpackFromJson(IGetAsset getAsset, TextJson textJson)
         {
             m_SlotValue.defaultValue = textJson.text;
             m_TextMeshPro.text = textJson.text;

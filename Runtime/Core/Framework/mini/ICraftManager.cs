@@ -5,7 +5,7 @@ using XLua;
 
 namespace Nianxie.Framework
 {
-    public abstract class ICraftEdit:MonoBehaviour
+    public abstract class ICraftManager:MonoBehaviour
     {
         public abstract UniTask<LuaTable> PlayCraftTable(RiffPackage riffPackage);
     }

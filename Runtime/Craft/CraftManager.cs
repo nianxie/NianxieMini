@@ -16,7 +16,7 @@ namespace Nianxie.Craft
         public LuaFunction shellRefresh;
         public LuaFunction shellRelease;
     }
-    public class CraftEdit: ICraftEdit, ISlotHandler, IScrollHandler, IInitializePotentialDragHandler, IBeginDragHandler, IEndDragHandler, IDragHandler
+    public class CraftManager: ICraftManager, ISlotHandler, IScrollHandler, IInitializePotentialDragHandler, IBeginDragHandler, IEndDragHandler, IDragHandler
     {
         [SerializeField]
         private Camera m_Camera;
@@ -169,7 +169,7 @@ namespace Nianxie.Craft
             return await ctx.PackRoot(rootSlot);
         }
         
-        #region // ICraftEdit
+        #region ICraftEdit
         [BlackList]
         public override async UniTask<LuaTable> PlayCraftTable(RiffPackage riffPackage)
         {
@@ -179,8 +179,9 @@ namespace Nianxie.Craft
             }
             else
             {
-                Debug.LogError("TODO build craft table");
-                return null;
+                var craftRiffJson = riffPackage.custom as CraftRiffJson;
+                var unpackContext = new UnpackContext(riffPackage, manager.reflectEnv);
+                return craftRiffJson!.root.Export(unpackContext);
             }
         }
 
@@ -205,13 +206,13 @@ namespace Nianxie.Craft
             var riffPackage = manager.bridge.riffPackage;
             if (riffPackage != null)
             {
-                var unpackContext = new UnpackContext(riffPackage);
+                var unpackContext = new UnpackContext(riffPackage, manager.reflectEnv);
                 unpackContext.UnpackRoot(rootSlot);
             }
         }
         #endregion
 
-        #region // ISlotHandler
+        #region ISlotHandler
         private Dictionary<int, Dictionary<int, AbstractSlotCom>> texIdToComDict = new();
         void ISlotHandler.ShellRefresh()
         {

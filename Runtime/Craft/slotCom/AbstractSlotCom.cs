@@ -10,17 +10,17 @@ namespace Nianxie.Craft
         [SerializeField]
         protected SlotValue<TSlotTarget> m_SlotValue;
         
-        AbstractSlotJson IUnionSlot.RawPack(IPutAsset putAsset)
+        AbstractSlotJson IUnionSlot.PackToJson(IPutAsset putAsset)
         {
-            return PackToJson(putAsset);
+            return TypedPackToJson(putAsset);
         }
 
-        void IUnionSlot.RawUnpack(IGetAsset getAsset, AbstractSlotJson slotJson)
+        void IUnionSlot.UnpackFromJson(IGetAsset getAsset, AbstractSlotJson slotJson)
         {
-            UnpackFromJson(getAsset, slotJson as TSlotJson);
+            TypedUnpackFromJson(getAsset, slotJson as TSlotJson);
         }
-        protected abstract TSlotJson PackToJson(IPutAsset putAsset);
-        protected abstract void UnpackFromJson(IGetAsset getAsset, TSlotJson slotJson);
+        protected abstract TSlotJson TypedPackToJson(IPutAsset putAsset);
+        protected abstract void TypedUnpackFromJson(IGetAsset getAsset, TSlotJson slotJson);
         public abstract void AssignValue(TSlotTarget o);
     }
 
@@ -34,6 +34,16 @@ namespace Nianxie.Craft
             slotInjected = injected;
         }
 
+        /*AbstractSlotJson IUnionSlot.PackToJson(IPutAsset putAsset)
+        {
+            throw new NotImplementedException($"{nameof(IUnionSlot.PackToJson)} not implement");
+        }
+
+        void IUnionSlot.UnpackFromJson(IGetAsset getAsset, AbstractSlotJson slotJson)
+        {
+            throw new NotImplementedException($"{nameof(IUnionSlot.UnpackFromJson)} not implement");
+        }*/
+        
         protected virtual void Awake()
         {
             var pos = transform.localPosition;

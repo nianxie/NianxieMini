@@ -24,11 +24,11 @@ namespace Nianxie.Preview
         private Button reset;
         [SerializeField]
         private Button save;
-        private CraftEdit craftEdit;
-        public void Main(CraftEdit craftEdit, Action<ReopenKind> reopen)
+        private CraftManager craftManager;
+        public void Main(CraftManager craftManager, Action<ReopenKind> reopen)
         {
-            this.craftEdit = craftEdit;
-            gizmos.Main(craftEdit);
+            this.craftManager = craftManager;
+            gizmos.Main(craftManager);
             save.onClick.AddListener(Save);
             load.onClick.AddListener(() =>
             {
@@ -44,7 +44,7 @@ namespace Nianxie.Preview
         {
 #if UNITY_EDITOR
             UniTask.Create(async () => { 
-                var packBytes = await craftEdit.PackCraftAsync<SimplePackContext>();
+                var packBytes = await craftManager.PackCraftAsync<SimplePackContext>();
                 var selectPath = UnityEditor.EditorUtility.SaveFilePanel("Save Craft", Directory.GetCurrentDirectory(), "untitle", NianxieConst.Ext.CRAFT);
                 selectPath = $"{Path.GetDirectoryName(selectPath)}/{Path.GetFileNameWithoutExtension(selectPath)}.{NianxieConst.Ext.CRAFT}";
                 await File.WriteAllBytesAsync(selectPath, packBytes);

@@ -133,7 +133,7 @@ GameObject:
   - component: {fileID: 617303174}
   - component: {fileID: 617303175}
   m_Layer: 0
-  m_Name: craftEdit
+  m_Name: craftManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -366,7 +366,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: decb32ca80e442641a3b23fcd969cf96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  craftEdit: {fileID: 617303175}
+  craftManager: {fileID: 617303175}
 --- !u!114 &872981165
 MonoBehaviour:
   m_ObjectHideFlags: 0

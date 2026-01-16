@@ -57,7 +57,7 @@ namespace Nianxie.Craft
 
 				for (int i = 0; i < slotJsonArr.Length; i++)
 				{
-					list[i].RawUnpack(getAsset, slotJsonArr[i]);
+					list[i].UnpackFromJson(getAsset, slotJsonArr[i]);
 				}
 			}
 
@@ -79,9 +79,9 @@ namespace Nianxie.Craft
         private Dictionary<string, IUnionSlot> slotSingleDict = new();
         private Dictionary<string, UnionSlotList> slotListDict = new();
 
-        public void RootInit(CraftEdit edit)
+        public void RootInit(CraftManager craftManager)
         {
-	        slotHandler = edit;
+	        slotHandler = craftManager;
 	        (this as IUnionSlot).Init(null);
         }
 
@@ -141,12 +141,12 @@ namespace Nianxie.Craft
 	        // do nothing
         }
 
-        public AbstractSlotJson RawPack(IPutAsset putAsset)
+        public AbstractSlotJson PackToJson(IPutAsset putAsset)
         {
 	        var behavJson = new SlotBehavJson();
 	        foreach (var kv in slotSingleDict)
 	        {
-		        behavJson.singleDict[kv.Key] = kv.Value.RawPack(putAsset);
+		        behavJson.singleDict[kv.Key] = kv.Value.PackToJson(putAsset);
 	        }
 	        foreach (var kv in slotListDict)
 	        {
@@ -154,18 +154,18 @@ namespace Nianxie.Craft
 		        behavJson.listDict[kv.Key] = arr;
 		        for (int i = 0; i < arr.Length; i++)
 		        {
-			        arr[i] = kv.Value[i].RawPack(putAsset);
+			        arr[i] = kv.Value[i].PackToJson(putAsset);
 		        }
 	        }
 			return behavJson;
         }
 
-        public void RawUnpack(IGetAsset getAsset, AbstractSlotJson slotJson)
+        public void UnpackFromJson(IGetAsset getAsset, AbstractSlotJson slotJson)
         {
 	        var behavJson = (SlotBehavJson)slotJson;
 	        foreach (var kv in slotSingleDict)
 	        {
-		        kv.Value.RawUnpack(getAsset, behavJson.singleDict[kv.Key]);
+		        kv.Value.UnpackFromJson(getAsset, behavJson.singleDict[kv.Key]);
 	        }
 	        foreach (var kv in slotListDict)
 	        {

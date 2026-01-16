@@ -10,5 +10,9 @@ namespace Nianxie.Craft
     {
         public float x;
         public float y;
+        public override Vector2 Export(IGetAsset getAsset)
+        {
+            return new Vector2(x, y);
+        }
     }
 }

@@ -31,7 +31,7 @@ namespace XLua
             typeof(Nianxie.Craft.PositionSlot),
             typeof(Nianxie.Craft.TextSlot),
             typeof(Nianxie.Craft.CraftRiffJson),
-            typeof(Nianxie.Craft.CraftEdit),
+            typeof(Nianxie.Craft.CraftManager),
             // mini
             typeof(Nianxie.Framework.MiniGameManager),
             typeof(Nianxie.Framework.MiniPlayArgs),

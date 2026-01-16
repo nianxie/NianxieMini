@@ -23,7 +23,6 @@ namespace Nianxie.Craft
             isAssigned = true;
             var oldValue = assignedValue;
             assignedValue = value;
-            oldValue = value;
             return oldValue;
         }
     }

@@ -8,29 +8,29 @@ namespace Nianxie.Preview
 {
     public class PreviewEditGizmos : MonoBehaviour, IInitializePotentialDragHandler, IBeginDragHandler, IEndDragHandler, IDragHandler
     {
-        private CraftEdit craftEdit;
+        private CraftManager craftManager;
         /// <summary>
         /// 外部加载的Texture相关资源需要销毁，在这里记录
         /// </summary>
         private Dictionary<int, UnityEngine.Object> refObjDict = new();
 
-        public void Main(CraftEdit craftEdit)
+        public void Main(CraftManager craftManager)
         {
-            this.craftEdit = craftEdit;
+            this.craftManager = craftManager;
             Refresh();
         }
 
         public void Refresh()
         {
             var rectTransform = (RectTransform) transform;
-            if (craftEdit.slotSelect == null)
+            if (craftManager.slotSelect == null)
             {
                 gameObject.SetActive(false);
             }
             else
             {
                 gameObject.SetActive(true);
-                var rect = craftEdit.ToCanvasRect(craftEdit.slotSelect);
+                var rect = craftManager.ToCanvasRect(craftManager.slotSelect);
                 rectTransform.anchoredPosition = rect.min;
                 rectTransform.sizeDelta = rect.size;
             }
@@ -56,12 +56,12 @@ namespace Nianxie.Preview
 
         public void OnEdit()
         {
-            if (craftEdit.slotSelect == null)
+            if (craftManager.slotSelect == null)
             {
                 return;
             }
 
-            if (craftEdit.slotSelect.renderSlot is SpriteSlot spriteSlot)
+            if (craftManager.slotSelect.renderSlot is SpriteSlot spriteSlot)
             {
                 var imagePath = OpenImageFile();
                 var imageBytes = File.ReadAllBytes(imagePath);
@@ -75,19 +75,19 @@ namespace Nianxie.Preview
         }
         public void OnAppend()
         {
-            if (craftEdit.slotSelect == null)
+            if (craftManager.slotSelect == null)
             {
                 return;
             }
-            craftEdit.slotSelect.DuplicateSelf();
+            craftManager.slotSelect.DuplicateSelf();
         }
         public void OnRemove()
         {
-            if (craftEdit.slotSelect == null)
+            if (craftManager.slotSelect == null)
             {
                 return;
             }
-            craftEdit.slotSelect.DeleteSelf();
+            craftManager.slotSelect.DeleteSelf();
         }
 
         public string OpenImageFile()
@@ -111,16 +111,16 @@ namespace Nianxie.Preview
         }
         void IDragHandler.OnDrag(PointerEventData eventData)
         {
-            if (craftEdit.slotSelect == null)
+            if (craftManager.slotSelect == null)
             {
                 return;
             }
-            if (craftEdit.slotSelect.posSlot != null)
+            if (craftManager.slotSelect.posSlot != null)
             {
                 var delta = eventData.delta;
-                var selectTrans = craftEdit.slotSelect.posSlot.transform;
-                selectTrans.position += craftEdit.editCamera.ScreenToWorldPoint(delta) - craftEdit.editCamera.ScreenToWorldPoint(Vector3.zero);
-                (craftEdit as ISlotHandler).ShellRefresh();
+                var selectTrans = craftManager.slotSelect.posSlot.transform;
+                selectTrans.position += craftManager.editCamera.ScreenToWorldPoint(delta) - craftManager.editCamera.ScreenToWorldPoint(Vector3.zero);
+                (craftManager as ISlotHandler).ShellRefresh();
             }
         }
     }

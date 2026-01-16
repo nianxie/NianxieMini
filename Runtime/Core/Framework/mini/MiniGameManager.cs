@@ -18,7 +18,7 @@ namespace Nianxie.Framework
         private MiniPlayArgs playArgs;
         public MiniBridge bridge { get; private set; }
         public LuaTable craftTable { get; private set; }
-        public ICraftEdit craftEdit;
+        public ICraftManager craftManager;
         public async UniTask Init(MiniBridge _bridge)
         {
             Assert.IsNull(bridge, "MiniGame is running");
@@ -29,8 +29,8 @@ namespace Nianxie.Framework
         public async UniTask PlayMain(MiniPlayArgs args)
         {
             playArgs = args;
-            craftEdit.gameObject.SetActive(false);
-            craftTable = await craftEdit.PlayCraftTable(bridge.riffPackage);
+            craftManager.gameObject.SetActive(false);
+            craftTable = await craftManager.PlayCraftTable(bridge.riffPackage);
             await PrepareContextAndRoot();
             rootLuafabLoading.Fork(transform);
         }

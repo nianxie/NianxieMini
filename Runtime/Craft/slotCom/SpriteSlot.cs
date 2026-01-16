@@ -47,7 +47,7 @@ namespace Nianxie.Craft
             spriteRenderer.sprite = m_SlotValue.Get();
         }
 
-        protected override SpriteJson PackToJson(IPutAsset putAsset)
+        protected override SpriteJson TypedPackToJson(IPutAsset putAsset)
         {
             var index = putAsset.PutSprite(m_SlotValue.Get());
             var json = new SpriteJson()
@@ -57,7 +57,7 @@ namespace Nianxie.Craft
             return json;
         }
 
-        protected override void UnpackFromJson(IGetAsset getAsset, SpriteJson slotJson)
+        protected override void TypedUnpackFromJson(IGetAsset getAsset, SpriteJson slotJson)
         {
             var spriteJson = slotJson;
             var sprite = getAsset.GetSprite(spriteJson.sprite);

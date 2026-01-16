@@ -70,7 +70,7 @@ namespace Nianxie.Craft
 
         public async UniTask<byte[]> PackRoot(SlotBehaviour rootSlot)
         {
-            var rootJson = (SlotBehavJson)rootSlot.RawPack(this);
+            var rootJson = (SlotBehavJson)rootSlot.PackToJson(this);
             RectanglePacker.PackFromVec2s(atlasSpriteList.Select(s => s.size).ToArray(), out var packRectArr, out var atlasSize);
             var webpData = await PackAtlasWebp(packRectArr, atlasSize);
             var manifestRiffJson = new ManifestRiffJson()
