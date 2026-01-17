@@ -1,24 +1,25 @@
 ﻿using System;
+using UnityEditorInternal;
 
 namespace Nianxie.Craft
 {
     public abstract class AbstractSlotJson<TSlotTarget>:AbstractSlotJson
     {
-        public new abstract TSlotTarget Export(IGetAsset getAsset);
+        public new abstract TSlotTarget Export(UnpackContext unpackContext);
 
-        protected override object ExportAsObject(IGetAsset getAsset)
+        protected override object ExportAsObject(UnpackContext unpackContext)
         {
-            return Export(getAsset);
+            return Export(unpackContext);
         }
     }
-
+    
     public abstract class AbstractSlotJson
     {
-        public object Export(IGetAsset getAsset)
+        public object Export(UnpackContext unpackContext)
         {
-            return ExportAsObject(getAsset);
+            return ExportAsObject(unpackContext);
         }
 
-        protected abstract object ExportAsObject(IGetAsset getAsset);
+        protected abstract object ExportAsObject(UnpackContext unpackContext);
     }
 }

@@ -8,20 +8,20 @@ namespace Nianxie.Craft
     {
         public Dictionary<string, AbstractSlotJson> singleDict = new();
         public Dictionary<string, AbstractSlotJson[]> listDict = new();
-        public override LuaTable Export(IGetAsset getAsset)
+        public override LuaTable Export(UnpackContext unpackContext)
         {
-            var slotTable = getAsset.NewTable();
+            var slotTable = unpackContext.NewTable();
             foreach (var (k, v) in singleDict)
             {
-                slotTable.Set(k, v.Export(getAsset));
+                slotTable.Set(k, v.Export(unpackContext));
             }
 
             foreach (var (k, v) in listDict)
             {
-                var valueTable = getAsset.NewTable();
+                var valueTable = unpackContext.NewTable();
                 for (int i = 0; i < v.Length; i++)
                 {
-                    valueTable.Set(i+1, v[i].Export(getAsset));
+                    valueTable.Set(i+1, v[i].Export(unpackContext));
                 }
                 slotTable.Set(k, valueTable);
             }

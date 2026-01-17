@@ -1,36 +1,37 @@
+﻿using UnityEngine;
+using System.Collections.Generic;
 using Nianxie.Riff;
 using XLua;
 
 namespace Nianxie.Craft
 {
-
-    public class UnpackContext:IGetAsset
+    public class UnpackContext
     {
         private RuntimeReflectEnv env;
         private RiffPackage package;
-        private CraftRiffJson craftRiffJson;
-        public UnpackContext(RiffPackage riffPackage, RuntimeReflectEnv reflectEnv)
+        private Dictionary<string, Object> defaultObjectDict;
+        public UnpackContext(Dictionary<string, Object> defaultPathToObject, RiffPackage riffPackage, RuntimeReflectEnv reflectEnv)
         {
+            defaultObjectDict = defaultPathToObject;
             package = riffPackage;
             env = reflectEnv;
-            craftRiffJson = (riffPackage.custom as CraftRiffJson)!;
-        }
-        
-        public void UnpackRoot(SlotBehaviour rootBehav)
-        {
-            rootBehav.UnpackFromJson(this, craftRiffJson.root);
         }
 
-
-        UnityEngine.Sprite IGetAsset.GetSprite(int spriteIndex)
+        public Sprite GetSprite(int spriteIndex)
         {
             return package.sprites[spriteIndex];
         }
-
-        LuaTable IGetAsset.NewTable()
+        public Object GetBinary(int binaryIndex)
+        {
+            return package.binaries[binaryIndex];
+        }
+        public Object GetDefault(string defaultPath)
+        {
+            return defaultObjectDict[defaultPath];
+        }
+        public LuaTable NewTable()
         {
             return env.NewTable();
         }
-
     }
 }

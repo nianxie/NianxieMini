@@ -2,7 +2,7 @@
 
 namespace Nianxie.Craft
 {
-    public interface IPutAsset
+    public interface IPackContext
     {
         int PutSprite(Sprite sprite);
         int PutBinary(string ext, byte[] binary);

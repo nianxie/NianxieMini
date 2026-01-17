@@ -12,7 +12,7 @@ using Vector2 = UnityEngine.Vector2;
 
 namespace Nianxie.Craft
 {
-    public abstract class AbstractPackContext : IPutAsset
+    public abstract class AbstractPackContext : IPackContext
     {
         protected List<TypedBinary> binaryList = new();
 
@@ -44,7 +44,7 @@ namespace Nianxie.Craft
                 }
             }
         }
-        int IPutAsset.PutSprite(Sprite sprite)
+        int IPackContext.PutSprite(Sprite sprite)
         {
             var index = atlasSpriteList.Count;
             //var rect = sprite.rect;
@@ -55,7 +55,7 @@ namespace Nianxie.Craft
             return index;
         }
 
-        int IPutAsset.PutBinary(string ext, byte[] binary)
+        int IPackContext.PutBinary(string ext, byte[] binary)
         {
             var index = binaryList.Count;
             binaryList.Add(new TypedBinary
@@ -72,6 +72,11 @@ namespace Nianxie.Craft
         {
             var rootJson = (SlotBehavJson)rootSlot.PackToJson(this);
             RectanglePacker.PackFromVec2s(atlasSpriteList.Select(s => s.size).ToArray(), out var packRectArr, out var atlasSize);
+            if (atlasSize == Vector2Int.zero)
+            {
+                atlasSize = new Vector2Int(1, 1);
+            }
+
             var webpData = await PackAtlasWebp(packRectArr, atlasSize);
             var manifestRiffJson = new ManifestRiffJson()
             {

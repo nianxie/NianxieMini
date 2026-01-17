@@ -170,26 +170,9 @@ namespace Nianxie.Craft
         }
         
         #region ICraftEdit
-        [BlackList]
-        public override async UniTask<LuaTable> PlayCraftTable(RiffPackage riffPackage)
+        private async UniTask InitRootSlot()
         {
-            if (riffPackage == null)
-            {
-                return null;
-            }
-            else
-            {
-                var craftRiffJson = riffPackage.custom as CraftRiffJson;
-                var unpackContext = new UnpackContext(riffPackage, manager.reflectEnv);
-                return craftRiffJson!.root.Export(unpackContext);
-            }
-        }
-
-        [BlackList]
-        public async UniTask EditMain(MiniEditArgs args)
-        {
-            editArgs = args;
-            // 1. Instantiate MiniCraft as rootSlot
+            // Instantiate MiniCraft as rootSlot
             var miniCraftLuafab = manager.GetComponent<AssetModule>().AttachLuafabLoading(manager.bridge.envPaths.miniCraftLuafabPath, false);
             await miniCraftLuafab.WaitTask;
             var behav = miniCraftLuafab.RawFork(editArea.transform);
@@ -202,18 +185,51 @@ namespace Nianxie.Craft
             {
                 throw new System.Exception("BehavSlot expected in root of MiniCraft");
             }
-            // 2. unpack from root slot
+        }
+
+        [BlackList]
+        public override async UniTask<LuaTable> PlayCraftTable(RiffPackage riffPackage)
+        {
+            if (manager.bridge.miniConfig.craftable)
+            {
+                await InitRootSlot();
+                if (riffPackage == null)
+                {
+                    var unpackContext = new UnpackContext(defaultPathToObject, null, manager.reflectEnv);
+                    var defaultPackContext = new DefaultPackContext();
+                    var rootJson = rootSlot.PackToJson(defaultPackContext);
+                    return rootJson.Export(unpackContext);
+                }
+                else
+                {
+                    var unpackContext = new UnpackContext(defaultPathToObject, riffPackage, manager.reflectEnv);
+                    var rootJson = (riffPackage.custom as CraftRiffJson).root;
+                    return rootJson.Export(unpackContext);
+                }
+            }
+            return null;
+        }
+
+        [BlackList]
+        public async UniTask EditMain(MiniEditArgs args)
+        {
+            editArgs = args;
+            await InitRootSlot();
+            // unpack from root slot
             var riffPackage = manager.bridge.riffPackage;
             if (riffPackage != null)
             {
-                var unpackContext = new UnpackContext(riffPackage, manager.reflectEnv);
-                unpackContext.UnpackRoot(rootSlot);
+                var unpackContext = new UnpackContext(defaultPathToObject, riffPackage, manager.reflectEnv);
+                var rootJson = (riffPackage.custom as CraftRiffJson).root;
+                rootSlot.UnpackFromJson(unpackContext, rootJson);
             }
         }
         #endregion
 
         #region ISlotHandler
         private Dictionary<int, Dictionary<int, AbstractSlotCom>> texIdToComDict = new();
+        private Dictionary<string, UnityEngine.Object> defaultPathToObject= new();
+        private Dictionary<int, string> defaultInstanceIdToPath = new();
         void ISlotHandler.ShellRefresh()
         {
             editArgs.shellRefresh.Action();
@@ -254,7 +270,17 @@ namespace Nianxie.Craft
             }
             (this as ISlotHandler).ShellRefresh();
         }
-        #endregion
 
+        public void RegisterDefaultObject(string defaultPath, UnityEngine.Object defaultObj)
+        {
+            defaultPathToObject[defaultPath] = defaultObj;
+            defaultInstanceIdToPath[defaultObj.GetInstanceID()] = defaultPath;
+        }
+        public bool IsDefaultObject(UnityEngine.Object defaultObj, out string defaultPath)
+        {
+            return defaultInstanceIdToPath.TryGetValue(defaultObj.GetInstanceID(), out defaultPath);
+        }
+
+        #endregion
     }
 }

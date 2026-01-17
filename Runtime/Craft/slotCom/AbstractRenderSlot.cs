@@ -8,17 +8,17 @@ namespace Nianxie.Craft
         [SerializeField]
         protected SlotValue<TSlotTarget> m_SlotValue;
         
-        AbstractSlotJson IUnionSlot.PackToJson(IPutAsset putAsset)
+        AbstractSlotJson IUnionSlot.PackToJson(IPackContext packContext)
         {
-            return TypedPackToJson(putAsset);
+            return TypedPackToJson(packContext);
         }
 
-        void IUnionSlot.UnpackFromJson(IGetAsset getAsset, AbstractSlotJson slotJson)
+        void IUnionSlot.UnpackFromJson(UnpackContext unpackContext, AbstractSlotJson slotJson)
         {
-            TypedUnpackFromJson(getAsset, slotJson as TSlotJson);
+            TypedUnpackFromJson(unpackContext, slotJson as TSlotJson);
         }
-        protected abstract TSlotJson TypedPackToJson(IPutAsset putAsset);
-        protected abstract void TypedUnpackFromJson(IGetAsset getAsset, TSlotJson slotJson);
+        protected abstract TSlotJson TypedPackToJson(IPackContext packContext);
+        protected abstract void TypedUnpackFromJson(UnpackContext unpackContext, TSlotJson slotJson);
         public abstract void AssignValue(TSlotTarget o);
     }
     

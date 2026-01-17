@@ -12,5 +12,7 @@ namespace Nianxie.Craft
         public void Incref(AbstractSlotCom com, Texture2D tex);
         public void Decref(AbstractSlotCom com, Texture2D tex);
         public void OnSelect(SlotSelectHead slotSelect);
+        public void RegisterDefaultObject(string defaultPath, UnityEngine.Object defaultObj);
+        public bool IsDefaultObject(UnityEngine.Object defaultObj, out string defaultPath);
     }
 }

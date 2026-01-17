@@ -11,7 +11,7 @@ namespace Nianxie.Craft
     [DisallowMultipleComponent]
     public class PositionSlot:AbstractSlotCom<Vector2, PositionJson>
     {
-        protected override PositionJson TypedPackToJson(IPutAsset putAsset)
+        protected override PositionJson TypedPackToJson(IPackContext packContext)
         {
             var pos = transform.localPosition;
             return new PositionJson()
@@ -21,7 +21,7 @@ namespace Nianxie.Craft
             };
         }
         
-        protected override void TypedUnpackFromJson(IGetAsset getAsset, PositionJson slotJson)
+        protected override void TypedUnpackFromJson(UnpackContext unpackContext, PositionJson slotJson)
         {
             var posJson = (PositionJson)slotJson;
             transform.localPosition = new Vector3(posJson.x, posJson.y, -0.01f);

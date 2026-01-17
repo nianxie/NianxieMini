@@ -15,7 +15,7 @@ namespace Nianxie.Craft
         public AbstractRenderSlot renderSlot { get; private set; }
         public SlotBehaviour slotBehav { get; private set; }
         public PositionSlot posSlot { get; private set; }
-        private IUnionSlot unionSlot => slotBehav != null ? slotBehav : renderSlot as IUnionSlot;
+        private IUnionSlot unionSlot => slotBehav != null ? slotBehav : renderSlot;
         private void Awake()
         {
             slotBehav = GetComponent<SlotBehaviour>();

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Nianxie.Components;
 using Nianxie.Utils;
 using UnityEngine;
@@ -25,7 +26,7 @@ namespace Nianxie.Craft
 			    var template = list[0];
 				var newGo = Instantiate(template.gameObject, template.transform.parent);
 				var newSlot = newGo.GetComponent(template.GetType()) as IUnionSlot;
-				newSlot.Init(slotInjected);
+				newSlot.Init(slotInjected.IndexChildDynamicInjected());
 				newSlot.transform.localPosition += Vector3.right*template.gameObject.GetComponent<AbstractRenderSlot>().selectHead.selectBody.touchCollider2D.size.x*list.Count;
 				list.Add(newSlot);
 			}
@@ -44,7 +45,7 @@ namespace Nianxie.Craft
 				Debug.LogError($"try to remove {go} but it's not in this list");
 			}
 
-			public void RawUnpackList(IGetAsset getAsset, AbstractSlotJson[] slotJsonArr)
+			public void RawUnpackList(UnpackContext unpackContext, AbstractSlotJson[] slotJsonArr)
 			{
 				for (int i = list.Count; i < slotJsonArr.Length; i++)
 				{
@@ -57,7 +58,7 @@ namespace Nianxie.Craft
 
 				for (int i = 0; i < slotJsonArr.Length; i++)
 				{
-					list[i].UnpackFromJson(getAsset, slotJsonArr[i]);
+					list[i].UnpackFromJson(unpackContext, slotJsonArr[i]);
 				}
 			}
 
@@ -82,16 +83,16 @@ namespace Nianxie.Craft
         public void RootInit(CraftManager craftManager)
         {
 	        slotHandler = craftManager;
-	        (this as IUnionSlot).Init(null);
+	        (this as IUnionSlot).Init(new SlotInjected.RootInjected());
         }
 
         void IUnionSlot.Init(SlotInjected injected)
         {
-	        if (injected != null)
+			slotInjected = injected;
+	        if (injected is not SlotInjected.RootInjected)
 	        {
-				slotInjected = injected;
 				slotHandler = injected.behav.slotHandler;
-	        }
+	        } 
 			var reflectEnv = gameManager.reflectEnv;
 	        var reflectCls = reflectEnv.GetWarmedReflect(classPath, nestedKeys);
             foreach (var injection in reflectCls.nodeInjections)
@@ -101,7 +102,7 @@ namespace Nianxie.Craft
 					var obj = injection.ToNodeObject(this, injection.nodePath);
 					if (obj is IUnionSlot unionSlot)
 					{
-						unionSlot.Init(new SlotInjected(this, injection));
+						unionSlot.Init(injected.FieldChildInjected(this, injection));
 						slotSingleDict[injection.key] = unionSlot;
 					}
 					else
@@ -111,14 +112,14 @@ namespace Nianxie.Craft
 	            }
 	            else
 	            {
+		            var listInjected = injected.FieldChildInjected(this, injection);
 		            var list = new List<IUnionSlot>();
-		            var childSlotField = new SlotInjected(this, injection);
-					foreach (var path in injection.nodePathList)
+					for(int i=0;i<injection.nodePathList.Length;i++)
 					{
-						var obj = injection.ToNodeObject(this, path);
+						var obj = injection.ToNodeObject(this, injection.nodePathList[i]);
 						if (obj is IUnionSlot unionSlot)
 						{
-							unionSlot.Init(childSlotField);
+							unionSlot.Init(listInjected.IndexChildDefaultInjected(i));
 							list.Add(unionSlot);
 						}
 						else
@@ -126,7 +127,7 @@ namespace Nianxie.Craft
 							Debug.LogError($"invalid injection {whichClass}:{injection.key}");
 						}
 					}
-					slotListDict[injection.key] = new UnionSlotList(childSlotField, list);
+					slotListDict[injection.key] = new UnionSlotList(listInjected, list);
 	            }
             }
         }
@@ -141,12 +142,12 @@ namespace Nianxie.Craft
 	        // do nothing
         }
 
-        public AbstractSlotJson PackToJson(IPutAsset putAsset)
+        public SlotBehavJson PackToJson(IPackContext packContext)
         {
 	        var behavJson = new SlotBehavJson();
 	        foreach (var kv in slotSingleDict)
 	        {
-		        behavJson.singleDict[kv.Key] = kv.Value.PackToJson(putAsset);
+		        behavJson.singleDict[kv.Key] = kv.Value.PackToJson(packContext);
 	        }
 	        foreach (var kv in slotListDict)
 	        {
@@ -154,23 +155,32 @@ namespace Nianxie.Craft
 		        behavJson.listDict[kv.Key] = arr;
 		        for (int i = 0; i < arr.Length; i++)
 		        {
-			        arr[i] = kv.Value[i].PackToJson(putAsset);
+			        arr[i] = kv.Value[i].PackToJson(packContext);
 		        }
 	        }
 			return behavJson;
         }
 
-        public void UnpackFromJson(IGetAsset getAsset, AbstractSlotJson slotJson)
+        AbstractSlotJson IUnionSlot.PackToJson(IPackContext packContext)
         {
-	        var behavJson = (SlotBehavJson)slotJson;
+	        return PackToJson(packContext);
+        }
+
+        public void UnpackFromJson(UnpackContext unpackContext, SlotBehavJson behavJson)
+        {
 	        foreach (var kv in slotSingleDict)
 	        {
-		        kv.Value.UnpackFromJson(getAsset, behavJson.singleDict[kv.Key]);
+		        kv.Value.UnpackFromJson(unpackContext, behavJson.singleDict[kv.Key]);
 	        }
 	        foreach (var kv in slotListDict)
 	        {
-		        kv.Value.RawUnpackList(getAsset, behavJson.listDict[kv.Key]);
+		        kv.Value.RawUnpackList(unpackContext, behavJson.listDict[kv.Key]);
 	        }
+        }
+
+        void IUnionSlot.UnpackFromJson(UnpackContext unpackContext, AbstractSlotJson slotJson)
+        {
+	        UnpackFromJson(unpackContext, slotJson as SlotBehavJson);
         }
 
         [BlackList]

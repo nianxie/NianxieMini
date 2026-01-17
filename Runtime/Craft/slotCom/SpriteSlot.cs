@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Nianxie.Utils;
 using UnityEngine;
 using XLua;
@@ -42,25 +43,48 @@ namespace Nianxie.Craft
         [SerializeField]
         private bool m_FitY;
 
-        private void Awake()
+        public override void Init(SlotInjected injected)
         {
+            base.Init(injected);
+            if (injected is SlotInjected.DefaultInjected defaultInjected)
+            {
+                var defaultPath = string.Join(',', defaultInjected.keys);
+                injected.behav.slotHandler.RegisterDefaultObject(defaultPath, m_SlotValue.defaultValue);
+            }
+        }
+
+        protected override void Awake()
+        {
+            base.Awake();
             spriteRenderer.sprite = m_SlotValue.Get();
         }
 
-        protected override SpriteJson TypedPackToJson(IPutAsset putAsset)
+        protected override SpriteJson TypedPackToJson(IPackContext packContext)
         {
-            var index = putAsset.PutSprite(m_SlotValue.Get());
-            var json = new SpriteJson()
+            var sprite = m_SlotValue.Get();
+            if (slotHandler.IsDefaultObject(sprite, out var defaultPath))
             {
-                sprite=index,
-            };
-            return json;
+                return new SpriteJson()
+                {
+                    defaultPath=defaultPath,
+                    sprite=-1,
+                };
+            }
+            else
+            {
+                var index = packContext.PutSprite(m_SlotValue.Get());
+                return new SpriteJson()
+                {
+                    defaultPath=null,
+                    sprite=index,
+                };
+            }
         }
 
-        protected override void TypedUnpackFromJson(IGetAsset getAsset, SpriteJson slotJson)
+        protected override void TypedUnpackFromJson(UnpackContext unpackContext, SpriteJson slotJson)
         {
             var spriteJson = slotJson;
-            var sprite = getAsset.GetSprite(spriteJson.sprite);
+            var sprite = unpackContext.GetSprite(spriteJson.sprite);
             m_SlotValue.defaultValue = sprite;
             spriteRenderer.sprite = sprite;
         }
