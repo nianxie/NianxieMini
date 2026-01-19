@@ -103,17 +103,17 @@ namespace XLua
                 var miniBootTable = LoadString<LuaFunction>(miniBoot, nameof(miniBoot)).Func<LuaTable>();
                 boot = new BootTable(miniBootTable);
             }
-            LuaAPI.lua_pushstdcallcfunction(rawL, BuildPrintFunc(LogType.Log));
+            translator.Push(rawL, BuildPrintFunc(LogType.Log));
             if (0 != LuaAPI.xlua_setglobal(rawL, "print"))
             {
                 throw new Exception("call xlua_setglobal fail!");
             }
-            LuaAPI.lua_pushstdcallcfunction(rawL, BuildPrintFunc(LogType.Warning));
+            translator.Push(rawL, BuildPrintFunc(LogType.Warning));
             if (0 != LuaAPI.xlua_setglobal(rawL, "printwarn"))
             {
                 throw new Exception("call xlua_setglobal fail!");
             }
-            LuaAPI.lua_pushstdcallcfunction(rawL, BuildPrintFunc(LogType.Error));
+            translator.Push(rawL, BuildPrintFunc(LogType.Error));
             if (0 != LuaAPI.xlua_setglobal(rawL, "printerror"))
             {
                 throw new Exception("call xlua_setglobal fail!");
