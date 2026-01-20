@@ -83,8 +83,7 @@ namespace Nianxie.Craft
 
         protected override void TypedUnpackFromJson(UnpackContext unpackContext, SpriteJson slotJson)
         {
-            var spriteJson = slotJson;
-            var sprite = unpackContext.GetSprite(spriteJson.sprite);
+            var sprite = slotJson.Export(unpackContext);
             m_SlotValue.defaultValue = sprite;
             spriteRenderer.sprite = sprite;
         }

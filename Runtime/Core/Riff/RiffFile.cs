@@ -3,16 +3,17 @@ using System.Collections.Generic;
 using System.Text;
 using System.Buffers.Binary;
 using System.Linq;
+using K4os.Compression.LZ4;
 using UnityEngine.Assertions;
 
 namespace Nianxie.Riff
 {
     // 使用 ArraySegment 存储数据
     // 而在解析过程中使用 Span 进行高性能运算
-    public class RiffChunk
+    internal class RiffChunk
     {
-        public readonly uint FourCC;
-        public ArraySegment<byte> Data;// 依然保持对原始内存的引用，无拷贝
+        public uint FourCC { get; }
+        public ArraySegment<byte> Data { get; private set; } // 保持对原始内存的引用，无拷贝
 
         public RiffChunk(uint fourCC, ArraySegment<byte> data)
         {
@@ -25,21 +26,25 @@ namespace Nianxie.Riff
             return new (Data.Array, Data.Offset, Data.Count);
         }
 
-        public string GetUtf8String()
+        public void SetAsJson(AbstractRiffJson json)
         {
-            return Encoding.UTF8.GetString(Data.Array, Data.Offset, Data.Count);
+            Data = LZ4Pickler.Pickle(Encoding.UTF8.GetBytes(json.Dump()));
+        }
+        public T GetAsJson<T>() where T: AbstractRiffJson
+        {
+            return JsonCodec.Load<T>(Encoding.UTF8.GetString(LZ4Pickler.Unpickle(Data.AsSpan())));
         }
     }
     /// <summary>
     /// Riff文件，webp也是一种riff文件。
     /// </summary>
-    public class RiffFile
+    internal class RiffFile
     {
         private static uint RIFF_UINT = BinaryPrimitives.ReadUInt32LittleEndian(Encoding.ASCII.GetBytes("RIFF"));
         private static uint WEBP_UINT = BinaryPrimitives.ReadUInt32LittleEndian(Encoding.ASCII.GetBytes("WEBP"));
         private static uint NX_CUSTOM_UINT = BinaryPrimitives.ReadUInt32LittleEndian(Encoding.ASCII.GetBytes("NX_C")); // nianxie custom fourCC id
         private static uint NX_MANIFEST_UINT = BinaryPrimitives.ReadUInt32LittleEndian(Encoding.ASCII.GetBytes("NX_M")); // nianxie custom fourCC id
-        private static uint NX_BINARY_UINT = BinaryPrimitives.ReadUInt32LittleEndian(Encoding.ASCII.GetBytes("NX_B")); // nianxie custom fourCC id
+        internal static uint NX_BINARY_UINT = BinaryPrimitives.ReadUInt32LittleEndian(Encoding.ASCII.GetBytes("NX_B")); // nianxie custom fourCC id
         private IEnumerable<RiffChunk> AllChunks => WebpChunks.Concat(new []{CustomChunk, ManifestChunk}).Concat(BinaryChunks);
         private readonly RiffChunk[] WebpChunks;
         public readonly RiffChunk CustomChunk;
@@ -57,7 +62,7 @@ namespace Nianxie.Riff
         /// <summary>
         /// 序列化
         /// </summary>
-        private byte[] Dump()
+        internal byte[] Dump()
         {
             // 1. 计算总长度
             int totalSize = 12; // RIFF + Size + WEBP
@@ -100,7 +105,7 @@ namespace Nianxie.Riff
             return result;
         }
 
-        public static RiffFile Load(byte[] source)
+        internal static RiffFile Load(byte[] source)
         {
             var chunks = new List<RiffChunk>();
             ReadOnlySpan<byte> span = source;
@@ -147,27 +152,6 @@ namespace Nianxie.Riff
             return new RiffFile(chunks);
         }
 
-        public static byte[] Pack(byte[] webpData, CustomRiffJson customRiffJson, ManifestRiffJson manifestRiffJson, List<byte[]> binaries)
-        {
-            if (binaries != null)
-            {
-                Assert.IsTrue(manifestRiffJson.binaries.Length==binaries.Count, "binaries count not match when riff pack");
-            }
-            else
-            {
-                Assert.IsTrue(manifestRiffJson.binaries.Length==0, "binaries count not match when riff pack");
-            }
-
-            var riffContainer = Load(webpData);
-            riffContainer.CustomChunk.Data = Encoding.UTF8.GetBytes(customRiffJson.Dump());
-            riffContainer.ManifestChunk.Data = Encoding.UTF8.GetBytes(manifestRiffJson.Dump());
-            riffContainer.BinaryChunks.Clear();
-            for(int i=0;i<manifestRiffJson.binaries.Length;i++)
-            {
-                riffContainer.BinaryChunks.Add(new RiffChunk(NX_BINARY_UINT, binaries[i]));
-            }
-            return riffContainer.Dump();
-        }
 
     }
 }

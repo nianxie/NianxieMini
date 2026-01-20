@@ -1,13 +1,10 @@
 {
-    "name": "NianxieMini.Runtime",
+    "name": "K4os.Compression.LZ4",
     "rootNamespace": "",
-    "references": [
-        "GUID:f51ebe6a0ceec4240a699833d6309b23",
-        "GUID:9c5768f6482a45f4dbf1bb5d5f2d1275"
-    ],
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
-    "allowUnsafeCode": false,
+    "allowUnsafeCode": true,
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,

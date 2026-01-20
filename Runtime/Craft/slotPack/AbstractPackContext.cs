@@ -95,7 +95,7 @@ namespace Nianxie.Craft
             {
                 root = rootJson,
             };
-            var packBytes = RiffFile.Pack(webpData, craftJson, manifestRiffJson, binaryList.Select(a=>a.data).ToList());
+            var packBytes = RiffPackage.Pack(webpData, craftJson, manifestRiffJson, binaryList.Select(a=>a.data).ToList());
             return packBytes;
         }
     }
