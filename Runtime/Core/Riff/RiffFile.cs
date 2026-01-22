@@ -12,6 +12,8 @@ namespace Nianxie.Riff
     // 而在解析过程中使用 Span 进行高性能运算
     internal class RiffChunk
     {
+        private const int LZ4_THRESHOLD = 1024;
+        private const byte LZ4_PREFIX = (byte)'L'; // 0x4C
         public uint FourCC { get; }
         public ArraySegment<byte> Data { get; private set; } // 保持对原始内存的引用，无拷贝
 
@@ -28,11 +30,35 @@ namespace Nianxie.Riff
 
         public void SetAsJson(AbstractRiffJson json)
         {
-            Data = LZ4Pickler.Pickle(Encoding.UTF8.GetBytes(json.Dump()));
+            var jsonBytes = Encoding.UTF8.GetBytes(json.Dump());
+            if (jsonBytes.Length > LZ4_THRESHOLD)
+            {
+                var compressedBody = LZ4Pickler.Pickle(jsonBytes);
+                // 拼接：申请新数组 = 1字节前缀 + 压缩内容
+                byte[] lz4Bytes = new byte[1 + compressedBody.Length];
+
+                // 写入前缀 'L'
+                lz4Bytes[0] = LZ4_PREFIX;
+
+                // 拷贝压缩数据到 result 的 index 1 之后
+                // Buffer.BlockCopy 比 Array.Copy 略快，专门用于字节拷贝
+                Buffer.BlockCopy(compressedBody, 0, lz4Bytes, 1, compressedBody.Length);
+                Data = lz4Bytes;
+            }
+            else
+            {
+                Data = jsonBytes;
+            }
+
         }
         public T GetAsJson<T>() where T: AbstractRiffJson
         {
-            return JsonCodec.Load<T>(Encoding.UTF8.GetString(LZ4Pickler.Unpickle(Data.AsSpan())));
+            ReadOnlySpan<byte> byteSpan = Data.AsSpan();
+            if (byteSpan[0] == LZ4_PREFIX)
+            {
+                byteSpan = LZ4Pickler.Unpickle(byteSpan[1..]);
+            }
+            return JsonCodec.Load<T>(Encoding.UTF8.GetString(byteSpan));
         }
     }
     /// <summary>
