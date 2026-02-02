@@ -1,22 +1,18 @@
 
 using UnityEngine;
+using Nianxie.Riff;
 
 namespace Nianxie.Craft
 {
     public class SpriteJson:AbstractSlotJson<Sprite>
     {
-        public string defaultPath;
-        public int sprite;
+        public string builtinPath;
+        public int riffIndex;
+        public SpriteMeta meta;
         public override Sprite Export(UnpackContext unpackContext)
         {
-            if (string.IsNullOrEmpty(defaultPath))
-            {
-                return unpackContext.GetSprite(sprite);
-            }
-            else
-            {
-                return unpackContext.GetDefault(defaultPath) as Sprite;
-            }
+            var usage = unpackContext.GetTextureUsage(builtinPath, riffIndex);
+            return usage.UseAndCreateSprite(meta).sprite;
         }
     }
 }

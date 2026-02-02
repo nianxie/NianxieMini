@@ -30,7 +30,7 @@ namespace Nianxie.Framework
         {
             playArgs = args;
             craftManager.gameObject.SetActive(false);
-            craftTable = await craftManager.PlayCraftTable(bridge.riffPackage);
+            craftTable = await craftManager.PlayCraftTable();
             await PrepareContextAndRoot();
             rootLuafabLoading.Fork(transform);
         }

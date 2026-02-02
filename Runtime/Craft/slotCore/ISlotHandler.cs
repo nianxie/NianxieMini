@@ -5,14 +5,11 @@ using XLua;
 
 namespace Nianxie.Craft
 {
-    // TODO，改成interface
     public interface ISlotHandler
     {
         public void ShellRefresh();
-        public void Incref(AbstractSlotCom com, Texture2D tex);
-        public void Decref(AbstractSlotCom com, Texture2D tex);
         public void OnSelect(SlotSelectHead slotSelect);
-        public void RegisterDefaultObject(string defaultPath, UnityEngine.Object defaultObj);
-        public bool IsDefaultObject(UnityEngine.Object defaultObj, out string defaultPath);
+        public void RegisterBuiltinObject(string builtinPath, UnityEngine.Object builtinObj);
+        public bool IsBuiltinObject(UnityEngine.Object builtinObj, out string builtinPath);
     }
 }

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
+using Nianxie.Riff;
 using Nianxie.Utils;
 using UnityEngine;
 using XLua;
@@ -10,6 +12,13 @@ namespace Nianxie.Craft
     [RequireComponent(typeof(SlotSelectHead))]
     public class SpriteSlot : AbstractRenderSlot<Sprite, SpriteJson>
     {
+        [SerializeField] 
+        private Sprite m_DefaultSprite;
+        public Sprite defaultSprite => m_DefaultSprite;
+        private AssignedSprite m_AssignedSprite;
+
+        private Sprite currentSprite => m_AssignedSprite!=null?m_AssignedSprite.sprite:m_DefaultSprite;
+        
         private SpriteRenderer spriteRenderer => selectHead.selectBody.spriteRenderer;
         
         [NonSerialized] SlotSelectHead m_SlotSelectHead;
@@ -46,69 +55,97 @@ namespace Nianxie.Craft
         public override void Init(SlotInjected injected)
         {
             base.Init(injected);
-            if (injected is SlotInjected.DefaultInjected defaultInjected)
+            if (injected is SlotInjected.DefaultInjected defaultInjected && m_DefaultSprite != null)
             {
                 var defaultPath = string.Join(',', defaultInjected.keys);
-                injected.behav.slotHandler.RegisterDefaultObject(defaultPath, m_SlotValue.defaultValue);
+                injected.behav.slotHandler.RegisterBuiltinObject(defaultPath, m_DefaultSprite);
             }
         }
 
         protected override void Awake()
         {
             base.Awake();
-            spriteRenderer.sprite = m_SlotValue.Get();
+            spriteRenderer.sprite = currentSprite;
         }
 
         protected override SpriteJson TypedPackToJson(IPackContext packContext)
         {
-            var sprite = m_SlotValue.Get();
-            if (slotHandler.IsDefaultObject(sprite, out var defaultPath))
+            var json = new SpriteJson();
+            if (m_AssignedSprite != null)
             {
-                return new SpriteJson()
+                var usage = m_AssignedSprite.usage;
+                if (usage.sourceKind is BuiltinSourceKind builtinSourceKind)
                 {
-                    defaultPath=defaultPath,
-                    sprite=-1,
-                };
+                    json.builtinPath = builtinSourceKind.builtinPath;
+                    json.riffIndex = -1;
+                }
+                else if(usage.sourceKind is PackableSourceKind packableSourceKind)
+                {
+                    json.riffIndex = packableSourceKind.packRiffIndex;
+                }
+                else
+                {
+                    throw new Exception($"unexpected source kind {usage.sourceKind.GetType()}");
+                }
+                json.meta = m_AssignedSprite.meta;
             }
             else
             {
-                var index = packContext.PutSprite(m_SlotValue.Get());
-                return new SpriteJson()
+                if (slotHandler.IsBuiltinObject(defaultSprite, out var builtinPath))
                 {
-                    defaultPath=null,
-                    sprite=index,
-                };
+                    json.builtinPath=builtinPath;
+                    json.meta=new SpriteMeta()
+                    {
+                        rect=IntRectangle.FromUnityRect(defaultSprite.textureRect),
+                        pivot=defaultSprite.pivot,
+                        pixelsPerUnit=defaultSprite.pixelsPerUnit,
+                    };
+                }
+                else
+                {
+                    throw new Exception("default sprite is not builtin");
+                }
             }
+            return json;
         }
 
         protected override void TypedUnpackFromJson(UnpackContext unpackContext, SpriteJson slotJson)
         {
-            var sprite = slotJson.Export(unpackContext);
-            m_SlotValue.defaultValue = sprite;
-            spriteRenderer.sprite = sprite;
+            var usage = unpackContext.GetTextureUsage(slotJson.builtinPath, slotJson.riffIndex);
+            m_AssignedSprite = usage.UseAndCreateSprite(slotJson.meta);
+            spriteRenderer.sprite = m_AssignedSprite.sprite;
         }
 
-        public override void AssignValue(Sprite inputSprite)
+        public void Assign(TextureUsage texUsage)
         {
             // TODO 根据fitx和fity对sprite进行裁切。
-            var sprite = Sprite.Create(inputSprite.texture, inputSprite.rect, Vector2.one*0.5f);
-            slotHandler.Incref(this, sprite.texture);
-            var oldValue = m_SlotValue.Set(sprite);
-            if (oldValue != null)
+            // TODO 这里rect和pivot填写的不太好，也好像不正确，考虑等会儿优化一下。
+            var width = defaultSprite.rect.width;
+            var height = defaultSprite.rect.height;
+            var newAssignedSprite = texUsage.UseAndCreateSprite(new SpriteMeta
             {
-                slotHandler.Decref(this, oldValue.texture);
-                Destroy(oldValue);
+                rect=new IntRectangle(0, 0, Mathf.RoundToInt(width), Mathf.RoundToInt(height)), 
+                pivot=Vector2.zero, 
+                pixelsPerUnit=100,
+            });
+            if(m_AssignedSprite!=null)
+            {
+                m_AssignedSprite.usage.DelUsage(m_AssignedSprite);
             }
-            spriteRenderer.sprite = sprite;
+            m_AssignedSprite = newAssignedSprite;
+            spriteRenderer.sprite = currentSprite;
+            if (TryGetComponent<PolygonSlot>(out var polygonSlot))
+            {
+                polygonSlot.CalculatePolygon(newAssignedSprite.sprite);
+            }
         }
 
         private void OnDestroy()
         {
-            var oldValue = m_SlotValue.Set(null);
-            if (oldValue != null)
+            if(m_AssignedSprite!=null)
             {
-                slotHandler.Decref(this, oldValue.texture);
-                Destroy(oldValue);
+                m_AssignedSprite.usage.DelUsage(m_AssignedSprite);
+                m_AssignedSprite = null;
             }
         }
 #if UNITY_EDITOR
@@ -120,7 +157,6 @@ namespace Nianxie.Craft
         [BlackList]
         public override void EditorLocalUpdate(NianxieDefaultAssets defaultAssets)
         {
-            var defaultSprite = m_SlotValue.defaultValue;
             if (defaultSprite != null)
             {
                 var selectBody = selectHead.selectBody;

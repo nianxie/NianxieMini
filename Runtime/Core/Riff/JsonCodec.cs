@@ -45,6 +45,46 @@ namespace Nianxie.Riff
                 }
             }
         }
+        private class Vector2Converter : JsonConverter<Vector2>
+        {
+            public override void WriteJson(JsonWriter writer, Vector2 value, JsonSerializer serializer)
+            {
+                writer.WriteStartObject();
+                writer.WritePropertyName("x");
+                writer.WriteValue(value.x);
+                writer.WritePropertyName("y");
+                writer.WriteValue(value.y);
+                writer.WriteEndObject();
+            }
+
+            public override Vector2 ReadJson(JsonReader reader, Type objectType, Vector2 existingValue, bool hasExistingValue, JsonSerializer serializer)
+            {
+                float x = 0, y = 0;
+                while (reader.Read())
+                {
+                    if (reader.TokenType == JsonToken.PropertyName)
+                    {
+                        string propertyName = reader.Value.ToString();
+                        reader.Read(); // Advance to the value
+
+                        switch (propertyName)
+                        {
+                            case "x":
+                                x = Convert.ToSingle(reader.Value);
+                                break;
+                            case "y":
+                                y = Convert.ToSingle(reader.Value);
+                                break;
+                        }
+                    }
+                    else if (reader.TokenType == JsonToken.EndObject)
+                    {
+                        break;
+                    }
+                }
+                return new Vector2(x, y);
+            }
+        }
         private class Vector2IntConverter : JsonConverter<Vector2Int>
         {
             public override void WriteJson(JsonWriter writer, Vector2Int value, JsonSerializer serializer)
@@ -104,6 +144,7 @@ namespace Nianxie.Riff
                     Converters = new JsonConverter[]
                     {
                         new Vector2IntConverter(),
+                        new Vector2Converter(),
                     }
                 };
                 serializer = JsonSerializer.CreateDefault(dumpSettings);

@@ -56,7 +56,7 @@ namespace Nianxie.Preview
                             await reserveBridge.OpenCraft();
                         }
                         await newEditGame.Main(makeEditView, onReopen);
-                    });
+                    }).Forget();
                 });
             }
 

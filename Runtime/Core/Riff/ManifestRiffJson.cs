@@ -11,11 +11,9 @@ namespace Nianxie.Riff
     {
         public override string version => "0.0.1";
 
-        public class SpriteMeta
+        public class RegionMeta
         {
             public IntRectangle rect;
-            public Vector2Int pivot;
-            public float pixelsPerUnit;
         }
 
         public class BinaryMeta
@@ -23,7 +21,7 @@ namespace Nianxie.Riff
             public string ext;
         }
 
-        public SpriteMeta[] sprites = { };
+        public RegionMeta[] regions;
         public BinaryMeta[] binaries = { };
     }
 }

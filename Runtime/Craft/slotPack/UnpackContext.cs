@@ -8,26 +8,23 @@ namespace Nianxie.Craft
     public class UnpackContext
     {
         private RuntimeReflectEnv env;
-        private RiffPackage package;
-        private Dictionary<string, Object> defaultObjectDict;
-        public UnpackContext(Dictionary<string, Object> defaultPathToObject, RiffPackage riffPackage, RuntimeReflectEnv reflectEnv)
+        private AssetUsageCenter assetUsageCenter;
+        public UnpackContext(AssetUsageCenter usageCenter, RuntimeReflectEnv reflectEnv)
         {
-            defaultObjectDict = defaultPathToObject;
-            package = riffPackage;
+            assetUsageCenter = usageCenter;
             env = reflectEnv;
         }
 
-        public Sprite GetSprite(int spriteIndex)
+        public TextureUsage GetTextureUsage(string builtinPath, int riffIndex)
         {
-            return package.sprites[spriteIndex];
-        }
-        public Object GetBinary(int binaryIndex)
-        {
-            return package.binaries[binaryIndex];
-        }
-        public Object GetDefault(string defaultPath)
-        {
-            return defaultObjectDict[defaultPath];
+            if (!string.IsNullOrEmpty(builtinPath))
+            {
+                return assetUsageCenter.GetBuiltinTextureUsage(builtinPath);
+            }
+            else
+            {
+                return assetUsageCenter.GetRiffTextureUsage(riffIndex);
+            }
         }
         public LuaTable NewTable()
         {

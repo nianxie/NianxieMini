@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -11,6 +10,7 @@ namespace Nianxie.Riff
     {
         public CustomRiffJson custom { get; private set; }
         public Sprite[] sprites { get; private set; }
+        public TextureRegion[] texRegions { get; private set; }
         public Object[] binaries { get; private set; }
 
         /// <summary>
@@ -26,11 +26,10 @@ namespace Nianxie.Riff
             var riffContainer = RiffFile.Load(riffBytes);
             riffPackage.custom = riffContainer.CustomChunk.GetAsJson<CustomRiffJson>();
             var manifestJson = riffContainer.ManifestChunk.GetAsJson<ManifestRiffJson>();
-            riffPackage.sprites = new Sprite[manifestJson.sprites.Length];
-            for (int i = 0; i < riffPackage.sprites.Length; i++)
+            riffPackage.texRegions = new TextureRegion[manifestJson.regions.Length];
+            for (int i = 0; i < riffPackage.texRegions.Length; i++)
             {
-                var meta = manifestJson.sprites[i];
-                riffPackage.sprites[i] = Sprite.Create(texture, meta.rect.ToUnityRect(), new Vector2(1.0f*meta.pivot.x/meta.rect.width, 1.0f*meta.pivot.y/meta.rect.height), meta.pixelsPerUnit);
+                riffPackage.texRegions[i] = new TextureRegion(texture, manifestJson.regions[i].rect);
             }
 
             riffPackage.binaries = new Object[manifestJson.binaries.Length];
@@ -45,15 +44,6 @@ namespace Nianxie.Riff
 
         private void OnDestroy()
         {
-            if (sprites != null)
-            {
-                for (int i = 0; i < sprites.Length; i++)
-                {
-                    Destroy(sprites[i]);
-                }
-                sprites = null;
-            }
-
             if (binaries != null)
             {
                 for (int i = 0; i < binaries.Length; i++)

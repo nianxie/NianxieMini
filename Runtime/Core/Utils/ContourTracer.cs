@@ -5,47 +5,47 @@ using UnityEngine;
 
 namespace Nianxie.Craft
 {
-    public static class ContourTracerExtension
-    {
-        public static void SyncShape(this SpriteRenderer spriteRenderer)
-        {
-            var tick1 = DateTime.Now.Ticks;
-            Sprite sprite = spriteRenderer.sprite;
-            var path = ContourTracer.CalcPolygon(sprite.texture.GetPixels(), new Vector2Int(sprite.texture.width, sprite.texture.height), 1);
-
-            var tick2 = DateTime.Now.Ticks;
-            Debug.Log($" collider time: {(tick2-tick1)/10000}ms");
-            var collider = spriteRenderer.GetComponent<PolygonCollider2D>();
-            if (collider == null)
-            {
-                collider = spriteRenderer.gameObject.AddComponent<PolygonCollider2D>();
-            }
-
-            collider.pathCount = path.Count;
-            for (int i = 0; i < path.Count; i++)
-            {
-                collider.SetPath(i, path[i]);
-            }
-        }
-    }
-
     // code from https://discussions.unity.com/t/generate-physics-shape-from-sprite/809122/4
     public class ContourTracer
     {
-        public const float TOLERANCE = 5.0f;
-        public const uint GAP_LENGTH = 3;
-        public const float PRODUCT = 0.99f;
-        public static List<Vector2[]> CalcPolygon(Color[] pixels, Vector2Int textureSize, float rateTo1024)
+        private const float TOLERANCE_RATIO = 0.015f; // 0.01f 大约表示在LineUtility.Simplify的时候1%的精度
+        private const uint OUTLINER_GAP_LENGTH = 3; // How much difference in pixels in a straight line is considered a gap. This can help smooth out the outline a bit.
+        private const float OUTLINER_PRODUCT = 0.99f; // Product for optimizing the outline based on angle. 1 means no optimization. This value should be kept pretty high if you want to maintain round shapes. Note that some points (e.g. outer angles) are never optimized.
+        public static List<Vector2[]> CalcPolygon(Color32[] pixels, Vector2Int textureSize, Vector2 pivot, float pixelsPerUnit)
         {
             var tracer = new ContourTracer();
-            tracer.Trace(pixels, textureSize, Vector2.zero, 1, GAP_LENGTH, PRODUCT);
+            tracer.Trace(pixels, textureSize, pivot, pixelsPerUnit, OUTLINER_GAP_LENGTH, OUTLINER_PRODUCT);
             var path = new List<Vector2[]>();
             var points = new List<Vector2>();
             for (var i = 0; i < tracer.pathCount; i++)
             {
                 tracer.GetPath(i, ref points);
                 var result = new List<Vector2>();
-                LineUtility.Simplify(points, TOLERANCE*rateTo1024, result);
+                // 基于包围盒大小动态计算 tolerance
+                Bounds bounds = new Bounds(points[0], Vector3.zero);
+                for (int j = 1; j < points.Count; j++)
+                {
+                    bounds.Encapsulate(points[j]);
+                }
+                float sizeMetric = bounds.size.magnitude;
+                if (sizeMetric < 0.0001f) sizeMetric = 1f;
+                float adaptiveTolerance = sizeMetric * TOLERANCE_RATIO;
+
+                // 进行简化
+                LineUtility.Simplify(points, adaptiveTolerance, result);
+                // 如果点数过多(>30)，将tolerance乘以1.5倍再次计算
+                for(int tryCount=0;tryCount<5 && result.Count>30;tryCount++)
+                {
+                    var tryNextTolerance = adaptiveTolerance * 1.5f;
+                    var tryNextResult = new List<Vector2>();
+                    LineUtility.Simplify(points, tryNextTolerance, tryNextResult);
+                    if (tryNextResult.Count < 3)
+                    {
+                        break;
+                    }
+                    result = tryNextResult;
+                    adaptiveTolerance = tryNextTolerance;
+                }
                 if (result.Count >= 3)
                 {
                     path.Add(result.ToArray());
@@ -114,12 +114,7 @@ namespace Nianxie.Craft
             return pointIndex;
         }
 
-        /// <include file='../Documentation.xml' path='docs/ContourTracer/Trace/*'/>
-        public void TraceTexture2D(Texture2D tex, Vector2 pivot, float pixelsPerUnit, uint gapLength, float product)
-        {
-            Trace(tex.GetPixels(), new Vector2Int(tex.width, tex.height), pivot, pixelsPerUnit, gapLength, product);
-        }
-        public void Trace(Color[] pixels, Vector2Int textureSize, Vector2 pivot, float pixelsPerUnit, uint gapLength, float product)
+        private void Trace(Color32[] pixels, Vector2Int textureSize, Vector2 pivot, float pixelsPerUnit, uint gapLength, float product)
         {
             //Debug.LogWarning($"Trace method is still missing support for InnerOuter points.");
             //Debug.LogWarning($"Trace method is still missing support for Rect.");
@@ -150,7 +145,7 @@ namespace Nianxie.Craft
             bool IsBorder(int _x, int _y)
             {
                 int pixelIndex = _y * textureWidth + _x;
-                return pixels[pixelIndex].r != 0f;
+                return pixels[pixelIndex].a != 0f;
             }
             bool IsBorderSafe(int _x, int _y) => _y >= 0 && _y < textureHeight && _x >= 0 && _x < textureWidth && IsBorder(_x, _y);
 

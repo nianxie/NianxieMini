@@ -44,7 +44,7 @@ namespace Nianxie.Preview
         {
 #if UNITY_EDITOR
             UniTask.Create(async () => { 
-                var packBytes = await craftManager.PackCraftAsync<SimplePackContext>();
+                var packBytes = await craftManager.PackCraftAsync<PackContext>();
                 var selectPath = UnityEditor.EditorUtility.SaveFilePanel("Save Craft", Directory.GetCurrentDirectory(), "untitle", NianxieConst.Ext.CRAFT);
                 selectPath = $"{Path.GetDirectoryName(selectPath)}/{Path.GetFileNameWithoutExtension(selectPath)}.{NianxieConst.Ext.CRAFT}";
                 await File.WriteAllBytesAsync(selectPath, packBytes);

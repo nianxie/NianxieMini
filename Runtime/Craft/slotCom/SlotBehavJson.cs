@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using Nianxie.Framework;
 using XLua;
 
 namespace Nianxie.Craft
 {
     public class SlotBehavJson: AbstractSlotJson<LuaTable>
     {
+        public string classPath = "";
+        public string[] nestedKeys = EnvPaths.NESTED_KEYS_EMPTY;
         public Dictionary<string, AbstractSlotJson> singleDict = new();
         public Dictionary<string, AbstractSlotJson[]> listDict = new();
         public override LuaTable Export(UnpackContext unpackContext)

@@ -15,6 +15,8 @@ namespace Nianxie.Craft
 
         private DrivenRectTransformTracker m_RectTracker = new DrivenRectTransformTracker();
 
+        [SerializeField]
+        private SlotValue<string> m_SlotValue;
         protected override TextJson TypedPackToJson(IPackContext packContext)
         {
             var json = new TextJson()
@@ -29,7 +31,7 @@ namespace Nianxie.Craft
             m_SlotValue.defaultValue = textJson.text;
             m_TextMeshPro.text = textJson.text;
         }
-        public override void AssignValue(string text)
+        public void Assign(string text)
         {
             m_SlotValue.Set(text);
             m_TextMeshPro.text = text;

@@ -24,6 +24,7 @@ namespace Nianxie.Craft
             }
         }
 
+        // prefab中写定的slot会持有这个injected
         public class DefaultInjected:SlotInjected
         {
             public readonly string[] keys;
@@ -47,6 +48,7 @@ namespace Nianxie.Craft
             }
         }
 
+        // 通过添加操作动态创建的slot会持有这个injected
         public class DynamicInjected:SlotInjected
         {
             public DynamicInjected(SlotBehaviour slotBehav, AbstractNodeInjection nodeInjection) : base(slotBehav, nodeInjection)

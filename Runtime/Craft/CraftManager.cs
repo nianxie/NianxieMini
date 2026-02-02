@@ -33,10 +33,15 @@ namespace Nianxie.Craft
         [SerializeField]
         private MiniGameManager manager;
 
+        [SerializeField] 
+        private AssetUsageCenter m_AssetUsageCenter;
+        public AssetUsageCenter assetUsageCenter => m_AssetUsageCenter;
         public SlotSelectHead slotSelect { get; private set; }
         
         private SlotBehaviour rootSlot;
-        private MiniEditArgs editArgs;
+        
+        [BlackList]
+        public MiniEditArgs editArgs;
 
         void IInitializePotentialDragHandler.OnInitializePotentialDrag(PointerEventData eventData)
         {
@@ -163,13 +168,13 @@ namespace Nianxie.Craft
             return screenRect;
         }
         
-        public async UniTask<byte[]> PackCraftAsync<TPackContext>() where TPackContext:AbstractPackContext,new()
+        public async UniTask<byte[]> PackCraftAsync<T>()
         {
-            var ctx = new TPackContext();
+            var ctx = new PackContext(assetUsageCenter);
             return await ctx.PackRoot(rootSlot);
         }
         
-        #region ICraftEdit
+        #region ICraftManager
         private async UniTask InitRootSlot()
         {
             // Instantiate MiniCraft as rootSlot
@@ -188,21 +193,23 @@ namespace Nianxie.Craft
         }
 
         [BlackList]
-        public override async UniTask<LuaTable> PlayCraftTable(RiffPackage riffPackage)
+        public override async UniTask<LuaTable> PlayCraftTable()
         {
             if (manager.bridge.miniConfig.craftable)
             {
+                assetUsageCenter.Main();
+                var riffPackage = manager.bridge.riffPackage;
                 await InitRootSlot();
                 if (riffPackage == null)
                 {
-                    var unpackContext = new UnpackContext(defaultPathToObject, null, manager.reflectEnv);
+                    var unpackContext = new UnpackContext(assetUsageCenter, manager.reflectEnv);
                     var defaultPackContext = new DefaultPackContext();
-                    var rootJson = rootSlot.PackToJson(defaultPackContext);
+                    var rootJson = rootSlot.TypedPackToJson(defaultPackContext);
                     return rootJson.Export(unpackContext);
                 }
                 else
                 {
-                    var unpackContext = new UnpackContext(defaultPathToObject, riffPackage, manager.reflectEnv);
+                    var unpackContext = new UnpackContext(assetUsageCenter, manager.reflectEnv);
                     var rootJson = (riffPackage.custom as CraftRiffJson).root;
                     return rootJson.Export(unpackContext);
                 }
@@ -214,49 +221,24 @@ namespace Nianxie.Craft
         public async UniTask EditMain(MiniEditArgs args)
         {
             editArgs = args;
+            assetUsageCenter.Main();
             await InitRootSlot();
             // unpack from root slot
             var riffPackage = manager.bridge.riffPackage;
             if (riffPackage != null)
             {
-                var unpackContext = new UnpackContext(defaultPathToObject, riffPackage, manager.reflectEnv);
+                var unpackContext = new UnpackContext(assetUsageCenter, manager.reflectEnv);
                 var rootJson = (riffPackage.custom as CraftRiffJson).root;
-                rootSlot.UnpackFromJson(unpackContext, rootJson);
+                rootSlot.TypedUnpackFromJson(unpackContext, rootJson);
             }
         }
         #endregion
 
         #region ISlotHandler
-        private Dictionary<int, Dictionary<int, AbstractSlotCom>> texIdToComDict = new();
-        private Dictionary<string, UnityEngine.Object> defaultPathToObject= new();
-        private Dictionary<int, string> defaultInstanceIdToPath = new();
+
         void ISlotHandler.ShellRefresh()
         {
             editArgs.shellRefresh.Action();
-        }
-        void ISlotHandler.Incref(AbstractSlotCom com, Texture2D tex)
-        {
-            if (!texIdToComDict.TryGetValue(tex.GetInstanceID(), out var comDict))
-            {
-                comDict = new Dictionary<int, AbstractSlotCom>();
-                texIdToComDict[tex.GetInstanceID()] = comDict;
-            }
-            comDict[com.GetInstanceID()] = com;
-        }
-        void ISlotHandler.Decref(AbstractSlotCom com, Texture2D tex)
-        {
-            if (texIdToComDict.TryGetValue(tex.GetInstanceID(), out var comDict))
-            {
-                if (comDict.ContainsKey(com.GetInstanceID()))
-                {
-                    comDict.Remove(com.GetInstanceID());
-                    if (comDict.Count <= 0)
-                    {
-                        texIdToComDict.Remove(tex.GetInstanceID());
-                        editArgs.shellRelease.Action(tex);
-                    }
-                }
-            }
         }
         void ISlotHandler.OnSelect(SlotSelectHead slot)
         {
@@ -271,16 +253,14 @@ namespace Nianxie.Craft
             (this as ISlotHandler).ShellRefresh();
         }
 
-        public void RegisterDefaultObject(string defaultPath, UnityEngine.Object defaultObj)
+        void ISlotHandler.RegisterBuiltinObject(string builtinPath, UnityEngine.Object builtinObj)
         {
-            defaultPathToObject[defaultPath] = defaultObj;
-            defaultInstanceIdToPath[defaultObj.GetInstanceID()] = defaultPath;
+            assetUsageCenter.RegisterBuiltinObject(builtinPath, builtinObj);
         }
-        public bool IsDefaultObject(UnityEngine.Object defaultObj, out string defaultPath)
+        bool ISlotHandler.IsBuiltinObject(UnityEngine.Object builtinObj, out string builtinPath)
         {
-            return defaultInstanceIdToPath.TryGetValue(defaultObj.GetInstanceID(), out defaultPath);
+            return assetUsageCenter.IsBuiltinObject(builtinObj, out builtinPath);
         }
-
         #endregion
     }
 }

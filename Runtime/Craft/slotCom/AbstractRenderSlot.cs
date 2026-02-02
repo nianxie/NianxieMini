@@ -5,9 +5,6 @@ namespace Nianxie.Craft
 {
     public abstract class AbstractRenderSlot<TSlotTarget, TSlotJson>:AbstractRenderSlot, IUnionSlot where TSlotJson:AbstractSlotJson<TSlotTarget>
     {
-        [SerializeField]
-        protected SlotValue<TSlotTarget> m_SlotValue;
-        
         AbstractSlotJson IUnionSlot.PackToJson(IPackContext packContext)
         {
             return TypedPackToJson(packContext);
@@ -19,7 +16,6 @@ namespace Nianxie.Craft
         }
         protected abstract TSlotJson TypedPackToJson(IPackContext packContext);
         protected abstract void TypedUnpackFromJson(UnpackContext unpackContext, TSlotJson slotJson);
-        public abstract void AssignValue(TSlotTarget o);
     }
     
     [RequireComponent(typeof(SlotSelectHead))]

@@ -70,7 +70,7 @@ namespace Nianxie.Craft
 
         public async UniTask<byte[]> PackRoot(SlotBehaviour rootSlot)
         {
-            var rootJson = (SlotBehavJson)rootSlot.PackToJson(this);
+            var rootJson = rootSlot.TypedPackToJson(this);
             RectanglePacker.PackFromVec2s(atlasSpriteList.Select(s => s.size).ToArray(), out var packRectArr, out var atlasSize);
             if (atlasSize == Vector2Int.zero)
             {
@@ -80,13 +80,11 @@ namespace Nianxie.Craft
             var webpData = await PackAtlasWebp(packRectArr, atlasSize);
             var manifestRiffJson = new ManifestRiffJson()
             {
-                sprites = atlasSpriteList.Select((s,i)=>new ManifestRiffJson.SpriteMeta()
+                regions= atlasSpriteList.Select((s,i)=>new ManifestRiffJson.RegionMeta()
                 {
                     rect=packRectArr[i],
-                    pivot=s.pivot,
-                    pixelsPerUnit=s.sprite.pixelsPerUnit,
                 }).ToArray(),
-                binaries = binaryList.Select(a=>new ManifestRiffJson.BinaryMeta()
+                binaries=binaryList.Select(a=>new ManifestRiffJson.BinaryMeta()
                 {
                     ext=a.ext,
                 }).ToArray(),

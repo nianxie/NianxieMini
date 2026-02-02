@@ -40,6 +40,11 @@ namespace Nianxie.Craft
 		{
 			return new Rect(x, y, width, height);
 		}
+
+		public static IntRectangle FromUnityRect(Rect rect)
+		{
+			return new (Mathf.RoundToInt(rect.x), Mathf.RoundToInt(rect.y), Mathf.RoundToInt(rect.width), Mathf.RoundToInt(rect.height));
+		}
 	}
 
 	// https://github.com/villekoskelaorg/RectanglePacking
@@ -80,7 +85,7 @@ namespace Nianxie.Craft
             return resultTexture;
 	    }
 
-	    public static void PackFromVec2s(Vector2Int[] vec2Ints, out IntRectangle[] rectArr, out Vector2Int packSize)
+	    public static void PackFromVec2s(Vector2Int[] vec2Ints, out IntRectangle[] packRectArr, out Vector2Int packSize)
 	    {
 		    var indexItems = vec2Ints.Select((vec2, index) =>
 		    new {
@@ -88,10 +93,10 @@ namespace Nianxie.Craft
 			    rect=new IntRectangle(0, 0, vec2.x, vec2.y),
 		    }).OrderByDescending(a=>a.rect.width*a.rect.height).ToArray();
 		    packSize = PackRectsInplace(indexItems.Select(a => a.rect).ToArray());
-		    rectArr = new IntRectangle[vec2Ints.Length];
+		    packRectArr = new IntRectangle[vec2Ints.Length];
 		    foreach (var indexItem in indexItems)
 		    {
-			    rectArr[indexItem.index] = indexItem.rect;
+			    packRectArr[indexItem.index] = indexItem.rect;
 		    }
 	    }
 	    

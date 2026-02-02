@@ -1,8 +1,4 @@
-﻿using Nianxie.Utils;
-using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.SceneManagement;
-using System;
+﻿using UnityEngine;
 using XLua;
 
 namespace Nianxie.Craft
@@ -21,9 +17,8 @@ namespace Nianxie.Craft
             };
         }
         
-        protected override void TypedUnpackFromJson(UnpackContext unpackContext, PositionJson slotJson)
+        protected override void TypedUnpackFromJson(UnpackContext unpackContext, PositionJson posJson)
         {
-            var posJson = (PositionJson)slotJson;
             transform.localPosition = new Vector3(posJson.x, posJson.y, -0.01f);
         }
         

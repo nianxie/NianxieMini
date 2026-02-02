@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Nianxie.Craft;
+using Nianxie.Riff;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -68,9 +69,8 @@ namespace Nianxie.Preview
                 var tex = new Texture2D(2,2);
                 tex.LoadImage(imageBytes);
                 refObjDict[tex.GetInstanceID()] = tex;
-                var sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), Vector2.one*0.5f);
-                spriteSlot.AssignValue(sprite);
-                UnityEngine.Object.Destroy(sprite);
+                var texUsage = craftManager.assetUsageCenter.UploadTexture(tex);
+                spriteSlot.Assign(texUsage);
             }
         }
         public void OnAppend()

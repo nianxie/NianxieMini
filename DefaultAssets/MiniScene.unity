@@ -132,6 +132,7 @@ GameObject:
   m_Component:
   - component: {fileID: 617303174}
   - component: {fileID: 617303175}
+  - component: {fileID: 617303176}
   m_Layer: 0
   m_Name: craftManager
   m_TagString: Untagged
@@ -174,6 +175,21 @@ MonoBehaviour:
   m_Canvas: {fileID: 1795361716}
   m_CanvasScaler: {fileID: 1795361715}
   manager: {fileID: 872981160}
+  m_AssetUsageCenter: {fileID: 617303176}
+--- !u!114 &617303176
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 617303173}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4beeefae5aa0d9240a70b772f2383be1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  craftManager: {fileID: 617303175}
+  gameManager: {fileID: 872981160}
 --- !u!1 &647652546
 GameObject:
   m_ObjectHideFlags: 0
