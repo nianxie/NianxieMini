@@ -5,17 +5,17 @@ namespace Nianxie.Craft
 {
     public abstract class AbstractRenderSlot<TSlotTarget, TSlotJson>:AbstractRenderSlot, IUnionSlot where TSlotJson:AbstractSlotJson<TSlotTarget>
     {
-        AbstractSlotJson IUnionSlot.PackToJson(IPackContext packContext)
+        AbstractSlotJson IUnionSlot.PackToJson()
         {
-            return TypedPackToJson(packContext);
+            return TypedPackToJson();
         }
 
-        void IUnionSlot.UnpackFromJson(UnpackContext unpackContext, AbstractSlotJson slotJson)
+        void IUnionSlot.UnpackFromJson(AbstractSlotJson slotJson)
         {
-            TypedUnpackFromJson(unpackContext, slotJson as TSlotJson);
+            TypedUnpackFromJson(slotJson as TSlotJson);
         }
-        protected abstract TSlotJson TypedPackToJson(IPackContext packContext);
-        protected abstract void TypedUnpackFromJson(UnpackContext unpackContext, TSlotJson slotJson);
+        protected abstract TSlotJson TypedPackToJson();
+        protected abstract void TypedUnpackFromJson(TSlotJson slotJson);
     }
     
     [RequireComponent(typeof(SlotSelectHead))]

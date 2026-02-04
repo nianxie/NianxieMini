@@ -2,68 +2,61 @@
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
+using Nianxie.Framework;
 using Nianxie.Riff;
 using UnityEngine;
 using WebP;
+using XLua;
 
 namespace Nianxie.Craft
 {
-    public class PackContext:IPackContext
+    public class TextureUsagePool: UsagePool<TextureUsage>
     {
-        private List<TypedBinary> binaryList = new();
-        private class TypedBinary
+        public TextureUsagePool(Action<UnityEngine.Object> releaseFn) {
+            this.releaseFn = releaseFn;
+        }
+        public TextureUsage AddByUpload(Texture2D uploadTex)
         {
-            public string ext;
-            public byte[] data;
+            var sourceKind = new UploadSourceInfo(this);
+            var texRegion = new TextureRegion(uploadTex, new IntRectangle(0, 0, uploadTex.width, uploadTex.height));
+            var usage = new TextureUsage(sourceKind, texRegion);
+            AddUsage(usage);
+            return usage;
+        }
+        public void AddByBuiltin(Sprite sprite, string builtinPath)
+        {
+            var rect = new IntRectangle(Mathf.RoundToInt(sprite.textureRect.x), Mathf.RoundToInt(sprite.textureRect.y), Mathf.RoundToInt(sprite.textureRect.width), Mathf.RoundToInt(sprite.textureRect.height));
+            var texture = sprite.texture;
+            var sourceKind = new BuiltinSourceInfo(this, builtinPath);
+            var texRegion = new TextureRegion(texture, rect);
+            var usage = new TextureUsage(sourceKind, texRegion);
+            AddUsage(usage);
+        }
+        public void AddByRiff(TextureRegion texRegion, int riffIndex)
+        {
+            var sourceKind = new RiffSourceInfo(this, riffIndex);
+            var usage = new TextureUsage(sourceKind, texRegion);
+            AddUsage(usage);
         }
 
-        private AssetUsageCenter usageCenter;
-        public PackContext(AssetUsageCenter usageCenter)
+        public async UniTask<(ManifestRiffJson.RegionMeta[], byte[])> PackRegionsAndWebp()
         {
-            this.usageCenter = usageCenter;
-        }
-
-        public async UniTask<byte[]> PackRoot(SlotBehaviour rootSlot)
-        {
-            // 1. 打包webp，同时为TextureUsage分配packRiffIndex
-            var texUsages = usageCenter.textureUsageCollection.Where(usage => usage.sourceKind is PackableSourceKind).ToArray();
+            var texUsages = PreparePackableUsages();
             RectanglePacker.PackFromVec2s(texUsages.Select(usage => usage.texRegion.size).ToArray(), out var packRectArr, out var atlasSize);
             if (atlasSize == Vector2Int.zero)
             {
                 atlasSize = new Vector2Int(1, 1);
             }
-
-            for (int i = 0; i < texUsages.Length; i++)
-            {
-                (texUsages[i].sourceKind as PackableSourceKind)!.packRiffIndex = i;
-            }
+            
             var webpData = await PackAtlasWebp(texUsages.Select(usage=>usage.texRegion).ToArray(), packRectArr, atlasSize);
-            
-            // 2. 计算craftRiffJson
-            var rootJson = rootSlot.TypedPackToJson(this);
-            var craftJson = new CraftRiffJson()
+            var regionArr = packRectArr.Select(r => new ManifestRiffJson.RegionMeta()
             {
-                root = rootJson,
-            };
-            
-            // 3. 计算manifestRiffJson
-            var manifestRiffJson = new ManifestRiffJson()
-            {
-                regions=packRectArr.Select(r=>new ManifestRiffJson.RegionMeta()
-                {
-                    rect=r,
-                }).ToArray(),
-                // binaries TODO
-                binaries=binaryList.Select(a=>new ManifestRiffJson.BinaryMeta()
-                {
-                    ext=a.ext,
-                }).ToArray(),
-            };
-            var packBytes = RiffPackage.Pack(webpData, craftJson, manifestRiffJson, binaryList.Select(a=>a.data).ToList());
-            return packBytes;
+                rect = r,
+            }).ToArray();
+            return (regionArr, webpData);
         }
         
-        protected async UniTask<byte[]> PackAtlasWebp(TextureRegion[] texRegions, IntRectangle[] atlasPackRectArr, Vector2Int atlasSize)
+        private async UniTask<byte[]> PackAtlasWebp(TextureRegion[] texRegions, IntRectangle[] atlasPackRectArr, Vector2Int atlasSize)
         {
             RenderTexture tempRT = new RenderTexture(atlasSize.x, atlasSize.y, 0, RenderTextureFormat.ARGB32);
             RenderTexture previousRT = RenderTexture.active;
@@ -104,16 +97,6 @@ namespace Nianxie.Craft
             }
             UnityEngine.Object.Destroy(resultTexture);
             return webpData;
-        }
-
-        public int PutSprite(Sprite sprite)
-        {
-            throw new NotImplementedException();
-        }
-
-        public int PutBinary(string ext, byte[] binary)
-        {
-            throw new NotImplementedException();
         }
     }
 }

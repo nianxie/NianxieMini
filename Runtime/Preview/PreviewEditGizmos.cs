@@ -69,7 +69,7 @@ namespace Nianxie.Preview
                 var tex = new Texture2D(2,2);
                 tex.LoadImage(imageBytes);
                 refObjDict[tex.GetInstanceID()] = tex;
-                var texUsage = craftManager.assetUsageCenter.UploadTexture(tex);
+                var texUsage = craftManager.assetUsageCenter.textureUsagePool.AddByUpload(tex);
                 spriteSlot.Assign(texUsage);
             }
         }

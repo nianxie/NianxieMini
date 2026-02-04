@@ -9,7 +9,6 @@ namespace Nianxie.Craft
     {
         public void ShellRefresh();
         public void OnSelect(SlotSelectHead slotSelect);
-        public void RegisterBuiltinObject(string builtinPath, UnityEngine.Object builtinObj);
-        public bool IsBuiltinObject(UnityEngine.Object builtinObj, out string builtinPath);
+        public AssetUsageCenter assetUsageCenter { get; }
     }
 }

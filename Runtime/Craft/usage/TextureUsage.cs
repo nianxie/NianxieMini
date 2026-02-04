@@ -12,49 +12,20 @@ namespace Nianxie.Craft
         public SpriteMeta meta;
     }
 
-    public class TextureUsage
+    public class TextureUsage: AbstractUsage
     {
-        public SourceKind sourceKind { get; private set; }
-        public TextureRegion texRegion { get; private set; }
-        
+        public readonly TextureRegion texRegion;
         private readonly HashSet<AssignedSprite> assignedSpriteSet = new();
 
-        private TextureUsage()
+        public TextureUsage(UsageSourceInfo sourceInfo, TextureRegion texRegion)
         {
-        }
-
-        public static TextureUsage CreateByUpload(Texture2D uploadTex, Action<Texture2D> release)
-        {
-            var usage = new TextureUsage()
-            {
-                sourceKind = new UploadSourceKind(release),
-                texRegion = new TextureRegion(uploadTex, new IntRectangle(0, 0, uploadTex.width, uploadTex.height)),
-            };
-            return usage;
-        }
-        public static TextureUsage CreateByBuiltin(Sprite sprite, string builtinPath)
-        {
-            var rect = new IntRectangle(Mathf.RoundToInt(sprite.textureRect.x), Mathf.RoundToInt(sprite.textureRect.y), Mathf.RoundToInt(sprite.textureRect.width), Mathf.RoundToInt(sprite.textureRect.height));
-            var texture = sprite.texture;
-            var usage = new TextureUsage()
-            {
-                sourceKind = new BuiltinSourceKind(builtinPath),
-                texRegion = new TextureRegion(texture, rect),
-            };
-            return usage;
-        }
-        public static TextureUsage CreateByRiff(TextureRegion texRegion, int riffIndex)
-        {
-            var usage = new TextureUsage()
-            {
-                sourceKind = new RiffSourceKind(riffIndex),
-                texRegion = new TextureRegion(texRegion.texture, texRegion.rect),
-            };
-            return usage;
+            this.sourceInfo = sourceInfo;
+            this.texRegion = texRegion;
         }
 
         public AssignedSprite UseAndCreateSprite(SpriteMeta spriteMeta)
         {
+            sourceInfo.usagePool.ResetPackPrepared();
             var sprite = texRegion.CreateSprite(spriteMeta);
             var assignedSprite = new AssignedSprite
             {
@@ -67,19 +38,20 @@ namespace Nianxie.Craft
         }
         public void DelUsage(AssignedSprite assignedSprite) 
         {
+            sourceInfo.usagePool.ResetPackPrepared();
             if (assignedSpriteSet.Contains(assignedSprite))
             {
                 assignedSpriteSet.Remove(assignedSprite);
                 UnityEngine.Object.Destroy(assignedSprite.sprite);
             }
 
-            if (assignedSpriteSet.Count == 0 && sourceKind is UploadSourceKind uploadUsageKind)
+            if (assignedSpriteSet.Count == 0 && sourceInfo is UploadSourceInfo uploadUsageKind)
             {
-                uploadUsageKind.releaseUpload(texRegion.texture);
-                sourceKind = ReleasedSourceKind.Instance;
+                uploadUsageKind.ReleaseSource(texRegion.texture);
+                sourceInfo = ReleasedSourceInfo.Instance;
             }
         }
-        public void Clear()
+        public override void Clear()
         {
             foreach (var assignedSprite in assignedSpriteSet)
             {

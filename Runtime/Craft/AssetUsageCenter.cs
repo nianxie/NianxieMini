@@ -1,28 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using Nianxie.Framework;
-using Nianxie.Riff;
 using UnityEngine;
 using XLua;
 
 namespace Nianxie.Craft
 {
+
     public class AssetUsageCenter:MonoBehaviour
     {
-        // texture usage indices
-        private HashSet<TextureUsage> textureUsageSet = new();
-        private Dictionary<int, TextureUsage> riffTextureUsageDict = new();
-        private Dictionary<string, TextureUsage> builtinTextureUsageDict = new();
-        
         // builtin items
         private Dictionary<int, string> builtinIdToPath = new();
 
-        public IReadOnlyCollection<TextureUsage> textureUsageCollection => textureUsageSet;
+        public TextureUsagePool textureUsagePool { get; private set; }
+        public BinaryUsagePool binaryUsagePool { get; private set; }
 
         [SerializeField] 
         private CraftManager craftManager;
-        [SerializeField] 
+        [SerializeField]
         private MiniGameManager gameManager;
 
         private bool mainCalled = false;
@@ -32,23 +26,16 @@ namespace Nianxie.Craft
         {
             UnityEngine.Assertions.Assert.IsFalse(mainCalled, "asset usage center'Main is called");
             mainCalled = true;
+            textureUsagePool = new TextureUsagePool(craftManager.editArgs.shellRefresh.Action);
+            binaryUsagePool = new BinaryUsagePool(craftManager.editArgs.shellRefresh.Action);
             var riffPackage = gameManager.bridge.riffPackage;
             if (riffPackage != null)
             {
                 for(int i=0;i<riffPackage.texRegions.Length;i++)
                 {
-                    var usage = TextureUsage.CreateByRiff(riffPackage.texRegions[i], i);
-                    textureUsageSet.Add(usage);
-                    riffTextureUsageDict[i] = usage;
+                    textureUsagePool.AddByRiff(riffPackage.texRegions[i], i);
                 }
             }
-        }
-
-        public TextureUsage UploadTexture(Texture2D tex)
-        {
-            var texUsage = TextureUsage.CreateByUpload(tex, craftManager.editArgs.shellRefresh.Action);
-            textureUsageSet.Add(texUsage);
-            return texUsage;
         }
         
         [BlackList]
@@ -56,9 +43,7 @@ namespace Nianxie.Craft
         {
             if (builtinObject is Sprite sprite)
             {
-                var texUsage = TextureUsage.CreateByBuiltin(sprite, builtinPath);
-                textureUsageSet.Add(texUsage);
-                builtinTextureUsageDict[builtinPath] = texUsage;
+                textureUsagePool.AddByBuiltin(sprite, builtinPath);
                 builtinIdToPath[builtinObject.GetInstanceID()] = builtinPath;
             }
             else
@@ -73,25 +58,15 @@ namespace Nianxie.Craft
             return builtinIdToPath.TryGetValue(builtinObject.GetInstanceID(), out builtinPath);
         }
         
-        [BlackList]
-        public TextureUsage GetBuiltinTextureUsage(string builtinPath)
-        {
-            return builtinTextureUsageDict[builtinPath];
-        }
-        
-        [BlackList]
-        public TextureUsage GetRiffTextureUsage(int riffIndex)
-        {
-            return riffTextureUsageDict[riffIndex];
-        }
-        
         private void OnDestroy()
         {
-            foreach (var usage in textureUsageSet)
-            {
-                usage.Clear();
-            }
-            textureUsageSet.Clear();
+            textureUsagePool.Clear();
+            binaryUsagePool.Clear();
+        }
+
+        public LuaTable NewTable()
+        {
+            return gameManager.reflectEnv.NewTable();
         }
     }
 }

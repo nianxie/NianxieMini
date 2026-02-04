@@ -28,7 +28,7 @@ namespace Nianxie.Craft
     public class PolygonJson:AbstractSlotJson<SpritePolygon>
     {
         public List<Vector2[]> paths;
-        public override SpritePolygon Export(UnpackContext unpackContext)
+        public override SpritePolygon Export(AssetUsageCenter usageCenter)
         {
             return new SpritePolygon(paths);
         }

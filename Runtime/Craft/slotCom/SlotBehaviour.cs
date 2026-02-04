@@ -45,7 +45,7 @@ namespace Nianxie.Craft
 				Debug.LogError($"try to remove {go} but it's not in this list");
 			}
 
-			public void UnpackFromJsonList(UnpackContext unpackContext, AbstractSlotJson[] slotJsonArr)
+			public void UnpackFromJsonList(AbstractSlotJson[] slotJsonArr)
 			{
 				for (int i = list.Count; i < slotJsonArr.Length; i++)
 				{
@@ -58,7 +58,7 @@ namespace Nianxie.Craft
 
 				for (int i = 0; i < slotJsonArr.Length; i++)
 				{
-					list[i].UnpackFromJson(unpackContext, slotJsonArr[i]);
+					list[i].UnpackFromJson(slotJsonArr[i]);
 				}
 			}
 
@@ -142,7 +142,7 @@ namespace Nianxie.Craft
 	        // do nothing
         }
 
-        public SlotBehavJson TypedPackToJson(IPackContext packContext)
+        public SlotBehavJson TypedPackToJson()
         {
 	        var behavJson = new SlotBehavJson()
 	        {
@@ -151,7 +151,7 @@ namespace Nianxie.Craft
 	        };
 	        foreach (var kv in slotSingleDict)
 	        {
-		        behavJson.singleDict[kv.Key] = kv.Value.PackToJson(packContext);
+		        behavJson.singleDict[kv.Key] = kv.Value.PackToJson();
 	        }
 	        foreach (var kv in slotListDict)
 	        {
@@ -159,32 +159,32 @@ namespace Nianxie.Craft
 		        behavJson.listDict[kv.Key] = arr;
 		        for (int i = 0; i < arr.Length; i++)
 		        {
-			        arr[i] = kv.Value[i].PackToJson(packContext);
+			        arr[i] = kv.Value[i].PackToJson();
 		        }
 	        }
 			return behavJson;
         }
 
-        AbstractSlotJson IUnionSlot.PackToJson(IPackContext packContext)
+        AbstractSlotJson IUnionSlot.PackToJson()
         {
-	        return TypedPackToJson(packContext);
+	        return TypedPackToJson();
         }
 
-        public void TypedUnpackFromJson(UnpackContext unpackContext, SlotBehavJson behavJson)
+        public void TypedUnpackFromJson(SlotBehavJson behavJson)
         {
 	        foreach (var kv in slotSingleDict)
 	        {
-		        kv.Value.UnpackFromJson(unpackContext, behavJson.singleDict[kv.Key]);
+		        kv.Value.UnpackFromJson(behavJson.singleDict[kv.Key]);
 	        }
 	        foreach (var kv in slotListDict)
 	        {
-		        kv.Value.UnpackFromJsonList(unpackContext, behavJson.listDict[kv.Key]);
+		        kv.Value.UnpackFromJsonList(behavJson.listDict[kv.Key]);
 	        }
         }
 
-        void IUnionSlot.UnpackFromJson(UnpackContext unpackContext, AbstractSlotJson slotJson)
+        void IUnionSlot.UnpackFromJson(AbstractSlotJson slotJson)
         {
-	        TypedUnpackFromJson(unpackContext, slotJson as SlotBehavJson);
+	        TypedUnpackFromJson(slotJson as SlotBehavJson);
         }
 
         [BlackList]

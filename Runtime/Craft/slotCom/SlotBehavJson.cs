@@ -11,20 +11,20 @@ namespace Nianxie.Craft
         public string[] nestedKeys = EnvPaths.NESTED_KEYS_EMPTY;
         public Dictionary<string, AbstractSlotJson> singleDict = new();
         public Dictionary<string, AbstractSlotJson[]> listDict = new();
-        public override LuaTable Export(UnpackContext unpackContext)
+        public override LuaTable Export(AssetUsageCenter usageCenter)
         {
-            var slotTable = unpackContext.NewTable();
+            var slotTable = usageCenter.NewTable();
             foreach (var (k, v) in singleDict)
             {
-                slotTable.Set(k, v.Export(unpackContext));
+                slotTable.Set(k, v.Export(usageCenter));
             }
 
             foreach (var (k, v) in listDict)
             {
-                var valueTable = unpackContext.NewTable();
+                var valueTable = usageCenter.NewTable();
                 for (int i = 0; i < v.Length; i++)
                 {
-                    valueTable.Set(i+1, v[i].Export(unpackContext));
+                    valueTable.Set(i+1, v[i].Export(usageCenter));
                 }
                 slotTable.Set(k, valueTable);
             }

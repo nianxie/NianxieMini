@@ -58,7 +58,7 @@ namespace Nianxie.Craft
             if (injected is SlotInjected.DefaultInjected defaultInjected && m_DefaultSprite != null)
             {
                 var defaultPath = string.Join(',', defaultInjected.keys);
-                injected.behav.slotHandler.RegisterBuiltinObject(defaultPath, m_DefaultSprite);
+                injected.behav.slotHandler.assetUsageCenter.RegisterBuiltinObject(defaultPath, m_DefaultSprite);
             }
         }
 
@@ -68,32 +68,33 @@ namespace Nianxie.Craft
             spriteRenderer.sprite = currentSprite;
         }
 
-        protected override SpriteJson TypedPackToJson(IPackContext packContext)
+        protected override SpriteJson TypedPackToJson()
         {
             var json = new SpriteJson();
             if (m_AssignedSprite != null)
             {
                 var usage = m_AssignedSprite.usage;
-                if (usage.sourceKind is BuiltinSourceKind builtinSourceKind)
+                if (usage.sourceInfo is BuiltinSourceInfo builtinSourceKind)
                 {
                     json.builtinPath = builtinSourceKind.builtinPath;
                     json.riffIndex = -1;
                 }
-                else if(usage.sourceKind is PackableSourceKind packableSourceKind)
+                else if(usage.sourceInfo is PackableSourceInfo packableSourceKind)
                 {
                     json.riffIndex = packableSourceKind.packRiffIndex;
                 }
                 else
                 {
-                    throw new Exception($"unexpected source kind {usage.sourceKind.GetType()}");
+                    throw new Exception($"unexpected source kind {usage.sourceInfo.GetType()}");
                 }
                 json.meta = m_AssignedSprite.meta;
             }
             else
             {
-                if (slotHandler.IsBuiltinObject(defaultSprite, out var builtinPath))
+                if (slotHandler.assetUsageCenter.IsBuiltinObject(defaultSprite, out var builtinPath))
                 {
                     json.builtinPath=builtinPath;
+                    json.riffIndex = -1;
                     json.meta=new SpriteMeta()
                     {
                         rect=IntRectangle.FromUnityRect(defaultSprite.textureRect),
@@ -109,9 +110,9 @@ namespace Nianxie.Craft
             return json;
         }
 
-        protected override void TypedUnpackFromJson(UnpackContext unpackContext, SpriteJson slotJson)
+        protected override void TypedUnpackFromJson(SpriteJson slotJson)
         {
-            var usage = unpackContext.GetTextureUsage(slotJson.builtinPath, slotJson.riffIndex);
+            var usage = slotHandler.assetUsageCenter.textureUsagePool.FindUsage(slotJson);
             m_AssignedSprite = usage.UseAndCreateSprite(slotJson.meta);
             spriteRenderer.sprite = m_AssignedSprite.sprite;
         }

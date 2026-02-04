@@ -17,7 +17,7 @@ namespace Nianxie.Craft
 
         [SerializeField]
         private SlotValue<string> m_SlotValue;
-        protected override TextJson TypedPackToJson(IPackContext packContext)
+        protected override TextJson TypedPackToJson()
         {
             var json = new TextJson()
             {
@@ -26,7 +26,7 @@ namespace Nianxie.Craft
             return json;
         }
 
-        protected override void TypedUnpackFromJson(UnpackContext unpackContext, TextJson textJson)
+        protected override void TypedUnpackFromJson(TextJson textJson)
         {
             m_SlotValue.defaultValue = textJson.text;
             m_TextMeshPro.text = textJson.text;

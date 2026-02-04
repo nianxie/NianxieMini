@@ -170,8 +170,23 @@ namespace Nianxie.Craft
         
         public async UniTask<byte[]> PackCraftAsync<T>()
         {
-            var ctx = new PackContext(assetUsageCenter);
-            return await ctx.PackRoot(rootSlot);
+            // 1. pack manifest
+            var (regions, webpData) = await assetUsageCenter.textureUsagePool.PackRegionsAndWebp();
+            var (binaries, binaryList) = await assetUsageCenter.binaryUsagePool.PackBinariesAndList();
+            var manifestRiffJson = new ManifestRiffJson()
+            {
+                regions=regions,
+                binaries=binaries,
+            };
+            // 2. pack craftRiffJson
+            var rootJson = rootSlot.TypedPackToJson();
+            var craftJson = new CraftRiffJson()
+            {
+                root = rootJson,
+            };
+            // 3. pack riff bytes
+            var packBytes = RiffPackage.Pack(webpData, craftJson, manifestRiffJson, binaryList);
+            return packBytes;
         }
         
         #region ICraftManager
@@ -202,16 +217,13 @@ namespace Nianxie.Craft
                 await InitRootSlot();
                 if (riffPackage == null)
                 {
-                    var unpackContext = new UnpackContext(assetUsageCenter, manager.reflectEnv);
-                    var defaultPackContext = new DefaultPackContext();
-                    var rootJson = rootSlot.TypedPackToJson(defaultPackContext);
-                    return rootJson.Export(unpackContext);
+                    var rootJson = rootSlot.TypedPackToJson();
+                    return rootJson.Export(assetUsageCenter);
                 }
                 else
                 {
-                    var unpackContext = new UnpackContext(assetUsageCenter, manager.reflectEnv);
                     var rootJson = (riffPackage.custom as CraftRiffJson).root;
-                    return rootJson.Export(unpackContext);
+                    return rootJson.Export(assetUsageCenter);
                 }
             }
             return null;
@@ -227,9 +239,8 @@ namespace Nianxie.Craft
             var riffPackage = manager.bridge.riffPackage;
             if (riffPackage != null)
             {
-                var unpackContext = new UnpackContext(assetUsageCenter, manager.reflectEnv);
                 var rootJson = (riffPackage.custom as CraftRiffJson).root;
-                rootSlot.TypedUnpackFromJson(unpackContext, rootJson);
+                rootSlot.TypedUnpackFromJson(rootJson);
             }
         }
         #endregion
@@ -251,15 +262,6 @@ namespace Nianxie.Craft
                 slotSelect = slot;
             }
             (this as ISlotHandler).ShellRefresh();
-        }
-
-        void ISlotHandler.RegisterBuiltinObject(string builtinPath, UnityEngine.Object builtinObj)
-        {
-            assetUsageCenter.RegisterBuiltinObject(builtinPath, builtinObj);
-        }
-        bool ISlotHandler.IsBuiltinObject(UnityEngine.Object builtinObj, out string builtinPath)
-        {
-            return assetUsageCenter.IsBuiltinObject(builtinObj, out builtinPath);
         }
         #endregion
     }

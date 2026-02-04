@@ -10,7 +10,7 @@ namespace Nianxie.Craft
     {
         public float x;
         public float y;
-        public override Vector2 Export(UnpackContext unpackContext)
+        public override Vector2 Export(AssetUsageCenter usageCenter)
         {
             return new Vector2(x, y);
         }

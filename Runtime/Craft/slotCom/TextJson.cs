@@ -8,7 +8,7 @@ namespace Nianxie.Craft
     public class TextJson:AbstractSlotJson<string>
     {
         public string text;
-        public override string Export(UnpackContext unpackContext)
+        public override string Export(AssetUsageCenter usageCenter)
         {
             return text;
         }

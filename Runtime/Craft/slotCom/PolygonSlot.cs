@@ -1,10 +1,5 @@
 ﻿using UnityEngine;
 using System;
-using System.Diagnostics;
-using Cysharp.Threading.Tasks;
-using Cysharp.Threading.Tasks.Triggers;
-using UnityEngine.Events;
-using Debug = UnityEngine.Debug;
 
 namespace Nianxie.Craft
 {
@@ -30,12 +25,12 @@ namespace Nianxie.Craft
             }
         }
 
-        protected override PolygonJson TypedPackToJson(IPackContext packContext)
+        protected override PolygonJson TypedPackToJson()
         {
             throw new NotImplementedException("pack polygon TODO");
         }
         
-        protected override void TypedUnpackFromJson(UnpackContext unpackContext, PolygonJson slotJson)
+        protected override void TypedUnpackFromJson(PolygonJson slotJson)
         {
             throw new NotImplementedException("unpack polygon TODO");
         }

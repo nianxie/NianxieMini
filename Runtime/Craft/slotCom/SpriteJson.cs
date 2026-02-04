@@ -4,15 +4,25 @@ using Nianxie.Riff;
 
 namespace Nianxie.Craft
 {
-    public class SpriteJson:AbstractSlotJson<Sprite>
+    public class SpriteJson:AbstractSlotJson<Sprite>, IUsageLocator
     {
         public string builtinPath;
         public int riffIndex;
         public SpriteMeta meta;
-        public override Sprite Export(UnpackContext unpackContext)
+        public override Sprite Export(AssetUsageCenter usageCenter)
         {
-            var usage = unpackContext.GetTextureUsage(builtinPath, riffIndex);
+            var usage = usageCenter.textureUsagePool.FindUsage(this);
             return usage.UseAndCreateSprite(meta).sprite;
+        }
+
+        string IUsageLocator.GetBuiltinPath()
+        {
+            return builtinPath;
+        }
+
+        int IUsageLocator.GetRiffIndex()
+        {
+            return riffIndex;
         }
     }
 }

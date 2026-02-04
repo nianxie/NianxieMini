@@ -5,21 +5,21 @@ namespace Nianxie.Craft
 {
     public abstract class AbstractSlotJson<TSlotTarget>:AbstractSlotJson
     {
-        public new abstract TSlotTarget Export(UnpackContext unpackContext);
+        public new abstract TSlotTarget Export(AssetUsageCenter usageCenter);
 
-        protected override object ExportAsObject(UnpackContext unpackContext)
+        protected override object ExportAsObject(AssetUsageCenter usageCenter)
         {
-            return Export(unpackContext);
+            return Export(usageCenter);
         }
     }
     
     public abstract class AbstractSlotJson
     {
-        public object Export(UnpackContext unpackContext)
+        public object Export(AssetUsageCenter usageCenter)
         {
-            return ExportAsObject(unpackContext);
+            return ExportAsObject(usageCenter);
         }
 
-        protected abstract object ExportAsObject(UnpackContext unpackContext);
+        protected abstract object ExportAsObject(AssetUsageCenter usageCenter);
     }
 }
