@@ -168,7 +168,7 @@ namespace Nianxie.Craft
             return screenRect;
         }
         
-        public async UniTask<byte[]> PackCraftAsync<T>()
+        public async UniTask<byte[]> PackCraftAsync()
         {
             // 1. pack manifest
             var (regions, webpData) = await assetUsageCenter.textureUsagePool.PackRegionsAndWebp();
