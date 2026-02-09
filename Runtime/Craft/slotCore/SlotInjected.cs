@@ -5,22 +5,28 @@ namespace Nianxie.Craft
 {
     public abstract class SlotInjected
     {
-        public readonly SlotBehaviour behav;
+        public readonly SlotBehaviour ancestor;
         public readonly AbstractNodeInjection injection;
-        protected SlotInjected(SlotBehaviour slotBehav, AbstractNodeInjection nodeInjection)
+        protected SlotInjected(SlotBehaviour ancestorBehav, AbstractNodeInjection nodeInjection)
         {
-            behav = slotBehav;
+            ancestor = ancestorBehav;
             injection = nodeInjection;
         }
 
         public abstract SlotInjected FieldChildInjected(SlotBehaviour slotBehav, AbstractNodeInjection nodeInjection);
         public abstract SlotInjected IndexChildDefaultInjected(int index);
         public abstract SlotInjected IndexChildDynamicInjected();
+        public abstract bool IsList();
 
         public class RootInjected : DefaultInjected
         {
             public RootInjected() : base(new string[]{}, null, null)
             {
+            }
+
+            public override bool IsList()
+            {
+                return false;
             }
         }
 
@@ -28,7 +34,7 @@ namespace Nianxie.Craft
         public class DefaultInjected:SlotInjected
         {
             public readonly string[] keys;
-            protected DefaultInjected(string[] defaultKeys, SlotBehaviour slotBehav, AbstractNodeInjection nodeInjection) : base(slotBehav, nodeInjection)
+            protected DefaultInjected(string[] defaultKeys, SlotBehaviour ancestor, AbstractNodeInjection nodeInjection) : base(ancestor, nodeInjection)
             {
                 keys = defaultKeys;
             }
@@ -39,19 +45,23 @@ namespace Nianxie.Craft
 
             public override SlotInjected IndexChildDefaultInjected(int index)
             {
-                return new DefaultInjected(keys.Concat(new [] {index.ToString()}).ToArray(), behav, injection);
+                return new DefaultInjected(keys.Concat(new [] {index.ToString()}).ToArray(), ancestor, injection);
             }
 
             public override SlotInjected IndexChildDynamicInjected()
             {
-                return new DynamicInjected(behav, injection);
+                return new DynamicInjected(ancestor, injection);
+            }
+            public override bool IsList()
+            {
+                return injection.multipleKind == InjectionMultipleKind.List;
             }
         }
 
         // 通过添加操作动态创建的slot会持有这个injected
         public class DynamicInjected:SlotInjected
         {
-            public DynamicInjected(SlotBehaviour slotBehav, AbstractNodeInjection nodeInjection) : base(slotBehav, nodeInjection)
+            public DynamicInjected(SlotBehaviour ancestor, AbstractNodeInjection nodeInjection) : base(ancestor, nodeInjection)
             {
             }
 
@@ -62,12 +72,16 @@ namespace Nianxie.Craft
 
             public override SlotInjected IndexChildDefaultInjected(int index)
             {
-                return new DynamicInjected(behav, injection);
+                return new DynamicInjected(ancestor, injection);
             }
 
             public override SlotInjected IndexChildDynamicInjected()
             {
-                return new DynamicInjected(behav, injection);
+                return new DynamicInjected(ancestor, injection);
+            }
+            public override bool IsList()
+            {
+                return true;
             }
         }
     }

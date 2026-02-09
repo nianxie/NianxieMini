@@ -21,17 +21,5 @@ namespace Nianxie.Craft
         {
             transform.localPosition = new Vector3(posJson.x, posJson.y, -0.01f);
         }
-        
-        public override void AssignValue(Vector2 vec)
-        {
-            m_SlotValue.Set(vec);
-        }
-#if UNITY_EDITOR
-        [BlackList]
-        public override void EditorInspectorUpdate(NianxieDefaultAssets defaultAssets)
-        {
-            m_SlotValue.defaultValue = transform.localPosition;
-        }
-#endif
     }
 }

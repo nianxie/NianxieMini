@@ -11,11 +11,23 @@ namespace Nianxie.Craft
 {
     public class SlotBehaviour:LuaBehaviour, IUnionSlot
     {
-	    public class UnionSlotList:IReadOnlyList<IUnionSlot>
+        [NonSerialized] SlotSelectHead m_SlotSelectHead;
+        public SlotSelectHead selectHead
+        {
+            get
+            {
+                if (!m_SlotSelectHead)
+                {
+                    m_SlotSelectHead = GetComponent<SlotSelectHead>();
+                }
+                return m_SlotSelectHead;
+            }
+        }
+	    public class BehavList:IReadOnlyList<SlotBehaviour>
 	    {
-		    private List<IUnionSlot> list;
+		    private List<SlotBehaviour> list;
 		    private SlotInjected slotInjected;
-		    public UnionSlotList(SlotInjected slotInjected, List<IUnionSlot> list)
+		    public BehavList(SlotInjected slotInjected, List<SlotBehaviour> list)
 		    {
 			    this.list = list;
 			    this.slotInjected = slotInjected;
@@ -24,45 +36,44 @@ namespace Nianxie.Craft
 		    public void DuplicateElement()
 		    {
 			    var template = list[0];
-				var newGo = Instantiate(template.gameObject, template.transform.parent);
-				var newSlot = newGo.GetComponent(template.GetType()) as IUnionSlot;
-				newSlot.Init(slotInjected.IndexChildDynamicInjected());
-				newSlot.transform.localPosition += Vector3.right*template.gameObject.GetComponent<AbstractRenderSlot>().selectHead.selectBody.touchCollider2D.size.x*list.Count;
-				list.Add(newSlot);
+				var newBehav = Instantiate(template, template.transform.parent);
+				newBehav.Init(slotInjected.IndexChildDynamicInjected());
+				newBehav.transform.localPosition += Vector3.right*template.selectHead.selectBody.touchCollider2D.size.x*list.Count;
+				list.Add(newBehav);
 			}
 
-			public void DeleteElement(GameObject go)
+			public void DeleteElement(SlotBehaviour behav)
 			{
 				for (int i = 0; i < list.Count; i++)
 				{
-					if (list[i].gameObject == go)
+					if (list[i] == behav)
 					{
 						list.RemoveAt(i);
-						UnityEngine.Object.Destroy(go);
+						UnityEngine.Object.Destroy(behav.gameObject);
 						return;
 					}
 				}
-				Debug.LogError($"try to remove {go} but it's not in this list");
+				Debug.LogError($"try to remove {behav} but it's not in this list");
 			}
 
-			public void UnpackFromJsonList(AbstractSlotJson[] slotJsonArr)
+			public void UnpackFromJsonList(SlotBehavJson[] behavJsonArr)
 			{
-				for (int i = list.Count; i < slotJsonArr.Length; i++)
+				for (int i = list.Count; i < behavJsonArr.Length; i++)
 				{
 					DuplicateElement();
 				}
-				for (int i = list.Count-1; i >= slotJsonArr.Length; i--)
+				for (int i = list.Count-1; i >= behavJsonArr.Length; i--)
 				{
-					DeleteElement(list[i].gameObject);
+					DeleteElement(list[i]);
 				}
 
-				for (int i = 0; i < slotJsonArr.Length; i++)
+				for (int i = 0; i < behavJsonArr.Length; i++)
 				{
-					list[i].UnpackFromJson(slotJsonArr[i]);
+					list[i].TypedUnpackFromJson(behavJsonArr[i]);
 				}
 			}
 
-			public IEnumerator<IUnionSlot> GetEnumerator()
+			public IEnumerator<SlotBehaviour> GetEnumerator()
 			{
 				return list.GetEnumerator();
 			}
@@ -71,14 +82,14 @@ namespace Nianxie.Craft
 				return GetEnumerator();
 			}
 			public int Count => list.Count;
-			public IUnionSlot this[int index] => list[index];
+			public SlotBehaviour this[int index] => list[index];
 	    }
 
 	    public SlotInjected slotInjected { get; private set; }
 	    public ISlotHandler slotHandler { get; private set; }
 
-        private Dictionary<string, IUnionSlot> slotSingleDict = new();
-        private Dictionary<string, UnionSlotList> slotListDict = new();
+        private Dictionary<string, IUnionSlot> singleSlotDict = new();
+        private Dictionary<string, BehavList> behavListDict = new();
 
         public void RootInit(CraftManager craftManager)
         {
@@ -86,12 +97,12 @@ namespace Nianxie.Craft
 	        (this as IUnionSlot).Init(new SlotInjected.RootInjected());
         }
 
-        void IUnionSlot.Init(SlotInjected injected)
+        public void Init(SlotInjected injected)
         {
 			slotInjected = injected;
 	        if (injected is not SlotInjected.RootInjected)
 	        {
-				slotHandler = injected.behav.slotHandler;
+				slotHandler = injected.ancestor.slotHandler;
 	        } 
 			var reflectEnv = gameManager.reflectEnv;
 	        var reflectCls = reflectEnv.GetWarmedReflect(classPath, nestedKeys);
@@ -103,7 +114,7 @@ namespace Nianxie.Craft
 					if (obj is IUnionSlot unionSlot)
 					{
 						unionSlot.Init(injected.FieldChildInjected(this, injection));
-						slotSingleDict[injection.key] = unionSlot;
+						singleSlotDict[injection.key] = unionSlot;
 					}
 					else
 					{
@@ -113,21 +124,21 @@ namespace Nianxie.Craft
 	            else
 	            {
 		            var listInjected = injected.FieldChildInjected(this, injection);
-		            var list = new List<IUnionSlot>();
+		            var list = new List<SlotBehaviour>();
 					for(int i=0;i<injection.nodePathList.Length;i++)
 					{
 						var obj = injection.ToNodeObject(this, injection.nodePathList[i]);
-						if (obj is IUnionSlot unionSlot)
+						if (obj is SlotBehaviour slotBehav)
 						{
-							unionSlot.Init(listInjected.IndexChildDefaultInjected(i));
-							list.Add(unionSlot);
+							slotBehav.Init(listInjected.IndexChildDefaultInjected(i));
+							list.Add(slotBehav);
 						}
 						else
 						{
-							Debug.LogError($"invalid injection {whichClass}:{injection.key}");
+							Debug.LogError($"only SlotBehaviour support list in injection {whichClass}:{injection.key}");
 						}
 					}
-					slotListDict[injection.key] = new UnionSlotList(listInjected, list);
+					behavListDict[injection.key] = new BehavList(listInjected, list);
 	            }
             }
         }
@@ -149,17 +160,17 @@ namespace Nianxie.Craft
 		        classPath = classPath,
 		        nestedKeys = nestedKeys,
 	        };
-	        foreach (var kv in slotSingleDict)
+	        foreach (var kv in singleSlotDict)
 	        {
 		        behavJson.singleDict[kv.Key] = kv.Value.PackToJson();
 	        }
-	        foreach (var kv in slotListDict)
+	        foreach (var kv in behavListDict)
 	        {
-		        var arr = new AbstractSlotJson[kv.Value.Count];
+		        var arr = new SlotBehavJson[kv.Value.Count];
 		        behavJson.listDict[kv.Key] = arr;
 		        for (int i = 0; i < arr.Length; i++)
 		        {
-			        arr[i] = kv.Value[i].PackToJson();
+			        arr[i] = kv.Value[i].TypedPackToJson();
 		        }
 	        }
 			return behavJson;
@@ -172,11 +183,11 @@ namespace Nianxie.Craft
 
         public void TypedUnpackFromJson(SlotBehavJson behavJson)
         {
-	        foreach (var kv in slotSingleDict)
+	        foreach (var kv in singleSlotDict)
 	        {
 		        kv.Value.UnpackFromJson(behavJson.singleDict[kv.Key]);
 	        }
-	        foreach (var kv in slotListDict)
+	        foreach (var kv in behavListDict)
 	        {
 		        kv.Value.UnpackFromJsonList(behavJson.listDict[kv.Key]);
 	        }
@@ -187,10 +198,36 @@ namespace Nianxie.Craft
 	        TypedUnpackFromJson(slotJson as SlotBehavJson);
         }
 
-        [BlackList]
-        public UnionSlotList GetSlotList(AbstractNodeInjection injection)
+        public bool IsListField()
         {
-            return slotListDict[injection.key];
+	        return slotInjected.IsList();
+        }
+
+        public void DuplicateSelf()
+        {
+	        if (slotInjected.IsList())
+	        {
+				slotInjected.ancestor.behavListDict[slotInjected.injection.key].DuplicateElement();
+	        }
+	        else
+	        {
+		        Debug.LogError($"try to delete single behav {this}");
+	        }
+        }
+        public void DeleteSelf()
+        {
+	        if (slotInjected.IsList())
+	        {
+				slotInjected.ancestor.behavListDict[slotInjected.injection.key].DeleteElement(this);
+	        }
+	        else
+	        {
+		        Debug.LogError($"try to delete single behav {this}");
+	        }
+        }
+        private BehavList GetBehavList(AbstractNodeInjection injection)
+        {
+            return behavListDict[injection.key];
         }
 #if UNITY_EDITOR
 	    [BlackList]

@@ -21,5 +21,4 @@ namespace Nianxie.Craft
         }
         public SlotBehavJson root;
     }
-
 }

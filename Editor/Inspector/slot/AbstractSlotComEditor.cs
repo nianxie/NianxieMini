@@ -8,14 +8,14 @@ using XLua;
 
 namespace Nianxie.Editor
 {
-    [CustomEditor(typeof(AbstractRenderSlot), true)]
-    public class AbstractRenderSlotEditor : UnityEditor.Editor
+    [CustomEditor(typeof(AbstractSlotCom), true)]
+    public class AbstractSlotComEditor : UnityEditor.Editor
     {
-        protected AbstractRenderSlot slotCom;
+        protected AbstractSlotCom slotCom;
 
         protected void OnEnable()
         {
-            slotCom = (AbstractRenderSlot) target;
+            slotCom = (AbstractSlotCom) target;
         }
 
         public override void OnInspectorGUI()
@@ -27,13 +27,7 @@ namespace Nianxie.Editor
                 EditorGUI.EndDisabledGroup();
                 return;
             }
-
-            var comIndex = slotCom.TryGetComponent<PositionSlot>(out _) ? 2 : 1;
-            if (slotCom.GetComponentIndex() > comIndex)
-            {
-                ComponentUtility.MoveComponentUp(slotCom);
-            }
-
+            
             using (new LocalizationGroup(target))
             {
                 EditorGUI.BeginChangeCheck();

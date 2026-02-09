@@ -8,9 +8,6 @@ namespace Nianxie.Craft
 {
     public abstract class AbstractSlotCom<TSlotTarget, TSlotJson>:AbstractSlotCom, IUnionSlot where TSlotJson:AbstractSlotJson<TSlotTarget>
     {
-        [SerializeField]
-        protected SlotValue<TSlotTarget> m_SlotValue;
-        
         AbstractSlotJson IUnionSlot.PackToJson()
         {
             return TypedPackToJson();
@@ -22,12 +19,11 @@ namespace Nianxie.Craft
         }
         protected abstract TSlotJson TypedPackToJson();
         protected abstract void TypedUnpackFromJson(TSlotJson slotJson);
-        public abstract void AssignValue(TSlotTarget o);
     }
 
     public abstract class AbstractSlotCom:MonoBehaviour, IUnionSlot
     {
-        public ISlotHandler slotHandler => slotInjected.behav.slotHandler;
+        public ISlotHandler slotHandler => slotInjected.ancestor.slotHandler;
         public SlotInjected slotInjected { get; private set; }
 
         public virtual void Init(SlotInjected injected)

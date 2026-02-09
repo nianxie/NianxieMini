@@ -11,7 +11,28 @@ namespace Nianxie.Craft
         private const float TOLERANCE_RATIO = 0.015f; // 0.01f 大约表示在LineUtility.Simplify的时候1%的精度
         private const uint OUTLINER_GAP_LENGTH = 3; // How much difference in pixels in a straight line is considered a gap. This can help smooth out the outline a bit.
         private const float OUTLINER_PRODUCT = 0.99f; // Product for optimizing the outline based on angle. 1 means no optimization. This value should be kept pretty high if you want to maintain round shapes. Note that some points (e.g. outer angles) are never optimized.
-        public static List<Vector2[]> CalcPolygon(Color32[] pixels, Vector2Int textureSize, Vector2 pivot, float pixelsPerUnit)
+        private const float ALPHA_THRESHOLD = 0.01f;
+        
+        public static List<Vector2[]> CalcPolygon(Sprite sprite)
+        {
+            var fn = CalcPolygonLazy(sprite);
+            return fn();
+        }
+        
+        public static Func<List<Vector2[]>> CalcPolygonLazy(Sprite sprite)
+        {
+            var rect = sprite.textureRect;
+            var rectX = Mathf.FloorToInt(rect.x);
+            var rectY = Mathf.FloorToInt(rect.y);
+            var rectWidth = Mathf.FloorToInt(rect.width);
+            var rectHeight = Mathf.FloorToInt(rect.height);
+            var pixels = sprite.texture.GetPixels(rectX, rectY, rectWidth, rectHeight);
+            var pivot = sprite.pivot;
+            var pixelsPerUnit = sprite.pixelsPerUnit;
+            return ()=>CalcPolygonInternal(pixels, new Vector2Int(rectWidth, rectHeight), new Vector2((pivot.x-rectX)/rectWidth, (pivot.y-rectY)/rectHeight), pixelsPerUnit);
+        }
+
+        private static List<Vector2[]> CalcPolygonInternal(Color[] pixels, Vector2Int textureSize, Vector2 pivot, float pixelsPerUnit)
         {
             var tracer = new ContourTracer();
             tracer.Trace(pixels, textureSize, pivot, pixelsPerUnit, OUTLINER_GAP_LENGTH, OUTLINER_PRODUCT);
@@ -114,7 +135,7 @@ namespace Nianxie.Craft
             return pointIndex;
         }
 
-        private void Trace(Color32[] pixels, Vector2Int textureSize, Vector2 pivot, float pixelsPerUnit, uint gapLength, float product)
+        private void Trace(Color[] pixels, Vector2Int textureSize, Vector2 pivot, float pixelsPerUnit, uint gapLength, float product)
         {
             //Debug.LogWarning($"Trace method is still missing support for InnerOuter points.");
             //Debug.LogWarning($"Trace method is still missing support for Rect.");
@@ -145,7 +166,7 @@ namespace Nianxie.Craft
             bool IsBorder(int _x, int _y)
             {
                 int pixelIndex = _y * textureWidth + _x;
-                return pixels[pixelIndex].a != 0f;
+                return pixels[pixelIndex].a > ALPHA_THRESHOLD;
             }
             bool IsBorderSafe(int _x, int _y) => _y >= 0 && _y < textureHeight && _x >= 0 && _x < textureWidth && IsBorder(_x, _y);
 

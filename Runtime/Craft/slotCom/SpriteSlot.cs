@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using Nianxie.Riff;
-using Nianxie.Utils;
 using UnityEngine;
 using XLua;
-using Object = UnityEngine.Object;
 
 namespace Nianxie.Craft
 {
@@ -18,6 +16,7 @@ namespace Nianxie.Craft
         private AssignedSprite m_AssignedSprite;
 
         private Sprite currentSprite => m_AssignedSprite!=null?m_AssignedSprite.sprite:m_DefaultSprite;
+        public bool assigned => m_AssignedSprite != null;
         
         private SpriteRenderer spriteRenderer => selectHead.selectBody.spriteRenderer;
         
@@ -58,7 +57,7 @@ namespace Nianxie.Craft
             if (injected is SlotInjected.DefaultInjected defaultInjected && m_DefaultSprite != null)
             {
                 var defaultPath = string.Join(',', defaultInjected.keys);
-                injected.behav.slotHandler.assetUsageCenter.RegisterBuiltinObject(defaultPath, m_DefaultSprite);
+                injected.ancestor.slotHandler.assetUsageCenter.RegisterBuiltinObject(defaultPath, m_DefaultSprite);
             }
         }
 
@@ -135,10 +134,6 @@ namespace Nianxie.Craft
             }
             m_AssignedSprite = newAssignedSprite;
             spriteRenderer.sprite = currentSprite;
-            if (TryGetComponent<PolygonSlot>(out var polygonSlot))
-            {
-                polygonSlot.CalculatePolygon(newAssignedSprite.sprite);
-            }
         }
 
         private void OnDestroy()

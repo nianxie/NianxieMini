@@ -26,8 +26,8 @@ namespace Nianxie.Craft
         {
             UnityEngine.Assertions.Assert.IsFalse(mainCalled, "asset usage center'Main is called");
             mainCalled = true;
-            textureUsagePool = new TextureUsagePool(craftManager.editArgs.shellRefresh.Action);
-            binaryUsagePool = new BinaryUsagePool(craftManager.editArgs.shellRefresh.Action);
+            textureUsagePool = new TextureUsagePool(craftManager);
+            binaryUsagePool = new BinaryUsagePool(craftManager);
             var riffPackage = gameManager.bridge.riffPackage;
             if (riffPackage != null)
             {

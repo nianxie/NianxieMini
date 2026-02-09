@@ -79,7 +79,12 @@ namespace Nianxie.Preview
             {
                 return;
             }
-            craftManager.slotSelect.DuplicateSelf();
+
+            var behav = craftManager.slotSelect.slotBehav;
+            if (behav != null && behav.IsListField())
+            {
+                behav.DuplicateSelf();
+            }
         }
         public void OnRemove()
         {
@@ -87,7 +92,11 @@ namespace Nianxie.Preview
             {
                 return;
             }
-            craftManager.slotSelect.DeleteSelf();
+            var behav = craftManager.slotSelect.slotBehav;
+            if (behav != null && behav.IsListField())
+            {
+                behav.DeleteSelf();
+            }
         }
 
         public string OpenImageFile()

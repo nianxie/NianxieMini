@@ -23,12 +23,6 @@ namespace Nianxie.Craft
             posSlot = GetComponent<PositionSlot>();
         }
         
-        public bool IsList()
-        {
-            var slotField = unionSlot.slotInjected;
-            return slotField != null && slotField.injection.multipleKind == InjectionMultipleKind.List;
-        }
-
         void IPointerDownHandler.OnPointerDown(PointerEventData eventData)
         {
         }
@@ -40,22 +34,6 @@ namespace Nianxie.Craft
 
         void IPointerUpHandler.OnPointerUp(PointerEventData eventData)
         {
-        }
-        public void DuplicateSelf()
-        {
-            if (IsList())
-            {
-                var slotField = unionSlot.slotInjected;
-                slotField.behav.GetSlotList(slotField.injection).DuplicateElement();
-            }
-        }
-        public void DeleteSelf()
-        {
-            if (IsList())
-            {
-                var slotField = unionSlot.slotInjected;
-                slotField.behav.GetSlotList(slotField.injection).DeleteElement(gameObject);
-            }
         }
 #if UNITY_EDITOR
         [BlackList]

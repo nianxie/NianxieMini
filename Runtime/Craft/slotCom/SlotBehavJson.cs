@@ -10,7 +10,7 @@ namespace Nianxie.Craft
         public string classPath = "";
         public string[] nestedKeys = EnvPaths.NESTED_KEYS_EMPTY;
         public Dictionary<string, AbstractSlotJson> singleDict = new();
-        public Dictionary<string, AbstractSlotJson[]> listDict = new();
+        public Dictionary<string, SlotBehavJson[]> listDict = new();
         public override LuaTable Export(AssetUsageCenter usageCenter)
         {
             var slotTable = usageCenter.NewTable();

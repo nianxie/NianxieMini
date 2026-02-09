@@ -12,8 +12,9 @@ namespace Nianxie.Craft
 {
     public class TextureUsagePool: UsagePool<TextureUsage>
     {
-        public TextureUsagePool(Action<UnityEngine.Object> releaseFn) {
-            this.releaseFn = releaseFn;
+        public TextureUsagePool(CraftManager craftManager) 
+        {
+            releaseFn = craftManager.ShellRelease;
         }
         public TextureUsage AddByUpload(Texture2D uploadTex)
         {

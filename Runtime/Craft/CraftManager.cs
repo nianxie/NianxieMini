@@ -264,5 +264,9 @@ namespace Nianxie.Craft
             (this as ISlotHandler).ShellRefresh();
         }
         #endregion
+        public void ShellRelease(UnityEngine.Object obj)
+        {
+            editArgs.shellRelease.Action(obj);
+        }
     }
 }

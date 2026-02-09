@@ -12,8 +12,9 @@ namespace Nianxie.Craft
 {
     public class BinaryUsagePool: UsagePool<BinaryUsage>
     {
-        public BinaryUsagePool(Action<UnityEngine.Object> releaseFn) {
-            this.releaseFn = releaseFn;
+        public BinaryUsagePool(CraftManager craftManager) 
+        {
+            releaseFn = craftManager.ShellRelease;
         }
         
         public async UniTask<(ManifestRiffJson.BinaryMeta[], List<byte[]>)> PackBinariesAndList()

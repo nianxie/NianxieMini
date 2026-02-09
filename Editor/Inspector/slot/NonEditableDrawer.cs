@@ -14,5 +14,9 @@ namespace Nianxie.Editor
                 EditorGUI.PropertyField(position, property, true);
             }
         }
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        {
+            return EditorGUI.GetPropertyHeight(property, label, true);
+        }
     }
 }
