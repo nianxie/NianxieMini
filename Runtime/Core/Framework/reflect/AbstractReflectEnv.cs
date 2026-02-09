@@ -103,17 +103,17 @@ namespace XLua
                 var miniBootTable = LoadString<LuaFunction>(miniBoot, nameof(miniBoot)).Func<LuaTable>();
                 boot = new BootTable(miniBootTable);
             }
-            translator.Push(rawL, BuildPrintFunc(LogType.Log));
+            translator.Push(rawL, BuildPrintFunc(boot, LogType.Log));
             if (0 != LuaAPI.xlua_setglobal(rawL, "print"))
             {
                 throw new Exception("call xlua_setglobal fail!");
             }
-            translator.Push(rawL, BuildPrintFunc(LogType.Warning));
+            translator.Push(rawL, BuildPrintFunc(boot, LogType.Warning));
             if (0 != LuaAPI.xlua_setglobal(rawL, "printwarn"))
             {
                 throw new Exception("call xlua_setglobal fail!");
             }
-            translator.Push(rawL, BuildPrintFunc(LogType.Error));
+            translator.Push(rawL, BuildPrintFunc(boot, LogType.Error));
             if (0 != LuaAPI.xlua_setglobal(rawL, "printerror"))
             {
                 throw new Exception("call xlua_setglobal fail!");
@@ -214,13 +214,13 @@ namespace XLua
         }
         
         private static StringBuilder _sbCache = new StringBuilder(1024);
-        private lua_CSFunction BuildPrintFunc(UnityEngine.LogType logType)
+        private static lua_CSFunction BuildPrintFunc(BootTable boot, UnityEngine.LogType logType)
         {
             return (IntPtr invokeL) =>
             {
                 try
                 {
-                    int n = LuaAPI.lua_gettop(L);
+                    int n = LuaAPI.lua_gettop(invokeL);
                     _sbCache.Clear();
     #if UNITY_EDITOR // TODO 支持手机端debug模式
                     // := local currentline = boot.CurrentLine(3)
@@ -237,35 +237,35 @@ namespace XLua
                     _sbCache.Append(':');
                     _sbCache.Append(LuaAPI.xlua_tointeger(invokeL, -1));
                     _sbCache.Append(") ");
-                    LuaAPI.lua_settop(L, n);  /* recover stack */
+                    LuaAPI.lua_settop(invokeL, n);  /* recover stack */
     #endif
 
-                    if (0 != LuaAPI.xlua_getglobal(L, "tostring"))
+                    if (0 != LuaAPI.xlua_getglobal(invokeL, "tostring"))
                     {
-                        return LuaAPI.luaL_error(L, "can not get tostring in print:");
+                        return LuaAPI.luaL_error(invokeL, "can not get tostring in print:");
                     }
 
                     for (int i = 1; i <= n; i++)
                     {
-                        LuaAPI.lua_pushvalue(L, -1);  /* function to be called */
-                        LuaAPI.lua_pushvalue(L, i);   /* value to print */
-                        if (0 != LuaAPI.lua_pcall(L, 1, 1, 0))
+                        LuaAPI.lua_pushvalue(invokeL, -1);  /* function to be called */
+                        LuaAPI.lua_pushvalue(invokeL, i);   /* value to print */
+                        if (0 != LuaAPI.lua_pcall(invokeL, 1, 1, 0))
                         {
-                            return LuaAPI.lua_error(L);
+                            return LuaAPI.lua_error(invokeL);
                         }
-                        _sbCache.Append(LuaAPI.lua_tostring(L, -1));
+                        _sbCache.Append(LuaAPI.lua_tostring(invokeL, -1));
 
                         if (i != n) _sbCache.Append('\t');
 
-                        LuaAPI.lua_pop(L, 1);  /* pop result */
+                        LuaAPI.lua_pop(invokeL, 1);  /* pop result */
                     }
 
     #if UNITY_EDITOR // TODO 支持手机端debug模式
                     // push stack info
                     _sbCache.AppendLine();
-                    LuaAPI.luaL_traceback(L, L, IntPtr.Zero, 1);
-                    _sbCache.Append(LuaAPI.lua_tostring(L, -1));
-                    LuaAPI.lua_pop(L, 1);  /* pop result */
+                    LuaAPI.luaL_traceback(invokeL, invokeL, IntPtr.Zero, 1);
+                    _sbCache.Append(LuaAPI.lua_tostring(invokeL, -1));
+                    LuaAPI.lua_pop(invokeL, 1);  /* pop result */
     #endif
 
                     UnityEngine.Debug.unityLogger.Log(logType, _sbCache.ToString());
@@ -273,7 +273,7 @@ namespace XLua
                 }
                 catch (System.Exception e)
                 {
-                    return LuaAPI.luaL_error(L, "c# exception in print:" + e);
+                    return LuaAPI.luaL_error(invokeL, "c# exception in print:" + e);
                 }
             };
         }
