@@ -60,8 +60,16 @@ namespace Nianxie.Craft
         
         private void OnDestroy()
         {
-            textureUsagePool.Clear();
-            binaryUsagePool.Clear();
+            if (textureUsagePool != null)
+            {
+                textureUsagePool.Clear();
+                textureUsagePool = null;
+            }
+            if(binaryUsagePool != null) 
+            {
+                binaryUsagePool.Clear();
+                binaryUsagePool = null;
+            }
         }
 
         public LuaTable NewTable()

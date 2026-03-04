@@ -8,10 +8,8 @@ using XLua;
 namespace Nianxie.Components
 {
 	[DisallowMultipleComponent]
-    public abstract class LuaBehaviour : MonoBehaviour
+    public abstract class LuaBehaviour : SpawnBehaviour
     {
-        // 需要让带有LuaBehaviour的Luafab在Instantiate的时候持有luaModule的引用，由AssetModule遍历赋值
-        [BlackList] public AbstractGameManager gameManager;
         private bool created = false;
         private LuaTable _luaTable = null;
 		public LuaTable luaTable

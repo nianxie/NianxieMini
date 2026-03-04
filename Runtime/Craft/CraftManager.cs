@@ -195,7 +195,7 @@ namespace Nianxie.Craft
             // Instantiate MiniCraft as rootSlot
             var miniCraftLuafab = manager.GetComponent<AssetModule>().AttachLuafabLoading(manager.bridge.envPaths.miniCraftLuafabPath, false);
             await miniCraftLuafab.WaitTask;
-            var behav = miniCraftLuafab.RawFork(editArea.transform);
+            var behav = miniCraftLuafab.ForkBehav(editArea.transform);
             if (behav is SlotBehaviour slotBehav)
             {
                 rootSlot = slotBehav;

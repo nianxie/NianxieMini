@@ -61,6 +61,10 @@ namespace Nianxie.Preview
             [SerializeField]
             private GameObject menuCanvasGo;
             [SerializeField]
+            private GameObject playScrollGo;
+            [SerializeField]
+            private GameObject editScrollGo;
+            [SerializeField]
             private RectTransform playMenu;
             [SerializeField]
             private RectTransform editMenu;
@@ -92,13 +96,13 @@ namespace Nianxie.Preview
                 }
 
                 playMenu.sizeDelta = new Vector2(0, playCount*200);
-                playMenu.gameObject.SetActive(true);
+                playScrollGo.gameObject.SetActive(true);
                 editMenu.sizeDelta = new Vector2(0, editCount*200);
-                editMenu.gameObject.SetActive(false);
+                editScrollGo.gameObject.SetActive(false);
                 craft.onValueChanged.AddListener((e) =>
                 {
-                    playMenu.gameObject.SetActive(!e);
-                    editMenu.gameObject.SetActive(e);
+                    playScrollGo.SetActive(!e);
+                    editScrollGo.SetActive(e);
                 });
             }
             public void Show()

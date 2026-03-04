@@ -13,6 +13,7 @@ namespace Nianxie.Framework
         private LuaTable readyFuture;
         private WarmedReflectClass warmedReflect { get; }
         private ICacheLoader cacheLoader;
+        private SpawnBehaviour[] spawnChildren;
 
         [BlackList]
         public LuafabLoading(string resPath, ICacheLoader cacheLoader) : base(resPath)
@@ -27,13 +28,22 @@ namespace Nianxie.Framework
         [HintReturn(typeof(LuaTable), false)]
         public LuaTable Fork(Transform parent)
         {
-            return RawFork(parent).luaTable;
+            return ForkBehav(parent).luaTable;
         }
         
         [BlackList]
-        public LuaBehaviour RawFork(Transform parent)
+        public LuaBehaviour ForkBehav(Transform parent)
         {
-            return Object.Instantiate(luaBehav, parent, false);
+            foreach(var spawnChild in spawnChildren)
+            {
+                spawnChild.gameManager = cacheLoader.GetGameManager();
+            }
+            var newBehav = Object.Instantiate(luaBehav, parent, false);
+            foreach(var spawnChild in spawnChildren)
+            {
+                spawnChild.gameManager = null;
+            }
+            return newBehav;
         }
         
         [HintReturn(typeof(LuafabLoading), true)]
@@ -99,24 +109,26 @@ namespace Nianxie.Framework
             addLoadTaskByReflect(taskList, warmedReflect);
 
             var go = (await selfLoading.WaitTask) as GameObject;
-            var luaChildren = go.GetComponentsInChildren<LuaBehaviour>(true);
-            foreach (var child in luaChildren)
+            spawnChildren = go.GetComponentsInChildren<SpawnBehaviour>(true);
+            foreach (var spawnChild in spawnChildren)
             {
-                child.gameManager = cacheLoader.GetGameManager();
-                // prefab中通过节点引用的prefab也需要处理lua依赖的加载
-                var childLuafabPath = luaEnv.envPaths.classPath2luafabPath(child.classPath);
-                if (childLuafabPath != resPath)
+                if (spawnChild is LuaBehaviour luaChild)
                 {
-                    var childLoading = cacheLoader.CacheLuafabLoading(childLuafabPath, false);
-                    if (!childLoading.Done)
+                    // prefab中通过节点引用的prefab也需要处理lua依赖的加载
+                    var childLuafabPath = luaEnv.envPaths.classPath2luafabPath(luaChild.classPath);
+                    if (childLuafabPath != resPath)
                     {
-                        taskList.Add(childLoading.WaitTask);
+                        var childLoading = cacheLoader.CacheLuafabLoading(childLuafabPath, false);
+                        if (!childLoading.Done)
+                        {
+                            taskList.Add(childLoading.WaitTask);
+                        }
                     }
-                }
-                else if(child.nestedKeys.Length>0)
-                {
-                    var reflectInfo = luaEnv.GetWarmedReflect(child.classPath, child.nestedKeys);
-                    addLoadTaskByReflect(taskList, reflectInfo);
+                    else if(luaChild.nestedKeys.Length>0)
+                    {
+                        var reflectInfo = luaEnv.GetWarmedReflect(luaChild.classPath, luaChild.nestedKeys);
+                        addLoadTaskByReflect(taskList, reflectInfo);
+                    }
                 }
             }
             await UniTask.WhenAll(taskList);

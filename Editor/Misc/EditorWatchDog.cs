@@ -188,6 +188,9 @@ namespace Nianxie.Editor
             }
 
             EditorApplication.hierarchyWindowItemOnGUI += HierarchyItemCB;
+            UnityEditorInternalBridge.ObjectListArea_postAssetIconDrawCallback_add(OnAssetIconDrawForListArea);
+            UnityEditorInternalBridge.AssetsTreeViewGUI_postAssetIconDrawCallback_add(OnAssetIconDrawForTreeView);
+            /*
             var EditorWatchDogType = typeof(EditorWatchDog);
             {
                 var ObjectListAreaType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.ObjectListArea");
@@ -200,7 +203,7 @@ namespace Nianxie.Editor
                 var postAssetIconDrawCallbackEvent = AssetsTreeViewGUIType.GetEvent("postAssetIconDrawCallback", BindingFlags.Static | BindingFlags.NonPublic);
                 var OnAssetIconDrawDelegate = System.Delegate.CreateDelegate(postAssetIconDrawCallbackEvent.EventHandlerType, EditorWatchDogType.GetMethod(nameof(OnAssetIconDrawForTreeView), BindingFlags.Static | BindingFlags.NonPublic));
                 postAssetIconDrawCallbackEvent.GetAddMethod(true).Invoke(null, new object[] { OnAssetIconDrawDelegate });
-            }
+            }*/
             folderIcon = EditorGUIUtility.FindTexture("folder icon");
             prefabIcon = EditorGUIUtility.FindTexture("prefab icon");
             spriteIconContent = EditorGUIUtility.IconContent("Sprite Icon");

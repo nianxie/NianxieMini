@@ -8,7 +8,6 @@ using XLua;
 
 namespace Nianxie.Framework
 {
-
     public abstract class AbstractGameModule: MonoBehaviour
     {
         [SerializeField] 
