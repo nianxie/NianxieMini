@@ -15,12 +15,12 @@ namespace XLua
 {
     public class EditorReflectEnv:AbstractReflectEnv
     {
-        public static EditorReflectEnv Create(EditorEnvPaths envPaths, Func<byte[]> miniBootGetter)
+        public static EditorReflectEnv Create(EditorEnvPaths envPaths, IEnvExtension envExtension)
         {
-            var env = new EditorReflectEnv(envPaths);
+            var env = new EditorReflectEnv(envPaths, envExtension);
             try
             {
-                env.Bootstrap(miniBootGetter?.Invoke());
+                env.Bootstrap();
                 env.Warmup();
             }
             catch (Exception e)
@@ -32,7 +32,7 @@ namespace XLua
         
         public override IReadOnlyDictionary<string, TextAsset> scriptAssetDict { get; }
 
-        private EditorReflectEnv(EditorEnvPaths envPaths) : base(envPaths)
+        private EditorReflectEnv(EditorEnvPaths envPaths, IEnvExtension envExtension) : base(envPaths, envExtension)
         {
             scriptAssetDict = new ReadonlyScriptAssetDictionary(envPaths.collectScriptDict);
         }

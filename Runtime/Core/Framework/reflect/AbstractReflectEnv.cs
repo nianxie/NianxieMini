@@ -9,9 +9,27 @@ using LuaAPI = XLua.LuaDLL.Lua;
 
 namespace XLua
 {
+
     [BlackList]
     public abstract class AbstractReflectEnv : LuaEnv
     {
+        public interface IEnvExtension
+        {
+            public LuaTable LoadBootTable(AbstractReflectEnv reflectEnv);
+        }
+
+        public class MiniEnvExtension : IEnvExtension
+        {
+            private byte[] miniBoot;
+            public MiniEnvExtension(byte[] miniBoot)
+            {
+                this.miniBoot = miniBoot;
+            }
+            public LuaTable LoadBootTable(AbstractReflectEnv reflectEnv)
+            {
+                return reflectEnv.LoadString<LuaFunction>(miniBoot, nameof(miniBoot)).Func<LuaTable>();
+            }
+        }
         public TextAsset searchTextAssetForRequire(ref string strPath)
         {
             strPath = strPath.Replace('.', '/');
@@ -56,16 +74,17 @@ namespace XLua
         }
 
         public readonly EnvPaths envPaths;
-        protected readonly LuaFunction luaRequire = null;
+        private readonly LuaFunction luaRequire = null;
         protected readonly LuaFunction luaRawequal = null;
         protected readonly LuaFunction luaSetmetatable = null;
         protected readonly Dictionary<string, WarmedReflectClass> fileWarmedReflectDict = new();
         private readonly LuaTable fileClsOpenSet;
         protected LuaFunction contextNew { get; private set; }
         protected BootTable boot { get; private set; }
+        private readonly IEnvExtension extension;
 
         // editor模式下用来在inspector上显示lua层定义的属性，runtime模式下会挂在LuaModule上
-        protected AbstractReflectEnv(EnvPaths vEnvPaths)
+        protected AbstractReflectEnv(EnvPaths vEnvPaths, IEnvExtension envExtension)
         {
             AddBuildin("rapidjson", XLua.LuaDLL.Lua.LoadRapidJson);
             envPaths = vEnvPaths;
@@ -74,35 +93,33 @@ namespace XLua
             luaRawequal = Global.Get<string, LuaFunction>("rawequal");
             luaSetmetatable = Global.Get<string, LuaFunction>("setmetatable");
             fileClsOpenSet = NewTable();
+            extension = envExtension;
         }
 
         public abstract IReadOnlyDictionary<string, TextAsset> scriptAssetDict { get; }
+
+        public TExtension GetExtension<TExtension>() where TExtension: class, IEnvExtension
+        {
+            return (extension as TExtension)!;
+        }
 
         public bool IsFileClass(LuaTable clsOpen)
         {
             return fileClsOpenSet.ContainsKey(clsOpen);
         }
         
+
         /// <summary>
-        /// 启动：加载boot，mini模式下加载miniBoot，shell模式下require boot.boot
+        /// 启动：加载boot
         /// </summary>
-        protected virtual void Bootstrap(byte[] miniBoot) 
+        protected virtual void Bootstrap()
         {
             if (boot != null)
             {
                 throw new Exception("ReflectEnv.Bootstrap called more than once");
             }
-            if (miniBoot == null)
-            {
-                // miniBoot 为空时为shell的ReflectEnv
-                boot = new BootTable(RequireTable("boot.boot"));
-            }
-            else
-            {
-                // miniBoot 不为空时为mini的ReflectEnv
-                var miniBootTable = LoadString<LuaFunction>(miniBoot, nameof(miniBoot)).Func<LuaTable>();
-                boot = new BootTable(miniBootTable);
-            }
+            boot = new BootTable(extension.LoadBootTable(this));
+            
             translator.Push(rawL, BuildPrintFunc(boot, LogType.Log));
             if (0 != LuaAPI.xlua_setglobal(rawL, "print"))
             {
@@ -204,7 +221,7 @@ namespace XLua
             return warmedReflect;
         }
 
-        protected LuaTable RequireTable(string module)
+        public LuaTable RequireTable(string module)
         {
             return luaRequire.Func<string, LuaTable>(module);
         }

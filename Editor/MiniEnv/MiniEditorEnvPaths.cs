@@ -33,7 +33,7 @@ namespace Nianxie.Editor
         protected override EditorReflectEnv CreateReflectEnv()
         {
             Debug.Log($"mini refresh editor reflect env : {pathPrefix}");
-            return EditorReflectEnv.Create(this, ()=>PreviewAssets.instance.miniBoot.bytes);
+            return EditorReflectEnv.Create(this, new AbstractReflectEnv.MiniEnvExtension(PreviewAssets.instance.miniBoot.bytes));
         }
         
         private readonly string buildDir;

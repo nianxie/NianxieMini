@@ -37,7 +37,7 @@ namespace Nianxie.Framework
         
         protected override RuntimeReflectEnv CreateReflectEnv()
         {
-            return RuntimeReflectEnv.Create(this, bridge.envPaths, bridge.miniBoot);
+            return RuntimeReflectEnv.Create(this, bridge.envPaths, new AbstractReflectEnv.MiniEnvExtension(bridge.miniBoot));
         }
         public override IAssetLoader GetAssetLoader()
         {

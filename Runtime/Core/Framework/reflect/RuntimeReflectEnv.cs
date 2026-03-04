@@ -9,10 +9,10 @@ namespace XLua
 {
     public class RuntimeReflectEnv : AbstractReflectEnv
     {
-        public static RuntimeReflectEnv Create(AbstractGameManager gameManager, EnvPaths envPaths, byte[] miniBoot)
+        public static RuntimeReflectEnv Create(AbstractGameManager gameManager, EnvPaths envPaths, IEnvExtension envExtension)
         {
-            var env = new RuntimeReflectEnv(gameManager, envPaths);
-            env.Bootstrap(miniBoot);
+            var env = new RuntimeReflectEnv(gameManager, envPaths, envExtension);
+            env.Bootstrap();
             env.Warmup();
             return env;
         }
@@ -20,15 +20,15 @@ namespace XLua
         public readonly AssetModule assetModule;
         public readonly AsyncHelper asyncHelper;
 
-        private RuntimeReflectEnv(AbstractGameManager gameManager, EnvPaths vEnvPaths) : base(vEnvPaths)
+        private RuntimeReflectEnv(AbstractGameManager gameManager, EnvPaths vEnvPaths, IEnvExtension envExtension) : base(vEnvPaths, envExtension)
         {
             assetModule = gameManager.GetComponent<AssetModule>();
             asyncHelper = gameManager.GetComponent<AsyncHelper>();
         }
 
-        protected override void Bootstrap(byte[] miniBoot)
+        protected override void Bootstrap()
         {
-            base.Bootstrap(miniBoot);
+            base.Bootstrap();
             boot.InitHelper.Action(asyncHelper);
         }
 
