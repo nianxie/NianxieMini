@@ -15,7 +15,7 @@ namespace XLua
     {
         public interface IEnvExtension
         {
-            public LuaTable LoadBootTable(AbstractReflectEnv reflectEnv);
+            public LuaTable OnBootstrap(AbstractReflectEnv reflectEnv);
         }
 
         public class MiniEnvExtension : IEnvExtension
@@ -25,7 +25,7 @@ namespace XLua
             {
                 this.miniBoot = miniBoot;
             }
-            public LuaTable LoadBootTable(AbstractReflectEnv reflectEnv)
+            LuaTable IEnvExtension.OnBootstrap(AbstractReflectEnv reflectEnv)
             {
                 return reflectEnv.LoadString<LuaFunction>(miniBoot, nameof(miniBoot)).Func<LuaTable>();
             }
@@ -118,7 +118,7 @@ namespace XLua
             {
                 throw new Exception("ReflectEnv.Bootstrap called more than once");
             }
-            boot = new BootTable(extension.LoadBootTable(this));
+            boot = new BootTable(extension.OnBootstrap(this));
             
             translator.Push(rawL, BuildPrintFunc(boot, LogType.Log));
             if (0 != LuaAPI.xlua_setglobal(rawL, "print"))
@@ -221,13 +221,26 @@ namespace XLua
             return warmedReflect;
         }
 
+        private T Require<T>(string module)
+        {
+            try
+            {
+                return luaRequire.Func<string, T>(module);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"require {module} error : {e}");
+                throw;
+            }
+        }
+
         public LuaTable RequireTable(string module)
         {
-            return luaRequire.Func<string, LuaTable>(module);
+            return Require<LuaTable>(module);
         }
         private LuaFunction RequireFunction(string module)
         {
-            return luaRequire.Func<string, LuaFunction>(module);
+            return Require<LuaFunction>(module);
         }
         
         private static StringBuilder _sbCache = new StringBuilder(1024);

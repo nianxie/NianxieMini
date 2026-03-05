@@ -2,7 +2,9 @@
     "name": "Unity.InternalAPIEditorBridge.013",
     "rootNamespace": "",
     "references": [],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
