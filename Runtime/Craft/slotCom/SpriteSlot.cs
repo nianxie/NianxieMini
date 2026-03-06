@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using Nianxie.Framework;
 using Nianxie.Riff;
 using UnityEngine;
 using XLua;

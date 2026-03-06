@@ -14,7 +14,7 @@ namespace Nianxie.Editor
     {
         private static bool TrySilentMap(string assetPath, out EditorEnvPaths envPaths)
         {
-            if (EditorWatchDog.shellDog!=null && EditorWatchDog.shellDog.TryEnvPaths(assetPath, out envPaths))
+            if (EditorWatchDog.shellWatchDog!=null && EditorWatchDog.shellWatchDog.TryEnvPaths(assetPath, out envPaths))
             {
                 return true;
             }

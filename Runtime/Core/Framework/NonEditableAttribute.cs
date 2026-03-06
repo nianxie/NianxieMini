@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Nianxie.Craft
+namespace Nianxie.Framework
 {
     public class NonEditableAttribute: PropertyAttribute
     {

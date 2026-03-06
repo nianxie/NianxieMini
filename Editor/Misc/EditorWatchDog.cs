@@ -17,16 +17,16 @@ namespace Nianxie.Editor
     [InitializeOnLoad]
     public static class EditorWatchDog
     {
-        public interface IShellDog
+        public interface IShellWatchDog
         {
             (bool, Color) CustomColorFunc(GameObject go);
             bool TryEnvPaths(string assetPath, out EditorEnvPaths envPaths);
         }
 
-        public static IShellDog shellDog;
+        public static IShellWatchDog shellWatchDog;
         public static bool TryMapEnvPaths(string assetPath, out EditorEnvPaths envPaths)
         {
-            if (shellDog != null && shellDog.TryEnvPaths(assetPath, out envPaths))
+            if (shellWatchDog != null && shellWatchDog.TryEnvPaths(assetPath, out envPaths))
             {
                 return true;
             }
@@ -90,9 +90,9 @@ namespace Nianxie.Editor
             
 
             var iconRect = new Rect(selectionRect.xMin, selectionRect.yMin, selectionRect.height, selectionRect.height);
-            if (shellDog != null)
+            if (shellWatchDog != null)
             {
-                var (useCustomColor, color) = shellDog.CustomColorFunc(go);
+                var (useCustomColor, color) = shellWatchDog.CustomColorFunc(go);
                 if (useCustomColor)
                 {
                     GUI.DrawTexture(iconRect, prefabIcon, ScaleMode.StretchToFill, true, 0, color, 0, 0);

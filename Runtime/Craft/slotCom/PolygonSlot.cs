@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
+using Nianxie.Framework;
 using XLua;
 using Debug = UnityEngine.Debug;
 
