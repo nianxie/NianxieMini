@@ -13,23 +13,16 @@ namespace XLua
     [BlackList]
     public abstract class AbstractReflectEnv : LuaEnv
     {
-        public interface IEnvExtension
+        public abstract class IEnvExtension
         {
-            public LuaTable OnBootstrap(AbstractReflectEnv reflectEnv);
+            // ShellContext, MiniContext
+            public string contextName { get; protected set; }
+
+            // ShellRoot, MiniRoot
+            public string rootLuafabPath { get; protected set; }
+            public abstract LuaTable OnBootstrap(AbstractReflectEnv reflectEnv);
         }
 
-        public class MiniEnvExtension : IEnvExtension
-        {
-            private byte[] miniBoot;
-            public MiniEnvExtension(byte[] miniBoot)
-            {
-                this.miniBoot = miniBoot;
-            }
-            LuaTable IEnvExtension.OnBootstrap(AbstractReflectEnv reflectEnv)
-            {
-                return reflectEnv.LoadString<LuaFunction>(miniBoot, nameof(miniBoot)).Func<LuaTable>();
-            }
-        }
         public TextAsset searchTextAssetForRequire(ref string strPath)
         {
             strPath = strPath.Replace('.', '/');
@@ -82,6 +75,7 @@ namespace XLua
         protected LuaFunction contextNew { get; private set; }
         protected BootTable boot { get; private set; }
         private readonly IEnvExtension extension;
+        public string rootLuafabPath => extension.rootLuafabPath;
 
         // editor模式下用来在inspector上显示lua层定义的属性，runtime模式下会挂在LuaModule上
         protected AbstractReflectEnv(EnvPaths vEnvPaths, IEnvExtension envExtension)
@@ -98,7 +92,7 @@ namespace XLua
 
         public abstract IReadOnlyDictionary<string, TextAsset> scriptAssetDict { get; }
 
-        public TExtension GetExtension<TExtension>() where TExtension: class, IEnvExtension
+        public TExtension GetExtension<TExtension>() where TExtension: IEnvExtension
         {
             return (extension as TExtension)!;
         }
@@ -143,7 +137,7 @@ namespace XLua
         /// </summary>
         protected void Warmup()
         {
-            contextNew = RequireFunction(envPaths.contextName);
+            contextNew = RequireFunction(extension.contextName);
             var okayPairList = new List<(string, LuaTable)>();
             var errPairList = new List<(string, string)>();
             foreach (var luaAssetPath in scriptAssetDict.Keys)

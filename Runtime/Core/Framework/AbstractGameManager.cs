@@ -24,7 +24,7 @@ namespace Nianxie.Framework
         {
             context = reflectEnv.CreateContext();
             // 加载root prefab
-            rootLuafabLoading = reflectEnv.assetModule.AttachLuafabLoading(reflectEnv.envPaths.rootLuafabPath, false);
+            rootLuafabLoading = reflectEnv.assetModule.AttachLuafabLoading(reflectEnv.rootLuafabPath, false);
             await rootLuafabLoading.WaitTask;
         }
 

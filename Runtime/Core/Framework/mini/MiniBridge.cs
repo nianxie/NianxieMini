@@ -35,7 +35,7 @@ namespace Nianxie.Framework
             this.assetBundle = assetBundle;
             this.miniBoot = miniBoot;
             this.riffPackage = riffPackage;
-            envPaths = EnvPaths.MiniEnvPaths(folder);
+            envPaths = EnvPaths.RuntimeEnvPaths(EnvPaths.miniFolder2pathPrefix(folder));
         }
 
         #region // 以下是AssetLoader的相关函数

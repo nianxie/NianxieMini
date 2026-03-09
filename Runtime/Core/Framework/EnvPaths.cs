@@ -7,16 +7,13 @@ namespace Nianxie.Framework
 {
     public class EnvPaths
     {
-        private const string MiniRoot = nameof(MiniRoot);
-        private const string MiniContext = nameof(MiniContext);
-
-        public static EnvPaths MiniEnvPaths(string folder)
+        public static EnvPaths RuntimeEnvPaths(string pathPrefix)
         {
-            return new EnvPaths(folder);
+            return new EnvPaths(pathPrefix);
         }
-        public static EnvPaths NotMiniEnvPaths(string vPrefix, string vContextName, string vRootLuafabPath)
+        public static string miniFolder2pathPrefix(string miniFolder)
         {
-            return new EnvPaths(vPrefix, vContextName, vRootLuafabPath);
+            return $"{NianxieConst.MiniPrefixPath}/{miniFolder}";
         }
 
         public static readonly string[] NESTED_KEYS_EMPTY = {};
@@ -29,35 +26,18 @@ namespace Nianxie.Framework
         public readonly string luafabPathPrefix;
         public readonly string srcPathPrefix;
         
-        // ShellContext, MiniContext
-        public readonly string contextName;
-        
-        // ShellRoot, MiniRoot
-        public readonly string rootLuafabPath;
-        
-        // MiniCraft
-        public readonly string miniCraftLuafabPath;
-        
         // config.txt
         public readonly string miniProjectConfig;
 
-        protected EnvPaths(string vPrefix, string vContextName, string vRootLuafabPath)
+        protected EnvPaths(string vPrefix)
         {
             pathPrefix = vPrefix;
-            contextName = vContextName;
             luafabPathPrefix = $"{pathPrefix}/{LUAFAB}";
             srcPathPrefix = $"{pathPrefix}/{SRC}";
-            rootLuafabPath = $"{luafabPathPrefix}/{vRootLuafabPath}.prefab";
-        }
-
-        // mini envPaths constructor
-        protected EnvPaths(string folder):this($"{NianxieConst.MiniPrefixPath}/{folder}", MiniContext, MiniRoot)
-        {
-            // mini env path
-            miniCraftLuafabPath = $"{luafabPathPrefix}/MiniCraft.prefab";
+            // mini config
             miniProjectConfig = $"{pathPrefix}/{NianxieConst.ConfigTxt}";
         }
-        
+
         /// <summary>
         /// aaa.bbb -> {prefix}/aaa/bbb.prefab
         /// </summary>

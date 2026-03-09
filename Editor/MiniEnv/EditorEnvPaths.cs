@@ -41,11 +41,7 @@ namespace Nianxie.Editor
             _reflectEnv = null;
         }
 
-        protected EditorEnvPaths(string vPrefix, string vContextName, string vRootLuafabPath):base(vPrefix, vContextName, vRootLuafabPath)
-        {
-        }
-
-        protected EditorEnvPaths(string folder) : base(folder)
+        protected EditorEnvPaths(string vPrefix):base(vPrefix)
         {
         }
     }

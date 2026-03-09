@@ -33,7 +33,7 @@ namespace Nianxie.Editor
         protected override EditorReflectEnv CreateReflectEnv()
         {
             Debug.Log($"mini refresh editor reflect env : {pathPrefix}");
-            return EditorReflectEnv.Create(this, new AbstractReflectEnv.MiniEnvExtension(PreviewAssets.instance.miniBoot.bytes));
+            return EditorReflectEnv.Create(this, new MiniEnvExtension(this, PreviewAssets.instance.miniBoot.bytes));
         }
         
         private readonly string buildDir;
@@ -41,7 +41,7 @@ namespace Nianxie.Editor
         public Dictionary<BuildTarget, string> finalBundleDict { get; }
 
         public readonly string folder;
-        private MiniEditorEnvPaths(string folder):base(folder)
+        private MiniEditorEnvPaths(string folder):base(miniFolder2pathPrefix(folder))
         {
             this.folder = folder;
             buildDir = MiniBundleManifest.GetFinalBuildDir(folder);
