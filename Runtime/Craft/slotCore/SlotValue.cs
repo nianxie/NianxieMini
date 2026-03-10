@@ -10,7 +10,7 @@ namespace Nianxie.Craft
     [Serializable]
     public class SlotValue<T>:AbstractSlotValue
     {
-        public T defaultValue;
+        public T defaultValue = default(T);
         private T assignedValue;
         private bool isAssigned;
 

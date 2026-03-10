@@ -44,11 +44,12 @@ namespace Nianxie.Craft
 
         private void RefreshTrack()
         {
+            /*
             m_RectTracker.Clear();
             if (m_TextMeshPro != null)
             {
                 m_RectTracker.Add(selectHead, m_TextMeshPro.rectTransform, DrivenTransformProperties.All);
-            }
+            }*/
         }
 
         private void OnDestroy()
@@ -199,7 +200,7 @@ namespace Nianxie.Craft
                 UnityEditor.EditorUtility.SetDirty(this);
             }
             m_SlotValue.defaultValue = "Default Text";
-            RefreshTrack();
+            //RefreshTrack();
         }
 
 #endif
