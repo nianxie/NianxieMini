@@ -36,12 +36,12 @@ namespace Nianxie.Editor
             for (int i = 0; i < parts.Length; i++)
             {
                 AdvancedDropdownItem child = null;
-                // 查找是否已有同名节点
+                // 查找有下一级的同名节点
                 if (current.children != null)
                 {
                     foreach (var c in current.children)
                     {
-                        if (c.name == parts[i]) { child = c; break; }
+                        if (c.name == parts[i] && c.id == -1) { child = c; break; }
                     }
                 }
 
@@ -50,8 +50,14 @@ namespace Nianxie.Editor
                     child = new AdvancedDropdownItem(parts[i]);
                     if (i == parts.Length - 1)
                     {
+                        // 如果没有下一级节点，则id赋值为index
                         child.id = index;
                         child.displayName = $"{parts[i]} - {display}";
+                    }
+                    else
+                    {
+                        // 如果有下一级节点，则id为-1
+                        child.id = -1;
                     }
                     current.AddChild(child);
                 }
