@@ -1,5 +1,7 @@
 # Nianxie 互动叙事短游戏Unity插件
 
+# 注意！目前项目技术方案迁移，Unity相关功能暂停维护。新的接入方式请参考[websdk](https://github.com/nianxie/nianxie_web_sdk)
+
 ## Unity版本
 
 2022.3.62f2c1
